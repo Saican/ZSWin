@@ -1,0 +1,63 @@
+/*
+	ZSWin_Text.txt
+	
+	This is the string management class.
+	All text that makes it onto the screen in a Z-Window
+	is stored in an instance of this class.
+
+*/
+
+class ZText
+{
+	string Text;
+	int CRColor;
+	
+	enum TXTWRAP
+	{
+		wrap,
+		dynwrap,
+		nowrap,
+	};
+	TXTWRAP TextWrap;
+	
+	enum TEXTALIGN
+	{
+		left,
+		right,
+		center,
+	};
+	TEXTALIGN Alignment;
+	
+	Font font;
+	
+	float xLocation, 
+		yLocation,
+		Alpha;
+	
+	ZText Init (string Text, int CRColor, TXTWRAP TextWrap, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0)
+	{
+		self.Text = Text;
+		self.CRColor = CRColor;
+		self.TextWrap = TextWrap;
+		self.Alignment = Alignment;
+		self.font = Font.GetFont(fontName);
+		self.xLocation = xLocation;
+		self.yLocation = yLocation;
+		self.Alpha = Alpha;
+		if (font)
+			return self;
+		else
+			return null;
+	}
+	
+	float GetAlignment (float nwd_xLocation, float nwd_Width = 0.0, string line = "")
+	{
+		switch (Alignment)
+		{
+			default:
+			case left: return nwd_xLocation + xLocation;
+			case right: return (nwd_xLocation + nwd_Width) - (font.StringWidth(line) + xLocation);
+			case center: return nwd_xLocation + ((nwd_Width - font.StringWidth(line)) / 2);
+		}
+	}
+}

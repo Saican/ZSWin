@@ -1,0 +1,10 @@
+version "4.2.1"
+#include "zscript/zswin/ZDebugMsg.txt"
+#include "zscript/zswin/ZSWin_Base.txt"
+#include "zscript/zswin/ZSWin_Border.txt"
+#include "zscript/zswin/ZSWin_Handler.txt"
+#include "zscript/zswin/ZSWin_Shapes.txt"
+#include "zscript/zswin/ZSWin_Text.txt"
+#include "zscript/zswin/ZSWindow.txt"
+
+#include "zscript/test/ZSWin_Terminal.txt"

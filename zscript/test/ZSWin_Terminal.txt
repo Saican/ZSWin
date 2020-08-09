@@ -1,0 +1,71 @@
+/*
+	This is a demo ZS-Window that can actually be inherited from
+	and modified.
+	
+	Usage would call PostBeginPlay as a super, and then initialize to 
+	desired outcome.  Inherited windows do not need to override Init.
+	
+	You may call DebugOut at any point to send messages to the screen,
+	however until the window has found the handler, messages will be
+	held in a temporary array and printed when possible.
+
+*/
+class ZSWin_Terminal : ZSWindow
+{
+	override void PostBeginPlay()
+	{
+		if (GetAge() < 1)
+		{
+			self.Init(true, "ZSWINTerminalTest", self.tid, null);
+			// If inheriting, do further initialization from here.
+			// This will give the inheriting window the final say.
+			
+			// - While the title is a unique member, it is still a ZText instance and users have full control over it.
+			// - The Init method defaults the yLocation and Alpha args
+			// - Locations are relative to the window
+			Title = new("ZText").Init("ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
+									Font.CR_Gold, 
+									ZText.wrap, 
+									ZText.center, 
+									"bigfont", 
+									0.0);
+									
+			Text.Push(new("ZText").Init("Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
+										Font.CR_White,
+										ZText.wrap,
+										ZText.Left,
+										"newsmallfont",
+										5.0,
+										35.0));
+										
+			Shapes.Push(new("ZShape").Init(ZShape.thickline,
+											"Blue",
+											0.0, 0.0,
+											0.0, Width));
+		}
+	}
+	
+	override void Init(bool enabled, string name, int player, Object this)
+	{
+		DebugOut("Initializing window.", Font.CR_Gray);
+		
+		// This has to be called first prior to all other initialization
+		TrueZero();
+		
+		// Starting dimensions
+		Width = 350;
+		Height = 550;
+		
+		// Starting location
+		[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
+		
+		BackgroundType = ZWin_Default;
+		BackgroundAlpha = 0.8;
+		Stretch = true;
+		
+		BorderType = ZWin_Border;
+
+		// Call the super last - it does further initializaton from what is defined here
+		super.Init(enabled, name, player, self);
+	}
+}

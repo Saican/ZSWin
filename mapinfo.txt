@@ -1,0 +1,4 @@
+gameinfo
+{
+	EventHandlers = "ZSWin_Handler"
+}

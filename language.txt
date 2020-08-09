@@ -1,0 +1,12 @@
+[enu default]
+
+OPTMNU_ZSWINHEADING = "ZScript Windows v0.1";
+OPTMNU_ZSWINMNUNAME = "ZScript Windows Options";
+
+SUBMNU_ZSWINHEADER_GENERAL = "- General -";
+SUBMNU_ZSWINGENERAL_CURSORTOGGLE = "Cursor Toggle";
+SUBMNU_ZSWINGENERAL_CURSORTOGGLE_TOOLTIP = "Bind a key you don't use but is easy to reach.\nThis turns the cursor on and off.";
+
+SUBMNU_ZSWINHEADER_MISC = "- Miscellaneous -";
+SUBMNU_ZSWINMISC_DEBUG = "Send Debug Messages to Console";
+SUBMNU_ZSWINMISC_DEBUG_TOOLTIP = "If on, detailed messages from various parts of\nZScript Windows will be printed to the console.";

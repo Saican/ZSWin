@@ -1,0 +1,23 @@
+AddOptionMenu "OptionsMenu"
+{
+	StaticText ""
+	StaticText "$OPTMNU_ZSWINHEADING"
+	SubMenu "$OPTMNU_ZSWINMNUNAME", "ZSWinOptions"
+}
+
+OptionMenu "ZSWinOptions"
+{
+	Class "TLTPOptionsMenu"
+	Title "$OPTMNU_ZSWINMNUNAME"
+	Position -32
+	
+	StaticText ""
+	
+	StaticText "$SUBMNU_ZSWINHEADER_GENERAL", "Gold"
+	TLTPControl "$SUBMNU_ZSWINGENERAL_CURSORTOGGLE", "$SUBMNU_ZSWINGENERAL_CURSORTOGGLE_TOOLTIP", "White", "NetEvent zswin_cursorToggle"
+	
+	StaticText ""
+	
+	StaticText "$SUBMNU_ZSWINHEADER_MISC", "Gold"
+	TLTPCommand "$SUBMNU_ZSWINMISC_DEBUG", "$SUBMNU_ZSWINMISC_DEBUG_TOOLTIP", "White", "NetEvent zswin_debugToggle", "OnOff", "ZSWINVAR_DEBUG"
+}

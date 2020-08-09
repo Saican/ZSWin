@@ -1,0 +1,69 @@
+texture CRNR_TL, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch CRNR, 0, 0
+}
+
+texture CRNR_TR, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch CRNR, 0, 0
+	{ rotate 90 }
+}
+
+texture CRNR_BL, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch CRNR, 0, 0
+	{ rotate -90 }
+}
+
+texture CRNR_BR, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch CRNR, 0, 0
+	{ rotate 180 }
+}
+
+texture SIDE_T, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch SIDE, 0, 0
+}
+
+texture SIDE_B, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch SIDE, 0, 0
+	{ rotate 180 }
+}
+
+texture SIDE_L, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch SIDE, 0, 0
+	{ rotate -90 }
+}
+
+texture SIDE_R, 26, 26
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch SIDE, 0, 0
+	{ rotate 90 }
+}

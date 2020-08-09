@@ -1,0 +1,370 @@
+
+class ZSWin_Handler : EventHandler
+{
+	const TIC = 35;
+	
+	bool bDebug;
+	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false)
+	{ 
+		if (bDebug) 
+		{
+			bool bAdded = true;
+			int sameIndex = 0;
+			
+			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
+			{
+				if (ZDebugMsg(dar_DebugMsgs[i]).msg == msg)
+					bAdded = false;
+			}
+			
+			if (bAdded)
+				dar_DebugMsgs.Push(new("ZDebugMsg").Init(msg, color, tics, append)); 
+		}
+	}
+	private Array<ZDebugMsg> dar_DebugMsgs;
+	
+	private Array<ZSWin_Base> winStack;
+	void AddWindow(ZSWin_Base win) 
+	{ 
+		if (win != null ? (win.name != "" ? true : false) : false) 
+		{
+			winStack.Push(win); 
+			DebugOut(string.format("ZSWin Handler - Window, %s, for player #%d, with TID, %d added to processing stack.", win.name, win.player, win.tid), Font.CR_Gold);
+		}
+		else if (win != null)
+		{
+			win.bDestroyed = true;
+			DebugOut("ZSWin Handler: ERROR! - Window with empty name received! Window destroyed.");
+		}
+		else
+			DebugOut("ZSWin Handler: ERROR! - Got a null window!");
+	}
+
+	override void OnRegister()
+	{
+		string zVersion = "0.1";
+		console.Printf(string.format("ZScript Windows v%s - Welcome!", zVersion));
+		bDebug = false;
+		CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
+	}
+
+	override void NetworkProcess(ConsoleEvent e)
+	{
+		if (e.Name == "zswin_debugToggle")
+		{
+			bDebug = !bDebug;
+			CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
+		}
+	}
+
+	// This is the primary draw caller
+	override void RenderOverlay(RenderEvent e)
+	{
+		DebugOutput();
+		WindowProcess();
+	}
+	
+	ui private void DebugOutput()
+	{
+		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
+			Screen.DrawText(Font.GetFont('newsmallfont'), ZDebugMsg(dar_DebugMsgs[i]).color, 25.0, 20.0 * (i + 1), ZDebugMsg(dar_DebugMsgs[i]).append ? string.Format("%s : tics - %d", ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).tics) : ZDebugMsg(dar_DebugMsgs[i]).msg);		
+	}
+	
+	ui private void WindowProcess()
+	{
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			// Check that this window can be drawn for the given player.
+			if (consoleplayer == ZSWin_Base(winStack[i]).player)
+			{
+				let nwd = ZSWindow(winStack[i]);
+				WindowProcess_Background(nwd);
+				WindowProcess_Border(nwd);
+				WindowProcess_Text(nwd);
+				WindowProcess_Shapes(nwd);
+				// Buttons
+				// Graphics
+			}
+		}	
+	}
+	
+	ui private void WindowProcess_Background(ZSWindow nwd)
+	{
+		if (nwd.BackgroundTexture.IsValid())
+		{
+			if (nwd.Stretch)
+				Screen.DrawTexture(nwd.BackgroundTexture, false,
+					nwd.xLocation, nwd.yLocation,
+					DTA_Alpha, nwd.BackgroundAlpha,
+					DTA_DestWidth, nwd.Width,
+					DTA_DestHeight, nwd.Height);
+			else
+			{
+				Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+				int tx, ty, w = 0;
+				Vector2 txy = TexMan.GetScaledSize(nwd.BackgroundTexture);
+				tx = txy.x;
+				ty = txy.y;
+				do
+				{
+					int h = 0;
+					do
+					{
+						Screen.DrawTexture (nwd.BackgroundTexture, false,
+							nwd.xLocation + (tx * w),
+							nwd.yLocation + (ty * h),
+							DTA_Alpha, nwd.BackgroundAlpha,
+							DTA_DestWidth, tx,
+							DTA_DestHeight, ty);
+						h++;
+					} while ((((h - 1) * ty) + ty)  < nwd.Height);
+					w++;
+				} while ((((w -1) * tx) + tx) <= nwd.Width);
+				Screen.ClearClipRect();
+			}
+		}
+	}
+	
+	ui private void WindowProcess_Border(ZSWindow nwd)
+	{
+		switch (nwd.BorderType)
+		{
+			case nwd.Game:
+				Screen.DrawFrame(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+				break;
+			case nwd.Line:
+				Screen.DrawLine(nwd.xLocation, nwd.yLocation, nwd.xLocation + nwd.Width, nwd.yLocation, nwd.BorderColor, int(255 * nwd.BorderAlpha));
+				Screen.DrawLine(nwd.xLocation, nwd.yLocation + nwd.Height, nwd.xLocation + nwd.Width, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * nwd.BorderAlpha));
+				Screen.DrawLine(nwd.xLocation, nwd.yLocation, nwd.xLocation, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * nwd.BorderAlpha));
+				Screen.DrawLine(nwd.xLocation + nwd.Width, nwd.yLocation, nwd.xLocation + nwd.Width, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * nwd.BorderAlpha));
+				break;
+			case nwd.ThickLine:
+				// Top
+				Screen.DrawThickLine(nwd.xLocation - nwd.BorderThickness, 
+									nwd.yLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwd.xLocation + nwd.Width + nwd.BorderThickness, 
+									nwd.yLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwd.BorderThickness, 
+									nwd.BorderColor, 
+									int(255 * nwd.BorderAlpha));
+				// Bottom
+				Screen.DrawThickLine(nwd.xLocation - nwd.BorderThickness, 
+									nwd.yLocation + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwd.xLocation + nwd.Width + nwd.BorderThickness, 
+									nwd.yLocation + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwd.BorderThickness, 
+									nwd.BorderColor, 
+									int(255 * nwd.BorderAlpha));
+				// Left
+				Screen.DrawThickLine(nwd.xLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwd.yLocation, 
+									nwd.xLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwd.yLocation + nwd.Height, 
+									nwd.BorderThickness, 
+									nwd.BorderColor, 
+									int(255 * nwd.BorderAlpha));
+				// Right
+				Screen.DrawThickLine(nwd.xLocation + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwd.yLocation, 
+									nwd.xLocation + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwd.yLocation + nwd.Height, 
+									nwd.BorderThickness, 
+									nwd.BorderColor, 
+									int(255 * nwd.BorderAlpha));
+				break;
+			case nwd.ZWin_Border:
+				// Top Left Corner
+				Screen.DrawTexture(nwd.gfxBorder.Corner_TopLeft, false,
+					nwd.xLocation - nwd.gfxBorder.BorderWidth, 
+					nwd.yLocation - nwd.gfxBorder.BorderHeight,
+					DTA_Alpha, nwd.BorderAlpha,
+					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+				// Top Right Corner	
+				Screen.DrawTexture(nwd.gfxBorder.Corner_TopRight, false,
+					nwd.xLocation + nwd.Width, 
+					nwd.yLocation - nwd.gfxBorder.BorderHeight,
+					DTA_Alpha, nwd.BorderAlpha,
+					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+				// Bottom Left Corner
+				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomLeft, false,
+					nwd.xLocation - nwd.gfxBorder.BorderWidth, 
+					nwd.yLocation + nwd.Height,
+					DTA_Alpha, nwd.BorderAlpha,
+					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+				// Bottom Right Corner	
+				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomRight, false,
+					nwd.xLocation + nwd.Width, 
+					nwd.yLocation + nwd.Height,
+					DTA_Alpha, nwd.BorderAlpha,
+					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+				
+				Screen.SetClipRect(nwd.xLocation,
+								nwd.yLocation - nwd.gfxBorder.BorderHeight,
+								nwd.Width,
+								nwd.Height + (nwd.gfxBorder.BorderHeight * 2));				
+				int w = 0;
+				do
+				{
+					Screen.DrawTexture(nwd.gfxBorder.Side_Top, false,
+									nwd.xLocation + (nwd.gfxBorder.BorderWidth * w),
+									nwd.yLocation - nwd.gfxBorder.BorderHeight,
+									DTA_Alpha, nwd.BorderAlpha,
+									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+					Screen.DrawTexture(nwd.gfxBorder.Side_Bottom, false,
+									nwd.xLocation + (nwd.gfxBorder.BorderWidth * w),
+									nwd.yLocation + nwd.Height,
+									DTA_Alpha, nwd.BorderAlpha,
+									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+					w++;
+				} while (((w - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= nwd.Width);
+				Screen.ClearClipRect();
+				
+				Screen.SetClipRect(nwd.xLocation - nwd.gfxBorder.BorderWidth,
+								nwd.yLocation,
+								nwd.Width + (nwd.gfxBorder.BorderWidth * 2),
+								nwd.Height);
+				int h = 0;
+				do
+				{
+					Screen.DrawTexture(nwd.gfxBorder.Side_Left, false,
+									nwd.xLocation - nwd.gfxBorder.BorderWidth,
+									nwd.yLocation + (nwd.gfxBorder.BorderHeight * h),
+									DTA_Alpha, nwd.BorderAlpha,
+									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+					Screen.DrawTexture(nwd.gfxBorder.Side_Right, false,
+									nwd.xLocation + nwd.Width,
+									nwd.yLocation + (nwd.gfxBorder.BorderHeight * h),
+									DTA_Alpha, nwd.BorderAlpha,
+									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+					h++;
+				} while (((h - 1) * nwd.gfxBorder.BorderHeight) + nwd.gfxBorder.BorderHeight <= nwd.Height);
+				Screen.ClearClipRect();
+				break;
+		}		
+	}
+	
+	ui private void WindowProcess_Text(ZSWindow nwd)
+	{
+		Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+		BrokenLines blText;
+		// Title
+		switch (nwd.Title.TextWrap)
+		{
+			case ZText.wrap:
+				blText = nwd.Title.font.BreakLines(nwd.Title.Text, nwd.Width);
+				for (int i = 0; i < blText.Count(); i++)
+					Screen.DrawText(nwd.Title.font,
+								nwd.Title.CRColor,
+								nwd.Title.GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+								nwd.yLocation + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+								blText.StringAt(i),
+								DTA_Alpha, nwd.Title.Alpha);
+				break;
+			case ZText.dynwrap:
+				blText = nwd.Title.font.BreakLines(nwd.Title.Text, nwd.Width /* + resize handlers*/);
+				for (int i = 0; i < blText.Count(); i++)
+					Screen.DrawText(nwd.Title.font,
+								nwd.Title.CRColor,
+								nwd.Title.GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+								nwd.yLocation + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+								blText.StringAt(i),
+								DTA_Alpha, nwd.Title.Alpha);
+				break;
+			default:
+				Screen.DrawText(nwd.Title.font, 
+							nwd.Title.CRColor, 
+							nwd.Title.GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
+							nwd.yLocation + nwd.Title.yLocation, 
+							nwd.Title.Text, 
+							DTA_Alpha, nwd.Title.Alpha);
+				break;
+		}
+		
+		// Window Text Array
+		for (int i = 0; i < nwd.Text.Size(); i++)
+		{
+			switch (nwd.Text[i].TextWrap)
+			{
+				case ZText.wrap:
+					blText = nwd.Text[i].font.BreakLines(nwd.Text[i].Text, nwd.Width);
+					for (int j = 0; j < blText.Count(); j++)
+						Screen.DrawText(nwd.Text[i].font,
+									nwd.Text[i].CRColor,
+									nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+									nwd.yLocation + nwd.Text[i].yLocation + (j * nwd.Title.font.GetHeight()),
+									blText.StringAt(j),
+									DTA_Alpha, nwd.Text[i].Alpha);
+					break;
+				case ZText.dynwrap:
+					blText = nwd.Text[i].font.BreakLines(nwd.Text[i].Text, nwd.Width /* + resize handlers*/);
+					for (int j = 0; j < blText.Count(); j++)
+						Screen.DrawText(nwd.Text[i].font,
+									nwd.Text[i].CRColor,
+									nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+									nwd.yLocation + nwd.Text[i].yLocation + (j * nwd.Title.font.GetHeight()),
+									blText.StringAt(j),
+									DTA_Alpha, nwd.Text[i].Alpha);
+					break;
+				default:
+					Screen.DrawText(nwd.Text[i].font, 
+								nwd.Text[i].CRColor, 
+								nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
+								nwd.yLocation + nwd.Text[i].yLocation, 
+								nwd.Text[i].Text, 
+								DTA_Alpha, nwd.Text[i].Alpha);
+					break;
+			}
+		}
+		Screen.ClearClipRect();
+	}
+	
+	ui private void WindowProcess_Shapes(ZSWindow nwd)
+	{
+		
+	}
+	
+	override void WorldTick()
+	{
+		// Debug messages
+		Array<ZDebugMsg> newMsgs;
+		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
+		{
+			if (ZDebugMsg(dar_DebugMsgs[i]).tics > 0)
+			{
+				ZDebugMsg(dar_DebugMsgs[i]).tics--;
+				newMsgs.Push(new("ZDebugMsg").Init(ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).color, ZDebugMsg(dar_DebugMsgs[i]).tics, ZDebugMsg(dar_DebugMsgs[i]).append));
+			}
+			
+		}
+		dar_DebugMsgs.Clear();
+		dar_DebugMsgs.Move(newMsgs);
+		
+		// Window Processing Stack Monitor
+		Array<ZSWin_Base> newStack;
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if (!ZSWindow(winStack[i]).bStackPurged)
+				newStack.Push(winStack[i]);
+			else
+				winStack[i].bDestroyed = true;
+		}
+		
+		DebugOut(string.Format("ZSWin Handler - Processing Stack contains %d objects, New Stack contains %d objects, %d objects destroyed.", winStack.Size(), newStack.Size(), winStack.Size() - newStack.Size()), Font.CR_LightBlue, 175, true);
+			
+		if (winStack.Size() != newStack.Size())
+		{
+			winStack.Clear();
+			winStack.Move(newStack);
+		}
+	}
+	
+	/* - END OF METHODS - */
+}

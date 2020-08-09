@@ -1,0 +1,50 @@
+/*
+	ZSWin_Lines.txt
+	
+	Interface for the creation of lines and boxes in a window
+
+*/
+
+class ZShape
+{
+	enum SHAPETYPE
+	{
+		thinline,
+		thickline,
+		box,
+		thickbox,
+	};
+	SHAPETYPE Type;
+	
+	enum SCALETYP
+	{
+		scalex,
+		scaley,
+		scaleboth,
+		none,
+	};
+	SCALETYP ScaleType;
+	
+	color Color;
+	
+	int x_Start, 
+		y_Start, 
+		x_End, 
+		y_End;
+		
+	float Alpha, // this should be an int but historically its been a float so conversion is done in the handler
+		Thickness;
+	
+	ZShape Init (SHAPETYPE Type, color Color, int x_Start, int y_Start, int x_End, int y_End, float Alpha = 1.0, float Thickness = 1.0, SCALETYP ScaleType = none)
+	{
+		self.Type = Type;
+		self.Color = Color;
+		self.x_Start = x_Start;
+		self.y_Start = y_Start;
+		self.x_End = x_End;
+		self.y_End = y_End;
+		self.Alpha = Alpha;
+		self.Thickness = Thickness;
+		return self;
+	}
+}

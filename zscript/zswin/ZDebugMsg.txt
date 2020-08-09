@@ -1,0 +1,16 @@
+class ZDebugMsg
+{
+	string msg;
+	int color;
+	uint tics;
+	bool append;
+	
+	ZDebugMsg Init(string msg, int color, uint tics, bool append)
+	{
+		self.msg = msg;
+		self.color = color;
+		self.tics = tics;
+		self.append = append;
+		return self;
+	}
+}

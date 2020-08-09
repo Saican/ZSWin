@@ -1,0 +1,62 @@
+class ZSWin_Base : actor abstract
+{
+	bool enabled,
+		bDestroyed;
+	float globalAlpha;
+	string name;
+	int player;
+	Object this;
+	ZSWin_Handler zHandler;
+	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
+	{ 
+		if (zHandler) 
+			zHandler.DebugOut(msg, color, tics, append); 
+		else
+			dar_HeldMsgs.Push(new("ZDebugMsg").Init(msg, color, tics, append));
+	}
+	private Array<ZDebugMsg> dar_HeldMsgs;
+	
+	virtual void Init(bool enabled, string name, int player, Object this)
+	{
+		DebugOut("Window base initialized", Font.CR_Green);
+		self.enabled = enabled;
+		bDestroyed = false;
+		if (enabled)
+			globalAlpha = 1.0;
+		else
+			globalAlpha = 0.5;
+		self.name = name;
+		self.player = player;
+		self.ChangeTid(0);
+		self.this = this;
+		zHandler = ZSWin_Handler(EventHandler.Find("ZSWin_Handler"));
+		
+		if (!zHandler)
+		{
+			console.printf(string.format("ZScript Windows ERROR! - Window Construction of window, %s, has failed to find the central event handler!  Construction aborted and window destroyed.", name));
+			self.destroy();
+		}
+		else
+			zHandler.AddWindow(self);
+	}
+	
+	override void Tick()
+	{
+		if (GetAge() > 1)
+		{
+			if (bDestroyed)
+			{
+				DebugOut(string.format("Object named, %s, marked for destruction.  Goodbye!", name == "" ? "NO NAME" : name));
+				self.Destroy();
+			}
+			
+			if (zHandler && dar_HeldMsgs.Size() > 0)
+			{
+				for (int i = 0; i < dar_HeldMsgs.Size(); i++)
+					DebugOut(string.format("Held Window Initialization Message: %s", ZDebugMsg(dar_HeldMsgs[i]).msg), ZDebugMsg(dar_HeldMsgs[i]).color, ZDebugMsg(dar_HeldMsgs[i]).tics, ZDebugMsg(dar_HeldMsgs[i]).append);
+				
+				dar_HeldMsgs.Clear();
+			}
+		}
+	}
+}
