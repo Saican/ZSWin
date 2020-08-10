@@ -67,7 +67,7 @@ class ZSWindow : ZSWin_Base abstract
 	ui int GetTextSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
 	ui ZText GetText(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
 	
-	// Lines
+	// Lines and Boxes
 	Array<ZShape> Shapes;
 	private Array<ZShape> CopyShapes;
 	ui ZShape GetShape(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes[i]: Shapes[i]; }

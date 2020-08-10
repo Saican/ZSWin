@@ -4,7 +4,7 @@ class ZSWin_Base : actor abstract
 		bDestroyed;
 	float globalAlpha;
 	string name;
-	int player;
+	int player, Priority;
 	ZSWin_Base this;
 	ZSWin_Handler zHandler;
 	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
@@ -36,7 +36,10 @@ class ZSWin_Base : actor abstract
 			self.destroy();
 		}
 		else
+		{
 			zHandler.AddWindow(self);
+			Priority = zHandler.GetStackSize() - 1;
+		}
 	}
 	
 	override void Tick()

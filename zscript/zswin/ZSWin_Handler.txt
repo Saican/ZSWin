@@ -2,8 +2,10 @@
 class ZSWin_Handler : EventHandler
 {
 	const TIC = 35;
+	const ZVERSION = "0.1";
 	
 	bool bDebug, bDebugIsUpdating;
+	private int debugPlayer;
 	void DebugOut(string Text, int color = Font.CR_Red, uint tics = 175, bool append = false)
 	{ 
 		if (bDebug) 
@@ -42,11 +44,11 @@ class ZSWin_Handler : EventHandler
 		else
 			DebugOut("ZSWin Handler: ERROR! - Got a null window!");
 	}
+	int GetStackSize() { return winStack.Size(); }
 
 	override void OnRegister()
 	{
-		string zVersion = "0.1";
-		console.Printf(string.format("ZScript Windows v%s - Welcome!", zVersion));
+		console.Printf(string.format("ZScript Windows v%s - Welcome!", ZVERSION));
 		bDebug = bDebugIsUpdating = false;
 		CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 	}
@@ -55,6 +57,7 @@ class ZSWin_Handler : EventHandler
 	{
 		if (e.Name == "zswin_debugToggle")
 		{
+			debugPlayer = e.Player;
 			bDebug = !bDebug;
 			CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 		}
@@ -320,6 +323,189 @@ class ZSWin_Handler : EventHandler
 	ui private void WindowProcess_Shapes(ZSWindow nwd)
 	{
 		WindowClip(nwd);
+		for (int i = 0; i < nwd.GetShapeSize(); i++)
+		{
+			switch (nwd.GetShape(i).Type)
+			{
+				case ZShape.thinline:
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
+									nwd.yLocation + nwd.GetShape(i).y_Start, 
+									nwd.xLocation + nwd.GetShape(i).x_End, 
+									nwd.yLocation + nwd.GetShape(i).y_End, 
+									nwd.GetShape(i).Color, 
+									int(nwd.GetShape(i).Alpha * 255));
+					break;
+				case ZShape.thickline:
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
+										nwd.yLocation + nwd.GetShape(i).y_Start, 
+										nwd.xLocation + nwd.GetShape(i).x_End, 
+										nwd.yLocation + nwd.GetShape(i).y_End, 
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color, 
+										int(nwd.GetShape(i).Alpha * 255));
+					break;
+				case ZShape.box:
+					// Top
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					break;
+				case ZShape.thickbox:
+					// Top
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									nwd.GetShape(i).Thickness, 
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.GetShape(i).Thickness, 
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									(nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									(nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					break;
+				case ZShape.roundbox:
+					// Top
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius - 1,
+									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius - 1,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+									
+					let ang = 90 / nwd.GetShape(i).Vertices + 1;
+					// Upper Left
+					int originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius, 
+						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start, 
+						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius, 
+						cxend, cyend;
+					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					{
+						cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
+						if (cxend > nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius - 1;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;
+					}
+					
+					// Upper Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					{
+						cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
+						if (cxend > nwd.xLocation + nwd.GetShape(i).x_End)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_End;
+						cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					{
+						cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
+						if (cxend < nwd.xLocation + nwd.GetShape(i).x_Start)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start;
+						cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					{
+						cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
+						if (cxend < nwd.xLocation + nwd.GetShape(i).x_Start - nwd.GetShape(i).Radius)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start - nwd.GetShape(i).Radius;
+						cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}					
+					break;
+				case ZShape.roundthickbox:
+					break;
+			}
+		}
 		WindowClip(set:false);
 	}
 	
@@ -338,13 +524,20 @@ class ZSWin_Handler : EventHandler
 	
 	override void WorldTick()
 	{
-		// Debug messages
+		//
+		// - Debug messages
+		//
+		
+		// If there is a console window and debugging is off, tell it to destroy itself
 		if (ncon && !bDebug)
 			ZSWin_Base(ncon).bDestroyed = true;
-		else if (!ncon && bDebug)  // hack around the inability to spawn from an event handler (O_O)
-			CallACS("ZSWin_SpawnConsole", 0, consoleplayer);
-			
+		// There is no console window and there should be, so call up old croney ACS to get a console window.
+		// Seems hacky but its the legit method here - windows are actors!
+		else if (!ncon && bDebug)
+			CallACS("ZSWin_SpawnConsole", 0, debugPlayer);
 		
+		// Iterate through the debug messages - if it still has time to display it gets passed to the new array,
+		// otherwise it's skipped and erased.
 		Array<ZText> newMsgs;
 		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 		{
@@ -358,12 +551,18 @@ class ZSWin_Handler : EventHandler
 			}		
 		}
 		
+		// Clear out old messages and add in the new ones
 		dar_DebugMsgs.Clear();
 		dar_DebugMsgs.Move(newMsgs);
+		// Update the console window
 		if (ncon)
 		{
-			bDebugIsUpdating = true;
-			ncon.IsUpdating();
+			bDebugIsUpdating = true; // Whichever window is the console will be looking at this to know it's being updated
+			ncon.IsUpdating();		 // Makes copies of the window arrays for use until updating is done.
+								     // - The problem is actually RenderOveraly going at the framerate and WorldTick going at script speed!
+									 // - I'm basically having to multi-thread these classes to keep stuff synced!!
+									 
+			// Ok obviously this loop pushes the new messages to the console window :P
 			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 			{
 				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).TicAppend ? 
@@ -379,6 +578,12 @@ class ZSWin_Handler : EventHandler
 		}
 		
 		// Window Processing Stack Monitor
+		//
+		// Windows need to tell the handler that they need to go away, basically asking permission to be destroyed.
+		// The reason for this is that the window stack needs to be updated if a window is being destroyed.
+		// This loop looks for windows that have requested to be purged, tells them go ahead, and skips them when
+		// adding windows to the new stack array.  Last step is clear out the actual stack array and move over the
+		// new stack of windows.
 		Array<ZSWin_Base> newStack;
 		for (int i = 0; i < winStack.Size(); i++)
 		{

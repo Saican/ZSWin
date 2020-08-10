@@ -41,12 +41,17 @@ class ZSWin_Terminal : ZSWindow
 										ZText.Left,
 										"newsmallfont",
 										5.0,
-										35.0));
+										45.0));
 										
-			Shapes.Push(new("ZShape").Init(ZShape.thickline,
-											"Blue",
-											0.0, 0.0,
-											0.0, Width));
+			Shapes.Push(new("ZShape").Init(ZShape.roundbox,
+											"White",
+											0, 35.0, 		// start x/y
+											Width, Height, 	// end x/y
+											0.5, 			// alpha
+											3,	 			// thickness
+											ZShape.noscale, // scaling in relation to window resizing
+											20,				// radius for round corners
+											20));			// number of vertices on curve
 		}
 	}
 	
