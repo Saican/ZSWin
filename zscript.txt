@@ -7,4 +7,5 @@ version "4.2.1"
 #include "zscript/zswin/ZSWin_Text.txt"
 #include "zscript/zswin/ZSWindow.txt"
 
+#include "zscript/test/ZSWin_Console.txt"
 #include "zscript/test/ZSWin_Terminal.txt"

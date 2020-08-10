@@ -13,6 +13,8 @@ class ZSWindow : ZSWin_Base abstract
 	//
 	// PUBLIC MEMBERS
 	//
+	const DEFLOC_X = 100.0;
+	const DEFLOC_Y = 50.0;
 	
 	// Starting width/height of the window - in pixels
 	int Width, 
@@ -61,13 +63,49 @@ class ZSWindow : ZSWin_Base abstract
 	// Text
 	ZText Title;
 	Array<ZText> Text;
+	private Array<ZText> CopyText;
+	ui int GetTextSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
+	ui ZText GetText(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
 	
 	// Lines
 	Array<ZShape> Shapes;
+	private Array<ZShape> CopyShapes;
+	ui ZShape GetShape(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes[i]: Shapes[i]; }
+	ui int GetShapeSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
+	
+	private bool ConsoleUpdater;
+	bool SetWindowToConsole() { return zHandler ? ConsoleUpdater = zHandler.SetWindowToConsole(self) : false; }
+	void IsUpdating(bool updating = true) 
+	{
+		if (ConsoleUpdater)
+		{
+			if (updating)
+			{
+				CopyText.Move(Text);
+				CopyShapes.Move(Shapes);
+			}
+			else
+			{
+				CopyText.Clear();
+				CopyShapes.Clear();
+			}
+		}
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if (ConsoleUpdater && (zHandler ? zHandler.bDebugIsUpdating && Text.Size() == zHandler.GetDebugSize() : false))
+		{
+			zHandler.bDebugIsUpdating = false;
+			IsUpdating(false);
+		}
+	}
 	
 	// This methos sets everything to a safe default value
 	void TrueZero()
 	{
+		ConsoleUpdater = false;
 		Width = Height = 0;
 		xLocation = yLocation = 0.0;
 		
@@ -201,6 +239,17 @@ class ZSWindow : ZSWin_Base abstract
 	float, float WindowLocation_ScreenCenter(int width, int height)
 	{
 		return float((Screen.GetWidth() - width) / 2), float((Screen.GetHeight() - height) / 2);
+	}
+	
+	float, float WindowLocation_Default()
+	{
+		return DEFLOC_X, DEFLOC_Y;
+	}
+	
+	void ControlClear()
+	{
+		Text.Clear();
+		Shapes.Clear();
 	}
 	
 	/* - End of methods - */

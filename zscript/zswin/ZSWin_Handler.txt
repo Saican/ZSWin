@@ -3,7 +3,7 @@ class ZSWin_Handler : EventHandler
 {
 	const TIC = 35;
 	
-	bool bDebug;
+	bool bDebug, bDebugIsUpdating;
 	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false)
 	{ 
 		if (bDebug) 
@@ -22,6 +22,9 @@ class ZSWin_Handler : EventHandler
 		}
 	}
 	private Array<ZDebugMsg> dar_DebugMsgs;
+	int GetDebugSize() { return dar_DebugMsgs.Size(); }
+	private ZSWindow ncon;
+	bool SetWindowToConsole(ZSWindow nwd) { return (ncon = nwd); }
 	
 	private Array<ZSWin_Base> winStack;
 	void AddWindow(ZSWin_Base win) 
@@ -44,7 +47,7 @@ class ZSWin_Handler : EventHandler
 	{
 		string zVersion = "0.1";
 		console.Printf(string.format("ZScript Windows v%s - Welcome!", zVersion));
-		bDebug = false;
+		bDebug = bDebugIsUpdating = false;
 		CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 	}
 
@@ -60,18 +63,6 @@ class ZSWin_Handler : EventHandler
 	// This is the primary draw caller
 	override void RenderOverlay(RenderEvent e)
 	{
-		DebugOutput();
-		WindowProcess();
-	}
-	
-	ui private void DebugOutput()
-	{
-		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
-			Screen.DrawText(Font.GetFont('newsmallfont'), ZDebugMsg(dar_DebugMsgs[i]).color, 25.0, 20.0 * (i + 1), ZDebugMsg(dar_DebugMsgs[i]).append ? string.Format("%s : tics - %d", ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).tics) : ZDebugMsg(dar_DebugMsgs[i]).msg);		
-	}
-	
-	ui private void WindowProcess()
-	{
 		for (int i = 0; i < winStack.Size(); i++)
 		{
 			// Check that this window can be drawn for the given player.
@@ -85,7 +76,7 @@ class ZSWin_Handler : EventHandler
 				// Buttons
 				// Graphics
 			}
-		}	
+		}
 	}
 	
 	ui private void WindowProcess_Background(ZSWindow nwd)
@@ -100,7 +91,7 @@ class ZSWin_Handler : EventHandler
 					DTA_DestHeight, nwd.Height);
 			else
 			{
-				Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+				WindowClip(nwd);
 				int tx, ty, w = 0;
 				Vector2 txy = TexMan.GetScaledSize(nwd.BackgroundTexture);
 				tx = txy.x;
@@ -120,7 +111,7 @@ class ZSWin_Handler : EventHandler
 					} while ((((h - 1) * ty) + ty)  < nwd.Height);
 					w++;
 				} while ((((w -1) * tx) + tx) <= nwd.Width);
-				Screen.ClearClipRect();
+				WindowClip(set:false);
 			}
 		}
 	}
@@ -223,7 +214,7 @@ class ZSWin_Handler : EventHandler
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					w++;
 				} while (((w - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= nwd.Width);
-				Screen.ClearClipRect();
+				WindowClip(set:false);
 				
 				Screen.SetClipRect(nwd.xLocation - nwd.gfxBorder.BorderWidth,
 								nwd.yLocation,
@@ -246,14 +237,14 @@ class ZSWin_Handler : EventHandler
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					h++;
 				} while (((h - 1) * nwd.gfxBorder.BorderHeight) + nwd.gfxBorder.BorderHeight <= nwd.Height);
-				Screen.ClearClipRect();
+				WindowClip(set:false);
 				break;
 		}		
 	}
 	
 	ui private void WindowProcess_Text(ZSWindow nwd)
 	{
-		Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+		WindowClip(nwd);
 		BrokenLines blText;
 		// Title
 		switch (nwd.Title.TextWrap)
@@ -289,63 +280,103 @@ class ZSWin_Handler : EventHandler
 		}
 		
 		// Window Text Array
-		for (int i = 0; i < nwd.Text.Size(); i++)
+		for (int i = 0; i < nwd.GetTextSize(); i++)
 		{
-			switch (nwd.Text[i].TextWrap)
+			switch (nwd.GetText(i).TextWrap)
 			{
 				case ZText.wrap:
-					blText = nwd.Text[i].font.BreakLines(nwd.Text[i].Text, nwd.Width);
+					blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, nwd.Width);
 					for (int j = 0; j < blText.Count(); j++)
-						Screen.DrawText(nwd.Text[i].font,
-									nwd.Text[i].CRColor,
-									nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
-									nwd.yLocation + nwd.Text[i].yLocation + (j * nwd.Title.font.GetHeight()),
+						Screen.DrawText(nwd.GetText(i).font,
+									nwd.GetText(i).CRColor,
+									nwd.GetText(i).GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+									nwd.yLocation + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
 									blText.StringAt(j),
-									DTA_Alpha, nwd.Text[i].Alpha);
+									DTA_Alpha, nwd.GetText(i).Alpha);
 					break;
 				case ZText.dynwrap:
-					blText = nwd.Text[i].font.BreakLines(nwd.Text[i].Text, nwd.Width /* + resize handlers*/);
+					blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, nwd.Width /* + resize handlers*/);
 					for (int j = 0; j < blText.Count(); j++)
-						Screen.DrawText(nwd.Text[i].font,
-									nwd.Text[i].CRColor,
-									nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
-									nwd.yLocation + nwd.Text[i].yLocation + (j * nwd.Title.font.GetHeight()),
+						Screen.DrawText(nwd.GetText(i).font,
+									nwd.GetText(i).CRColor,
+									nwd.GetText(i).GetAlignment(nwd.xLocation, nwd.Width, blText.StringAt(i)),
+									nwd.yLocation + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
 									blText.StringAt(j),
-									DTA_Alpha, nwd.Text[i].Alpha);
+									DTA_Alpha, nwd.GetText(i).Alpha);
 					break;
 				default:
-					Screen.DrawText(nwd.Text[i].font, 
-								nwd.Text[i].CRColor, 
-								nwd.Text[i].GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
-								nwd.yLocation + nwd.Text[i].yLocation, 
-								nwd.Text[i].Text, 
-								DTA_Alpha, nwd.Text[i].Alpha);
+					Screen.DrawText(nwd.GetText(i).font, 
+								nwd.GetText(i).CRColor, 
+								nwd.GetText(i).GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
+								nwd.yLocation + nwd.GetText(i).yLocation, 
+								nwd.GetText(i).Text, 
+								DTA_Alpha, nwd.GetText(i).Alpha);
 					break;
 			}
 		}
-		Screen.ClearClipRect();
+		WindowClip(set:false);
 	}
 	
 	ui private void WindowProcess_Shapes(ZSWindow nwd)
 	{
-		
+		WindowClip(nwd);
+		WindowClip(set:false);
+	}
+	
+	//
+	// One of the only public ui draw methods,
+	// this will either set the clipping rectangle to the window dimensions,
+	// or clear the clipping rectangle.
+	//
+	ui void WindowClip(ZSWindow nwd = null, bool set = true)
+	{
+		if (set)
+			Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);		
+		else
+			Screen.ClearClipRect();
 	}
 	
 	override void WorldTick()
 	{
 		// Debug messages
+		if (ncon && !bDebug)
+			ZSWin_Base(ncon).bDestroyed = true;
+		else if (!ncon && bDebug)  // hack around the inability to spawn from an event handler (O_O)
+			CallACS("ZSWin_SpawnConsole", 0, consoleplayer);
+			
+		
 		Array<ZDebugMsg> newMsgs;
 		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 		{
 			if (ZDebugMsg(dar_DebugMsgs[i]).tics > 0)
 			{
 				ZDebugMsg(dar_DebugMsgs[i]).tics--;
-				newMsgs.Push(new("ZDebugMsg").Init(ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).color, ZDebugMsg(dar_DebugMsgs[i]).tics, ZDebugMsg(dar_DebugMsgs[i]).append));
-			}
-			
+				newMsgs.Push(new("ZDebugMsg").Init(ZDebugMsg(dar_DebugMsgs[i]).msg, 
+											ZDebugMsg(dar_DebugMsgs[i]).color, 
+											ZDebugMsg(dar_DebugMsgs[i]).tics, 
+											ZDebugMsg(dar_DebugMsgs[i]).append));
+			}		
 		}
+		
 		dar_DebugMsgs.Clear();
 		dar_DebugMsgs.Move(newMsgs);
+		if (ncon)
+		{
+			bDebugIsUpdating = true;
+			ncon.IsUpdating();
+			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
+			{
+				ncon.Text.Push(new("ZText").Init(ZDebugMsg(dar_DebugMsgs[i]).append ? 
+													string.Format("%s : tics - %d", ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).tics) : 
+													ZDebugMsg(dar_DebugMsgs[i]).msg,
+												ZDebugMsg(dar_DebugMsgs[i]).color,
+												ZText.nowrap,
+												ZText.left,
+												"newsmallfont",
+												0,
+												30 + (20 * i)));
+			}
+		}
 		
 		// Window Processing Stack Monitor
 		Array<ZSWin_Base> newStack;
@@ -367,4 +398,12 @@ class ZSWin_Handler : EventHandler
 	}
 	
 	/* - END OF METHODS - */
+}
+
+class EventSpawner : Actor
+{
+	void Spawn(string actor, int id)
+	{
+		A_SpawnItemEx(actor, tid:id);
+	}
 }

@@ -1,0 +1,7 @@
+#library "ZSWIN"
+#include "zcommon.acs"
+
+script "ZSWin_SpawnConsole" (int id)
+{
+	Spawn("ZSWin_Console", 0.0, 0.0, 0.0, id);
+}

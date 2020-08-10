@@ -12,11 +12,16 @@
 */
 class ZSWin_Terminal : ZSWindow
 {
+	string WindowName;
+	
 	override void PostBeginPlay()
 	{
 		if (GetAge() < 1)
 		{
-			self.Init(true, "ZSWINTerminalTest", self.tid, null);
+			if (!WindowName)
+				WindowName = "ZSWINTerminalTest";
+			
+			self.Init(true, WindowName, self.tid, null);
 			// If inheriting, do further initialization from here.
 			// This will give the inheriting window the final say.
 			
