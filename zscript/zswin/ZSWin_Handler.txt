@@ -399,11 +399,3 @@ class ZSWin_Handler : EventHandler
 	
 	/* - END OF METHODS - */
 }
-
-class EventSpawner : Actor
-{
-	void Spawn(string actor, int id)
-	{
-		A_SpawnItemEx(actor, tid:id);
-	}
-}
