@@ -21,7 +21,7 @@ class ZSWin_Terminal : ZSWindow
 			if (!WindowName)
 				WindowName = "ZSWINTerminalTest";
 			
-			self.Init(true, WindowName, self.tid, null);
+			self.Init(true, WindowName, self.tid);
 			// If inheriting, do further initialization from here.
 			// This will give the inheriting window the final say.
 			
@@ -50,7 +50,7 @@ class ZSWin_Terminal : ZSWindow
 		}
 	}
 	
-	override void Init(bool enabled, string name, int player, Object this)
+	override void Init(bool enabled, string name, int player)
 	{
 		DebugOut("Initializing window.", Font.CR_Gray);
 		
@@ -71,6 +71,6 @@ class ZSWin_Terminal : ZSWindow
 		BorderType = ZWin_Border;
 
 		// Call the super last - it does further initializaton from what is defined here
-		super.Init(enabled, name, player, self);
+		super.Init(enabled, name, player);
 	}
 }

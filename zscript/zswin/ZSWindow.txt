@@ -120,10 +120,10 @@ class ZSWindow : ZSWin_Base abstract
 		BorderAlpha = 1.0;
 	}
 	
-	override void Init(bool enabled, string name, int player, Object this)
+	override void Init(bool enabled, string name, int player)
 	{
 		DebugOut("Window abstract initialized.", Font.CR_Yellow);		
-		super.Init(enabled, name, player, self);
+		super.Init(enabled, name, player);
 		
 		bStackPurged = false;
 		

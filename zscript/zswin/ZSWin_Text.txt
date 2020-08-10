@@ -33,8 +33,11 @@ class ZText
 	float xLocation, 
 		yLocation,
 		Alpha;
+		
+	uint Tics;
+	bool TicAppend;
 	
-	ZText Init (string Text, int CRColor, TXTWRAP TextWrap, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0)
+	ZText Init (string Text, int CRColor, TXTWRAP TextWrap, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, uint Tics = 0, bool TicAppend = false)
 	{
 		self.Text = Text;
 		self.CRColor = CRColor;
@@ -44,11 +47,26 @@ class ZText
 		self.xLocation = xLocation;
 		self.yLocation = yLocation;
 		self.Alpha = Alpha;
+		self.Tics = Tics;
+		self.TicAppend = TicAppend;
 
 		if (font)
 			return self;
 		else
 			return null;
+	}
+	
+	ZText DebugInit(string Text, int CRColor, uint Tics, bool TicAppend)
+	{
+		self.Text = Text;
+		self.CRColor = CRColor;
+		self.TextWrap = nowrap;
+		self.Alignment = left;
+		self.xLocation = self.yLocation = 0;
+		self.Alpha = 1.0;
+		self.Tics = Tics;
+		self.TicAppend = TicAppend;
+		return self;  // no font check, debugging handles the font.
 	}
 	
 	float GetAlignment (float nwd_xLocation, float nwd_Width = 0.0, string line = "")

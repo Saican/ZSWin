@@ -4,7 +4,7 @@ class ZSWin_Handler : EventHandler
 	const TIC = 35;
 	
 	bool bDebug, bDebugIsUpdating;
-	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false)
+	void DebugOut(string Text, int color = Font.CR_Red, uint tics = 175, bool append = false)
 	{ 
 		if (bDebug) 
 		{
@@ -13,15 +13,15 @@ class ZSWin_Handler : EventHandler
 			
 			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 			{
-				if (ZDebugMsg(dar_DebugMsgs[i]).msg == msg)
+				if (ZText(dar_DebugMsgs[i]).Text == Text)
 					bAdded = false;
 			}
 			
 			if (bAdded)
-				dar_DebugMsgs.Push(new("ZDebugMsg").Init(msg, color, tics, append)); 
+				dar_DebugMsgs.Push(new("ZText").DebugInit(Text, color, tics, append)); 
 		}
 	}
-	private Array<ZDebugMsg> dar_DebugMsgs;
+	private Array<ZText> dar_DebugMsgs;
 	int GetDebugSize() { return dar_DebugMsgs.Size(); }
 	private ZSWindow ncon;
 	bool SetWindowToConsole(ZSWindow nwd) { return (ncon = nwd); }
@@ -345,16 +345,16 @@ class ZSWin_Handler : EventHandler
 			CallACS("ZSWin_SpawnConsole", 0, consoleplayer);
 			
 		
-		Array<ZDebugMsg> newMsgs;
+		Array<ZText> newMsgs;
 		for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 		{
-			if (ZDebugMsg(dar_DebugMsgs[i]).tics > 0)
+			if (ZText(dar_DebugMsgs[i]).tics > 0)
 			{
-				ZDebugMsg(dar_DebugMsgs[i]).tics--;
-				newMsgs.Push(new("ZDebugMsg").Init(ZDebugMsg(dar_DebugMsgs[i]).msg, 
-											ZDebugMsg(dar_DebugMsgs[i]).color, 
-											ZDebugMsg(dar_DebugMsgs[i]).tics, 
-											ZDebugMsg(dar_DebugMsgs[i]).append));
+				ZText(dar_DebugMsgs[i]).tics--;
+				newMsgs.Push(new("ZText").DebugInit(ZText(dar_DebugMsgs[i]).Text, 
+											ZText(dar_DebugMsgs[i]).CRColor, 
+											ZText(dar_DebugMsgs[i]).Tics, 
+											ZText(dar_DebugMsgs[i]).TicAppend));
 			}		
 		}
 		
@@ -366,10 +366,10 @@ class ZSWin_Handler : EventHandler
 			ncon.IsUpdating();
 			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 			{
-				ncon.Text.Push(new("ZText").Init(ZDebugMsg(dar_DebugMsgs[i]).append ? 
-													string.Format("%s : tics - %d", ZDebugMsg(dar_DebugMsgs[i]).msg, ZDebugMsg(dar_DebugMsgs[i]).tics) : 
-													ZDebugMsg(dar_DebugMsgs[i]).msg,
-												ZDebugMsg(dar_DebugMsgs[i]).color,
+				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).TicAppend ? 
+													string.Format("%s : tics - %d", ZText(dar_DebugMsgs[i]).Text, ZText(dar_DebugMsgs[i]).Tics) : 
+													ZText(dar_DebugMsgs[i]).Text,
+												ZText(dar_DebugMsgs[i]).CRColor,
 												ZText.nowrap,
 												ZText.left,
 												"newsmallfont",
