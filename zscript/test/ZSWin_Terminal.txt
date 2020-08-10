@@ -43,15 +43,15 @@ class ZSWin_Terminal : ZSWindow
 										5.0,
 										45.0));
 										
-			Shapes.Push(new("ZShape").Init(ZShape.roundbox,
+			Shapes.Push(new("ZShape").Init(ZShape.roundthickbox,
 											"White",
-											0, 35.0, 		// start x/y
+											0, 35, 			// start x/y
 											Width, Height, 	// end x/y
-											0.5, 			// alpha
-											3,	 			// thickness
+											1, 				// alpha
+											1,	 			// thickness
 											ZShape.noscale, // scaling in relation to window resizing
 											20,				// radius for round corners
-											20));			// number of vertices on curve
+											10));			// number of vertices on curve
 		}
 	}
 	

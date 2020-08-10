@@ -322,9 +322,14 @@ class ZSWin_Handler : EventHandler
 	
 	ui private void WindowProcess_Shapes(ZSWindow nwd)
 	{
+		int originx, originy,
+			cxstart, cystart, 
+			cxend, cyend, 
+			ang;
+		
 		WindowClip(nwd);
 		for (int i = 0; i < nwd.GetShapeSize(); i++)
-		{
+		{	
 			switch (nwd.GetShape(i).Type)
 			{
 				case ZShape.thinline:
@@ -410,14 +415,14 @@ class ZSWin_Handler : EventHandler
 					break;
 				case ZShape.roundbox:
 					// Top
-					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius - 1,
-									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
 									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-									nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
 									nwd.GetShape(i).Color,
 									int(nwd.GetShape(i).Alpha * 255));
 					// Bottom
-					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius - 1,
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
 									nwd.yLocation + nwd.GetShape(i).y_End,
 									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
 									nwd.yLocation + nwd.GetShape(i).y_End,
@@ -438,19 +443,18 @@ class ZSWin_Handler : EventHandler
 									nwd.GetShape(i).Color,
 									int(nwd.GetShape(i).Alpha * 255));
 									
-					let ang = 90 / nwd.GetShape(i).Vertices + 1;
+					ang = 90 / nwd.GetShape(i).Vertices;
 					// Upper Left
-					int originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius, 
-						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start, 
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius, 
-						cxend, cyend;
-					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 					{
 						cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
-						if (cxend > nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius)
+						if (j == nwd.GetShape(i).Vertices - 1)
 							cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius - 1;
+						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
 						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
 						cxstart = cxend;
 						cystart = cyend;
@@ -461,12 +465,12 @@ class ZSWin_Handler : EventHandler
 					originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
 					cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 					cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
-					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 					{
 						cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
-						if (cxend > nwd.xLocation + nwd.GetShape(i).x_End)
-							cxend = nwd.xLocation + nwd.GetShape(i).x_End;
 						cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
 						cxstart = cxend;
 						cystart = cyend;					
@@ -476,12 +480,12 @@ class ZSWin_Handler : EventHandler
 					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
 					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
 					cystart = nwd.yLocation + nwd.GetShape(i).y_End;
-					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 					{
 						cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
-						if (cxend < nwd.xLocation + nwd.GetShape(i).x_Start)
-							cxend = nwd.xLocation + nwd.GetShape(i).x_Start;
 						cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
 						cxstart = cxend;
 						cystart = cyend;					
@@ -491,11 +495,11 @@ class ZSWin_Handler : EventHandler
 					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
 					cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
 					cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
-					for (int j = 0; j < nwd.GetShape(i).Vertices + 1; j++)
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 					{
 						cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
-						if (cxend < nwd.xLocation + nwd.GetShape(i).x_Start - nwd.GetShape(i).Radius)
-							cxend = nwd.xLocation + nwd.GetShape(i).x_Start - nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 						cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
 						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
 						cxstart = cxend;
@@ -503,6 +507,101 @@ class ZSWin_Handler : EventHandler
 					}					
 					break;
 				case ZShape.roundthickbox:
+					// Top
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+									
+					ang = 90 / nwd.GetShape(i).Vertices;
+					// Upper Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
+					originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;
+					}
+					
+					// Upper Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
 					break;
 			}
 		}
