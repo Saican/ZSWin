@@ -66,12 +66,30 @@ class ZSWindow : ZSWin_Base abstract
 	private Array<ZText> CopyText;
 	ui int GetTextSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
 	ui ZText GetText(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
+	ui ZText FindText(string Name) 
+	{ 
+		for (int i = 0; i < GetTextSize(); i++) 
+		{ 
+			if (GetText(i).Name ~== Name) 
+				return GetText(i); 
+		} 
+		return null; 
+	}
 	
 	// Lines and Boxes
 	Array<ZShape> Shapes;
 	private Array<ZShape> CopyShapes;
-	ui ZShape GetShape(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes[i]: Shapes[i]; }
 	ui int GetShapeSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
+	ui ZShape GetShape(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes[i]: Shapes[i]; }
+	ui ZShape FindShape(string Name) 
+	{ 
+		for (int i = 0; i < GetShapeSize(); i++) 
+		{ 
+			if (GetShape(i).Name ~== Name) 
+				return GetShape(i); 
+		} 
+		return null; 
+	}
 	
 	private bool ConsoleUpdater;
 	bool SetWindowToConsole() { return zHandler ? ConsoleUpdater = zHandler.SetWindowToConsole(self) : false; }
@@ -122,7 +140,7 @@ class ZSWindow : ZSWin_Base abstract
 	
 	override void Init(bool enabled, string name, int player)
 	{
-		DebugOut("Window abstract initialized.", Font.CR_Yellow);		
+		DebugOut("WindowInitMsg", "Window abstract initialized.", Font.CR_Yellow);		
 		super.Init(enabled, name, player);
 		
 		bStackPurged = false;
@@ -230,7 +248,7 @@ class ZSWindow : ZSWin_Base abstract
 			}
 			else
 			{
-				DebugOut("ERROR! Window failed to find all of the textures required for the Classic Z-Window's Border.  Defaulting to Line type.");
+				DebugOut("ZWinBorderError", "ERROR! Window failed to find all of the textures required for the Classic Z-Window's Border.  Defaulting to Line type.");
 				BorderType = Line;
 			}
 		}

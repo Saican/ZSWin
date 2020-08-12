@@ -7,18 +7,18 @@ class ZSWin_Base : actor abstract
 	int player, Priority;
 	ZSWin_Base this;
 	ZSWin_Handler zHandler;
-	void DebugOut(string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
+	void DebugOut(string name, string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
 	{ 
 		if (zHandler) 
-			zHandler.DebugOut(msg, color, tics, append); 
+			zHandler.DebugOut(name, msg, color, tics, append); 
 		else
-			dar_HeldMsgs.Push(new("ZText").DebugInit(msg, color, tics, append));
+			dar_HeldMsgs.Push(new("ZText").DebugInit(name, msg, color, tics, append));
 	}
 	private Array<ZText> dar_HeldMsgs;
 	
 	virtual void Init(bool enabled, string name, int player)
 	{
-		DebugOut("Window base initialized", Font.CR_Green);
+		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
 		self.enabled = enabled;
 		bDestroyed = false;
 		if (enabled)
@@ -48,14 +48,14 @@ class ZSWin_Base : actor abstract
 		{
 			if (bDestroyed)
 			{
-				DebugOut(string.format("Object named, %s, marked for destruction.  Goodbye!", name == "" ? "NO NAME" : name));
+				DebugOut("WindowDestroyMsg", string.format("Object named, %s, marked for destruction.  Goodbye!", name == "" ? "NO NAME" : name));
 				self.Destroy();
 			}
 			
 			if (zHandler && dar_HeldMsgs.Size() > 0)
 			{
 				for (int i = 0; i < dar_HeldMsgs.Size(); i++)
-					DebugOut(string.format("Held Window Initialization Message: %s", ZText(dar_HeldMsgs[i]).Text), ZText(dar_HeldMsgs[i]).CRColor, ZText(dar_HeldMsgs[i]).Tics, ZText(dar_HeldMsgs[i]).TicAppend);
+					DebugOut(string.Format("HeldMsg%d", i), string.format("Held Window Initialization Message: %s", ZText(dar_HeldMsgs[i]).Text), ZText(dar_HeldMsgs[i]).CRColor, ZText(dar_HeldMsgs[i]).Tics, ZText(dar_HeldMsgs[i]).TicAppend);
 				
 				dar_HeldMsgs.Clear();
 			}

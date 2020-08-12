@@ -28,22 +28,27 @@ class ZSWin_Terminal : ZSWindow
 			// - While the title is a unique member, it is still a ZText instance and users have full control over it.
 			// - The Init method defaults the yLocation and Alpha args
 			// - Locations are relative to the window
-			Title = new("ZText").Init("ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
+			// - All controls have a Name member that is a unique identifier for Find methods
+			Title = new("ZText").Init("DemoTitle", "ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
 									Font.CR_Gold, 
-									ZText.wrap, 
+									ZText.wrap,
+									0,	// if 0, the text is wrapped to the window width
 									ZText.center, 
 									"bigfont", 
 									0);
 									
-			Text.Push(new("ZText").Init("Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
-										Font.CR_White,
-										ZText.wrap,
-										ZText.Left,
-										"consolefont",
-										5,
-										55));
+			Text.Push(new("ZText").Init("txtNews_A", "Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
+										Font.CR_White,		// text color...kinda obvious
+										ZText.wrap,			// text wrap setting - this is given priority
+										0,					// wrap width
+										ZText.Left,			// alignment
+										"consolefont",		// font name
+										5,					// x location - relative to window
+										55,					// y location - same
+										1,					// alpha (float)
+										"bigGroupBox"));  	// if provided the name of a ZShape, the width calculated width of the shape (x_End - x_Start) will be the wrap width
 										
-			Shapes.Push(new("ZShape").Init(ZShape.thinroundgroupbox,
+			Shapes.Push(new("ZShape").Init("bigGroupbox", ZShape.thinroundgroupbox,
 											"Green",
 											0, 45, 			// start x/y
 											Width, Height, 	// end x/y
@@ -52,9 +57,10 @@ class ZSWin_Terminal : ZSWindow
 											ZShape.noscale, // scaling in relation to window resizing
 											20,				// radius for round corners
 											10,				// number of vertices on curve
-											new("ZText").Init("Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
+											new("ZText").Init("bigGroupbox_Title", "Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
 												Font.CR_Orange,
 												ZText.nowrap, 	// text wrapping is ignored for the title
+												0,
 												ZText.left,		// alignment is also ignored
 												"newsmallfont",
 												30)));			// xLocation is relative to the x_Start of the shape
@@ -63,7 +69,7 @@ class ZSWin_Terminal : ZSWindow
 	
 	override void Init(bool enabled, string name, int player)
 	{
-		DebugOut("Initializing window.", Font.CR_Gray);
+		DebugOut("TerminalInitMsg", "Initializing window.", Font.CR_Gray);
 		
 		// This has to be called first prior to all other initialization
 		TrueZero();

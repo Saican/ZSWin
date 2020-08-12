@@ -9,7 +9,7 @@
 
 class ZText
 {
-	string Text;
+	string Name, Text;
 	int CRColor;
 	
 	enum TXTWRAP
@@ -19,6 +19,9 @@ class ZText
 		nowrap,
 	};
 	TXTWRAP TextWrap;
+	
+	int WrapWidth;
+	string ShapeWidth;
 	
 	enum TEXTALIGN
 	{
@@ -37,16 +40,19 @@ class ZText
 	uint Tics;
 	bool TicAppend;
 	
-	ZText Init (string Text, int CRColor, TXTWRAP TextWrap, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, uint Tics = 0, bool TicAppend = false)
+	ZText Init (string Name, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
 	{
+		self.Name = Name;
 		self.Text = Text;
 		self.CRColor = CRColor;
 		self.TextWrap = TextWrap;
+		self.WrapWidth = WrapWidth;
 		self.Alignment = Alignment;
 		self.font = Font.GetFont(fontName);
 		self.xLocation = xLocation;
 		self.yLocation = yLocation;
 		self.Alpha = Alpha;
+		self.ShapeWidth = ShapeWidth;
 		self.Tics = Tics;
 		self.TicAppend = TicAppend;
 
@@ -56,14 +62,17 @@ class ZText
 			return null;
 	}
 	
-	ZText DebugInit(string Text, int CRColor, uint Tics, bool TicAppend)
+	ZText DebugInit(string Name, string Text, int CRColor, uint Tics, bool TicAppend)
 	{
+		self.Name = Name;
 		self.Text = Text;
 		self.CRColor = CRColor;
 		self.TextWrap = nowrap;
+		self.WrapWidth = 0;
 		self.Alignment = left;
 		self.xLocation = self.yLocation = 0;
 		self.Alpha = 1.0;
+		self.ShapeWidth = "";
 		self.Tics = Tics;
 		self.TicAppend = TicAppend;
 		return self;  // no font check, debugging handles the font.
