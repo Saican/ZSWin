@@ -5,12 +5,13 @@
 
 */
 
-class ZButton
+class ZButton : ZControl_Base
 {
-	string Text;
-	int CRColor;
+
 	
 	float xLocation,
-		yLocation,
-		Alpha;
+		yLocation;
+		
+	ZText Text;
+	ZShape Border;
 }

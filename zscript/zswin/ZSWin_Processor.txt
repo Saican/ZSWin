@@ -233,7 +233,8 @@ class zsys
 				if (shpref)
 					wrapWidth = shpref.x_End - shpref.x_Start;
 				else
-					console.printf("did not find shape reference!");
+					EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
+					//nwd.zHandler.DebugOut("txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth));
 			}
 			else
 				wrapWidth = nwd.Width;

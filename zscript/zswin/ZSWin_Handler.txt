@@ -61,6 +61,43 @@ class ZSWin_Handler : EventHandler
 			bDebug = !bDebug;
 			CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 		}
+		else
+			NetworkProcess_String(e);
+	}
+
+	enum CMDTYP
+	{
+		dbugout,
+		nocmd,
+	};
+	
+	private CMDTYP stringToCmd(string e)
+	{
+		if (e ~== "zswin_debugOut")
+			return dbugout;
+		else
+			return nocmd;
+	}
+	
+	private void NetworkProcess_String(ConsoleEvent e)
+	{
+		Array<string> cmdc;
+		e.Name.Split(cmdc, ":");
+		
+		if (cmdc.Size() >= 1)
+		{
+			switch (stringToCmd(cmdc[0]))
+			{
+				case dbugout:
+					if (cmdc.Size() > 2) // have to have at least a name and text
+						DebugOut(cmdc[1], cmdc[2], cmdc.Size() > 3 ? cmdc[3] : Font.CR_Red, cmdc.Size() > 4 ? cmdc[4] : 175, cmdc.Size() > 5 ? cmdc[5]: false);
+					else
+						DebugOut("netCmd", "ERROR! - Got an invalid debug out message from a UI context method!");
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	// This is the primary draw caller

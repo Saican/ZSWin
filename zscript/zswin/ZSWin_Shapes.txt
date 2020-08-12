@@ -5,10 +5,8 @@
 
 */
 
-class ZShape
+class ZShape : ZControl_Base
 {
-	string Name;
-	
 	enum SHAPETYPE
 	{
 		thinline,
@@ -24,15 +22,6 @@ class ZShape
 	};
 	SHAPETYPE Type;
 	
-	enum SCALETYP
-	{
-		scalex,
-		scaley,
-		scaleboth,
-		noscale,
-	};
-	SCALETYP ScaleType;
-	
 	color Color;
 	
 	int x_Start, 
@@ -42,8 +31,7 @@ class ZShape
 		Radius,
 		Vertices;
 		
-	float Alpha, // this should be an int but historically its been a float so conversion is done in the handler
-		Thickness;
+	float Thickness;
 	
 	/*
 		If this instance of ZText is not null, and the shape type is one of the group box types,

@@ -7,9 +7,9 @@
 
 */
 
-class ZText
+class ZText : ZControl_Base
 {
-	string Name, Text;
+	string Text;
 	int CRColor;
 	
 	enum TXTWRAP
@@ -34,8 +34,7 @@ class ZText
 	Font font;
 	
 	float xLocation, 
-		yLocation,
-		Alpha;
+		yLocation;
 		
 	uint Tics;
 	bool TicAppend;

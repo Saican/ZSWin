@@ -46,7 +46,7 @@ class ZSWin_Terminal : ZSWindow
 										5,					// x location - relative to window
 										55,					// y location - same
 										1,					// alpha (float)
-										"bigGroupBox"));  	// if provided the name of a ZShape, the width calculated width of the shape (x_End - x_Start) will be the wrap width
+										"bgGroupBox"));  	// if provided the name of a ZShape, the width calculated width of the shape (x_End - x_Start) will be the wrap width
 										
 			Shapes.Push(new("ZShape").Init("bigGroupbox", ZShape.thinroundgroupbox,
 											"Green",

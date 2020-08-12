@@ -1,0 +1,22 @@
+/*
+	ZSWin_ControlBase.txt
+	
+	Contains members universal to all controls
+
+*/
+
+class ZControl_Base abstract
+{
+	bool Enabled;
+	string Name;
+	float Alpha;
+	
+	enum SCALETYP
+	{
+		scalex,
+		scaley,
+		scaleboth,
+		noscale,
+	};
+	SCALETYP ScaleType;
+}
