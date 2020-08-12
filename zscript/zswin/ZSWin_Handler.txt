@@ -98,7 +98,23 @@ class ZSWin_Handler : EventHandler
 			{
 				case dbugout:
 					if (cmdc.Size() > 2) // have to have at least a name and text
-						DebugOut(cmdc[1], cmdc[2], cmdc.Size() > 3 ? cmdc[3].ToInt() : Font.CR_Red, cmdc.Size() > 4 ? cmdc[4].ToInt() : 175, cmdc.Size() > 5 ? stringToBool(cmdc[5]): false);
+					{
+						int c = Font.CR_Red;
+						if (cmdc.Size() > 3)
+							c = cmdc[3].ToInt();
+							//try
+							//{
+							//}
+							//catch (int e);
+								//DebugOut("netCmdFont", "ERROR! - Got an invalid font color for debug message from UI context method!");
+						uint t = 175;
+						if (cmdc.Size() > 4)
+							t = cmdc[4].ToInt();
+						bool a = false;
+						if (cmdc.Size() > 5)
+							a = stringToBool(cmdc[5]);
+						DebugOut(cmdc[1], cmdc[2], c, t, a);
+					}
 					else
 						DebugOut("netCmd", "ERROR! - Got an invalid debug out message from a UI context method!");
 					break;
