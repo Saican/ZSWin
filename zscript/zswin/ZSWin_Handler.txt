@@ -79,6 +79,14 @@ class ZSWin_Handler : EventHandler
 			return nocmd;
 	}
 	
+	private bool stringToBool(string e)
+	{
+		if (e ~== "true") 
+			return true;
+		else 
+			return false;
+	}
+	
 	private void NetworkProcess_String(ConsoleEvent e)
 	{
 		Array<string> cmdc;
@@ -90,7 +98,7 @@ class ZSWin_Handler : EventHandler
 			{
 				case dbugout:
 					if (cmdc.Size() > 2) // have to have at least a name and text
-						DebugOut(cmdc[1], cmdc[2], cmdc.Size() > 3 ? cmdc[3] : Font.CR_Red, cmdc.Size() > 4 ? cmdc[4] : 175, cmdc.Size() > 5 ? cmdc[5]: false);
+						DebugOut(cmdc[1], cmdc[2], cmdc.Size() > 3 ? cmdc[3].ToInt() : Font.CR_Red, cmdc.Size() > 4 ? cmdc[4].ToInt() : 175, cmdc.Size() > 5 ? stringToBool(cmdc[5]): false);
 					else
 						DebugOut("netCmd", "ERROR! - Got an invalid debug out message from a UI context method!");
 					break;
