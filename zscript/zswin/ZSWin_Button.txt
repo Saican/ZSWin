@@ -1,0 +1,16 @@
+/*
+	ZSWin_Button.txt
+	
+	Button Class
+
+*/
+
+class ZButton
+{
+	string Text;
+	int CRColor;
+	
+	float xLocation,
+		yLocation,
+		Alpha;
+}

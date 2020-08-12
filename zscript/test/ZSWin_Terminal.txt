@@ -33,25 +33,31 @@ class ZSWin_Terminal : ZSWindow
 									ZText.wrap, 
 									ZText.center, 
 									"bigfont", 
-									0.0);
+									0);
 									
 			Text.Push(new("ZText").Init("Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
 										Font.CR_White,
 										ZText.wrap,
 										ZText.Left,
-										"newsmallfont",
-										5.0,
-										45.0));
+										"consolefont",
+										5,
+										55));
 										
-			Shapes.Push(new("ZShape").Init(ZShape.roundthickbox,
-											"White",
-											0, 35, 			// start x/y
+			Shapes.Push(new("ZShape").Init(ZShape.thinroundgroupbox,
+											"Green",
+											0, 45, 			// start x/y
 											Width, Height, 	// end x/y
 											1, 				// alpha
-											1,	 			// thickness
+											3,	 			// thickness
 											ZShape.noscale, // scaling in relation to window resizing
 											20,				// radius for round corners
-											10));			// number of vertices on curve
+											10,				// number of vertices on curve
+											new("ZText").Init("Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
+												Font.CR_Orange,
+												ZText.nowrap, 	// text wrapping is ignored for the title
+												ZText.left,		// alignment is also ignored
+												"newsmallfont",
+												30)));			// xLocation is relative to the x_Start of the shape
 		}
 	}
 	

@@ -332,6 +332,9 @@ class ZSWin_Handler : EventHandler
 		{	
 			switch (nwd.GetShape(i).Type)
 			{
+				//
+				// Thin Line
+				//
 				case ZShape.thinline:
 					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
 									nwd.yLocation + nwd.GetShape(i).y_Start, 
@@ -340,6 +343,9 @@ class ZSWin_Handler : EventHandler
 									nwd.GetShape(i).Color, 
 									int(nwd.GetShape(i).Alpha * 255));
 					break;
+				//
+				// Thick Line
+				//
 				case ZShape.thickline:
 					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
 										nwd.yLocation + nwd.GetShape(i).y_Start, 
@@ -349,6 +355,9 @@ class ZSWin_Handler : EventHandler
 										nwd.GetShape(i).Color, 
 										int(nwd.GetShape(i).Alpha * 255));
 					break;
+				//
+				// Thin Box
+				//
 				case ZShape.box:
 					// Top
 					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
@@ -379,6 +388,9 @@ class ZSWin_Handler : EventHandler
 									nwd.GetShape(i).Color,
 									int(nwd.GetShape(i).Alpha * 255));
 					break;
+				//
+				// Thick Box
+				//
 				case ZShape.thickbox:
 					// Top
 					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
@@ -413,6 +425,9 @@ class ZSWin_Handler : EventHandler
 									nwd.GetShape(i).Color,
 									int(nwd.GetShape(i).Alpha * 255));
 					break;
+				//
+				// Thin Round Box
+				//
 				case ZShape.roundbox:
 					// Top
 					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
@@ -506,6 +521,9 @@ class ZSWin_Handler : EventHandler
 						cystart = cyend;					
 					}					
 					break;
+				//
+				// Thick Round Box
+				//
 				case ZShape.roundthickbox:
 					// Top
 					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
@@ -515,6 +533,432 @@ class ZSWin_Handler : EventHandler
 									nwd.GetShape(i).Thickness,
 									nwd.GetShape(i).Color,
 									int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+									
+					ang = 90 / nwd.GetShape(i).Vertices;
+					// Upper Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
+					originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;
+					}
+					
+					// Upper Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					break;
+				//
+				// Thin Groupbox
+				//
+				case ZShape.thingroupbox:
+					// Top split line
+					if (nwd.GetShape(i).GroupTitle)
+					{
+						// Left side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										nwd.yLocation + nwd.GetShape(i).y_Start);
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+						// Text
+						int txtWidth = nwd.GetShape(i).GroupTitle.font.StringWidth(nwd.GetShape(i).GroupTitle.Text);
+						WindowClip(nwd);
+						Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
+							nwd.GetShape(i).GroupTitle.CRColor,
+							nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+							nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+							nwd.GetShape(i).GroupTitle.Text,
+							DTA_Alpha, nwd.GetShape(i).GroupTitle.Alpha);
+						WindowClip(set:false);
+						// Right side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.xLocation + nwd.GetShape(i).x_End,
+										nwd.yLocation + nwd.GetShape(i).y_Start);
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.xLocation + nwd.GetShape(i).x_End,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.GetShape(i).color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+					}
+					// Normal line if the text isn't found
+					else
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.xLocation + nwd.GetShape(i).x_End,
+										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));					
+					break;
+				//
+				// Thick Groupbox
+				//
+				case ZShape.thickgroupbox:
+					// Top split line
+					if (nwd.GetShape(i).GroupTitle)
+					{
+						// Left side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+						// Text
+						int txtWidth = nwd.GetShape(i).GroupTitle.font.StringWidth(nwd.GetShape(i).GroupTitle.Text);
+						WindowClip(nwd);
+						Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
+							nwd.GetShape(i).GroupTitle.CRColor,
+							nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+							nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+							nwd.GetShape(i).GroupTitle.Text,
+							DTA_Alpha, nwd.GetShape(i).GroupTitle.Alpha);
+						WindowClip(set:false);
+						// Right side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).x_End,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+					}
+					// Normal line if the text isn't found
+					else
+						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+									(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.GetShape(i).Thickness, 
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									(nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_Start,
+									(nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Thickness,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					break;
+				//
+				// Thin Round Groupbox
+				//
+				case ZShape.thinroundgroupbox:
+					// Top split line
+					if (nwd.GetShape(i).GroupTitle)
+					{
+						// Left side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										nwd.yLocation + nwd.GetShape(i).y_Start);
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+						// Text
+						int txtWidth = nwd.GetShape(i).GroupTitle.font.StringWidth(nwd.GetShape(i).GroupTitle.Text);
+						WindowClip(nwd);
+						Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
+							nwd.GetShape(i).GroupTitle.CRColor,
+							nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation,
+							nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2),
+							nwd.GetShape(i).GroupTitle.Text,
+							DTA_Alpha, nwd.GetShape(i).GroupTitle.Alpha);
+						WindowClip(set:false);
+						// Right side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start);
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.GetShape(i).color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+					}
+					// Normal line if the text isn't found
+					else
+						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwd.yLocation + nwd.GetShape(i).y_Start,
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+					// Bottom
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+									nwd.yLocation + nwd.GetShape(i).y_End,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Left
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_Start,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+					// Right
+					Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+									nwd.xLocation + nwd.GetShape(i).x_End,
+									nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+									nwd.GetShape(i).Color,
+									int(nwd.GetShape(i).Alpha * 255));
+									
+					ang = 90 / nwd.GetShape(i).Vertices;
+					// Upper Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;
+					}
+					
+					// Upper Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Left
+					originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
+						cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					// Lower Right
+					originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+					originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+					cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
+					cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+					for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
+					{
+						cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
+						if (j == nwd.GetShape(i).Vertices - 1)
+							cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
+						Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int(nwd.GetShape(i).Alpha * 255));
+						cxstart = cxend;
+						cystart = cyend;					
+					}
+					break;
+				//
+				// Thick Round Groupbox
+				//
+				case ZShape.thickroundgroupbox:
+					// Top split line
+					if (nwd.GetShape(i).GroupTitle)
+					{
+						// Left side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+						// Text
+						int txtWidth = nwd.GetShape(i).GroupTitle.font.StringWidth(nwd.GetShape(i).GroupTitle.Text);
+						WindowClip(nwd);
+						Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
+							nwd.GetShape(i).GroupTitle.CRColor,
+							nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+							nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+							nwd.GetShape(i).GroupTitle.Text,
+							DTA_Alpha, nwd.GetShape(i).GroupTitle.Alpha);
+						WindowClip(set:false);
+						// Right side
+						Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
+						Screen.ClearClipRect();
+					}
+					// Normal line if the text isn't found
+					else
+						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
+										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwd.GetShape(i).Thickness, 
+										nwd.GetShape(i).Color,
+										int(nwd.GetShape(i).Alpha * 255));
 					// Bottom
 					Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
 									nwd.yLocation + nwd.GetShape(i).y_End,

@@ -15,6 +15,10 @@ class ZShape
 		thickbox,
 		roundbox,
 		roundthickbox,
+		thingroupbox,
+		thickgroupbox,
+		thinroundgroupbox,
+		thickroundgroupbox,
 	};
 	SHAPETYPE Type;
 	
@@ -39,7 +43,14 @@ class ZShape
 	float Alpha, // this should be an int but historically its been a float so conversion is done in the handler
 		Thickness;
 	
-	ZShape Init (SHAPETYPE Type, color Color, int x_Start, int y_Start, int x_End, int y_End, float Alpha = 1.0, float Thickness = 1.0, SCALETYP ScaleType = noscale, int Radius = 0, int Vertices = 0)
+	/*
+		If this instance of ZText is not null, and the shape type is one of the group box types,
+		only the xLocation will be utilized and will be an offset from the left side of the box.
+	
+	*/
+	ZText GroupTitle;
+	
+	ZShape Init (SHAPETYPE Type, color Color, int x_Start, int y_Start, int x_End, int y_End, float Alpha = 1.0, float Thickness = 1.0, SCALETYP ScaleType = noscale, int Radius = 0, int Vertices = 0, ZText GroupTitle = null)
 	{
 		self.Type = Type;
 		self.Color = Color;
@@ -52,6 +63,7 @@ class ZShape
 		self.ScaleType = ScaleType;
 		self.Radius = Radius;
 		self.Vertices = Vertices;
+		self.GroupTitle = GroupTitle;
 		return self;
 	}
 }
