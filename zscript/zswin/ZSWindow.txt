@@ -91,6 +91,18 @@ class ZSWindow : ZSWin_Base abstract
 		return null; 
 	}
 	
+	// Buttons
+	Array<ZButton> Buttons;
+	ui ZButton FindButton(string Name)
+	{
+		for (int i = 0; i < Buttons.Size(); i++)
+		{
+			if (Buttons[i].Name ~== Name)
+				return Buttons[i];
+		}
+		return null;
+	}
+	
 	private bool ConsoleUpdater;
 	bool SetWindowToConsole() { return zHandler ? ConsoleUpdater = zHandler.SetWindowToConsole(self) : false; }
 	void IsUpdating(bool updating = true) 

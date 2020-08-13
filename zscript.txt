@@ -7,6 +7,7 @@ version "4.2.1"
 #include "zscript/zswin/ZSWin_Processor.txt"
 #include "zscript/zswin/ZSWin_Shapes.txt"
 #include "zscript/zswin/ZSWin_Text.txt"
+#include "zscript/zswin/ZSWin_TextureUtil.txt"
 #include "zscript/zswin/ZSWindow.txt"
 
 #include "zscript/test/ZSWin_Console.txt"

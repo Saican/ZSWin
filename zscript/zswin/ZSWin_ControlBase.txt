@@ -7,8 +7,8 @@
 
 class ZControl_Base abstract
 {
-	bool Enabled;
 	string Name;
+	bool Enabled;
 	float Alpha;
 	
 	enum SCALETYP
@@ -19,4 +19,26 @@ class ZControl_Base abstract
 		noscale,
 	};
 	SCALETYP ScaleType;
+	
+	enum TEXTALIGN
+	{
+		left,
+		right,
+		center,
+	};
+	
+	enum SHAPETYPE
+	{
+		thinline,
+		thickline,
+		box,
+		thickbox,
+		roundbox,
+		roundthickbox,
+		thingroupbox,
+		thickgroupbox,
+		thinroundgroupbox,
+		thickroundgroupbox,
+		noshape,
+	};
 }

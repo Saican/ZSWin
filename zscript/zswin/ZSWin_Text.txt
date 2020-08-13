@@ -23,12 +23,6 @@ class ZText : ZControl_Base
 	int WrapWidth;
 	string ShapeWidth;
 	
-	enum TEXTALIGN
-	{
-		left,
-		right,
-		center,
-	};
 	TEXTALIGN Alignment;
 	
 	Font font;
@@ -39,9 +33,10 @@ class ZText : ZControl_Base
 	uint Tics;
 	bool TicAppend;
 	
-	ZText Init (string Name, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
+	ZText Init (string Name, bool Enabled, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
 	{
 		self.Name = Name;
+		self.Enabled = Enabled;
 		self.Text = Text;
 		self.CRColor = CRColor;
 		self.TextWrap = TextWrap;
@@ -64,6 +59,7 @@ class ZText : ZControl_Base
 	ZText DebugInit(string Name, string Text, int CRColor, uint Tics, bool TicAppend)
 	{
 		self.Name = Name;
+		self.Enabled = true;
 		self.Text = Text;
 		self.CRColor = CRColor;
 		self.TextWrap = nowrap;

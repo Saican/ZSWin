@@ -234,11 +234,9 @@ class zsys
 					wrapWidth = shpref.x_End - shpref.x_Start;
 				else
 					EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
-					//nwd.zHandler.DebugOut("txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth));
 			}
 			else
 				wrapWidth = nwd.Width;
-			console.printf(string.format("wrapwidth is %d", wrapWidth));
 			switch (nwd.GetText(i).TextWrap)
 			{
 				case ZText.wrap:
@@ -1011,8 +1009,64 @@ class zsys
 	}
 	
 	ui static void WindowProcess_Buttons(ZSWindow nwd)
-	{}
+	{
+		for (int i = 0; i < nwd.Buttons.Size(); i++)
+		{							
+			switch (nwd.Buttons[i].Type)
+			{
+				case ZButton.standard:
+				case ZButton.radio:
+				case ZButton.check:
+					screen.SetClipRect(nwd.xLocation + nwd.Buttons[i].xLocation, 
+									nwd.yLocation + nwd.Buttons[i].yLocation,
+									nwd.Buttons[i].Width,
+									nwd.Buttons[i].Height);
+					if (nwd.Buttons[i].Stretch)
+						screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
+										false, 
+										nwd.xLocation + nwd.Buttons[i].xLocation, 
+										nwd.yLocation + nwd.Buttons[i].yLocation,
+										DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+										DTA_DestWidth, nwd.Buttons[i].Width,
+										DTA_DestHeight, nwd.Buttons[i].Height);
+					else
+					{
+						int tx, ty, w = 0;
+						Vector2 txy = TexMan.GetScaledSize(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId);
+						tx = txy.x;
+						ty = txy.y;
+						do
+						{
+							int h = 0;
+							do
+							{
+								Screen.DrawTexture (nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId, 
+									false,
+									nwd.xLocation + nwd.Buttons[i].xLocation + (tx * w),
+									nwd.yLocation + nwd.Buttons[i].yLocation + (ty * h),
+									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									DTA_DestWidth, tx,
+									DTA_DestHeight, ty);
+								h++;
+							} while ((((h - 1) * ty) + ty) < nwd.Buttons[i].Height);
+							w++;
+						} while ((((w - 1) * tx) + tx) <= nwd.Buttons[i].Width);
+					}
+					nwd.zHandler.WindowClip(set:false);
+					break;
+				case ZButton.zbtn:
+				
+					break;
+			}
+			// Background
+			// Text
+			// Border
+		}
+	}
 	
 	ui static void WindowProcess_Graphics(ZSWindow nwd)
-	{}
+	{
+		nwd.zHandler.WindowClip(nwd);
+		nwd.zHandler.WindowClip(set:false);
+	}
 }

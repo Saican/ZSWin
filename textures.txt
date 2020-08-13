@@ -1,3 +1,6 @@
+//
+// Z-Windows Corners
+//
 texture CRNR_TL, 26, 26
 {
 	xscale 2.0
@@ -33,6 +36,9 @@ texture CRNR_BR, 26, 26
 	{ rotate 180 }
 }
 
+//
+// Z-Windows Sides
+//
 texture SIDE_T, 26, 26
 {
 	xscale 2.0
@@ -66,4 +72,208 @@ texture SIDE_R, 26, 26
 	
 	patch SIDE, 0, 0
 	{ rotate 90 }
+}
+
+//
+// Middle of ZButton
+//
+texture BMIDA, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNMIDA, 0, 0
+}
+
+texture BMIDH, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNMIDH, 0, 0
+}
+
+texture BMIDI, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNMIDI, 0, 0
+}
+
+//
+// Left Side of ZButton
+//
+texture BSIDAL, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNSIDEA, 0, 0
+}
+
+texture BSIDHL, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNSIDEH, 0, 0
+}
+
+texture BSIDIL, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch  BTNSIDEI, 0, 0
+}
+
+//
+// Right Side of ZButton
+//
+texture BSIDAR, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNSIDEA, 0, 0
+	{ rotate 180 }
+}
+
+texture BSIDHR, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch BTNSIDEH, 0, 0
+	{ rotate 180 }
+}
+
+texture BSIDIR, 76, 76
+{
+	xscale 2.0
+	yscale 2.0
+	
+	patch  BTNSIDEI, 0, 0
+	{ rotate 180 }
+}
+
+//
+// Resize Icon
+//
+texture BDRAGIS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+
+	patch BDRAGI, 0, 0
+}
+
+texture BDRAGAS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+
+	patch BDRAGA, 0, 0
+}
+
+texture BDRAGHS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BDRAGH, 0, 0
+}
+
+
+//
+// Move Icon
+//
+texture BMOVEIS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+
+	patch BMOVEI, 0, 0
+}
+
+texture BMOVEAS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+
+	patch BMOVEA, 0, 0
+}
+
+texture BMOVEHS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+
+	patch BMOVEH, 0, 0
+}
+
+//
+// Close Icon
+//
+texture BCLSEIS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BCLSEI, 0, 0
+}
+
+texture BCLSEAS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BCLSEA, 0, 0
+}
+
+texture BCLSEHS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BCLSEH, 0, 0
+}
+
+//
+// Radio Icon
+//
+texture BRDCKIS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BRDCKI, 0, 0
+}
+
+texture BRDIOAS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BRDIOA, 0, 0
+}
+
+texture BRDCKHS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BRDCKH, 0, 0
+}
+
+//
+// Check Icon - inactive icon is same as Radio
+//
+texture BCHCKAS, 38, 38
+{
+	xscale 1.52
+	yscale 1.52
+	
+	patch BCHCKA, 0, 0
 }

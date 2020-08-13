@@ -6,6 +6,22 @@ class ZSWin_Handler : EventHandler
 	
 	bool bDebug, bDebugIsUpdating;
 	private int debugPlayer;
+	/*
+		Name		: 	DebugOut
+		Description : 	Main method of sending debug info to the screen.
+		Args		:	1 - string, unique id for the message
+						2 - string, the message
+						[3] - int, text color - send Font.CR_x enums
+						[4] - uint, unsigned int, text duration on screen, in tics
+						[5] - bool, if true duration time remaining is appended to string
+		Notes		:	console.printf is still perfectly vailid, but it's been noticed
+						that calling it with the console window running can cause update
+						desyncing of the console window.
+						
+						Args 3-5 are defaulted.
+		
+	
+	*/
 	void DebugOut(string Name, string Text, int color = Font.CR_Red, uint tics = 175, bool append = false)
 	{ 
 		if (bDebug) 
@@ -102,11 +118,6 @@ class ZSWin_Handler : EventHandler
 						int c = Font.CR_Red;
 						if (cmdc.Size() > 3)
 							c = cmdc[3].ToInt();
-							//try
-							//{
-							//}
-							//catch (int e);
-								//DebugOut("netCmdFont", "ERROR! - Got an invalid font color for debug message from UI context method!");
 						uint t = 175;
 						if (cmdc.Size() > 4)
 							t = cmdc[4].ToInt();
@@ -140,6 +151,8 @@ class ZSWin_Handler : EventHandler
 				zsys.WindowProcess_Buttons(nwd);
 				zsys.WindowProcess_Graphics(nwd);
 			}
+			else
+				EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
 		}
 	}
 	
@@ -201,6 +214,7 @@ class ZSWin_Handler : EventHandler
 			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 			{
 				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).Name,
+												ZText(dar_DebugMsgs[i]).Enabled,
 												ZText(dar_DebugMsgs[i]).TicAppend ? 
 													string.Format("%s : tics - %d", ZText(dar_DebugMsgs[i]).Text, ZText(dar_DebugMsgs[i]).Tics) : 
 													ZText(dar_DebugMsgs[i]).Text,
