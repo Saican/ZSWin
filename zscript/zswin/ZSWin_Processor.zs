@@ -232,8 +232,8 @@ class zsys
 				ZShape shpref = nwd.FindShape(nwd.GetText(i).ShapeWidth);
 				if (shpref)
 					wrapWidth = shpref.x_End - shpref.x_Start;
-				else
-					EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
+				//else
+					//EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
 			}
 			else
 				wrapWidth = nwd.Width;
@@ -1012,15 +1012,59 @@ class zsys
 	{
 		for (int i = 0; i < nwd.Buttons.Size(); i++)
 		{							
+			int clipx = 0, 
+				clipy = 0, 
+				wdth = 0, 
+				hght = 0;
+
+			// Check if button is beyond right edge
+			if (nwd.xLocation + nwd.Buttons[i].xLocation > nwd.xLocation + nwd.Width)
+				break; // This button cannot be seen so don't bother drawing it
+			// Check if button is beyond left edge
+			else if (nwd.xLocation + nwd.Buttons[i].xLocation < nwd.xLocation)
+			{
+				// Now check if there's anything of the button to draw
+				if (nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width > nwd.xLocation)
+				{
+					clipx = nwd.xLocation; // There is, so the left edge is set to the window edge
+					wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation);
+				}
+				else
+					break; // This button cannot be seen so don't bother drawing it
+			}
+			// Button is within the window
+			else
+			{
+				clipx = nwd.xLocation + nwd.Buttons[i].xLocation;
+				wdth = nwd.Buttons[i].Width;
+			}
+			
+			// Check if button is beyond bottom edge
+			if (nwd.yLocation + nwd.Buttons[i].yLocation > nwd.yLocation + nwd.Height)
+				break; // Button can't be seen, skip it
+			// Check if button is beyond top edge
+			else if (nwd.yLocation + nwd.Buttons[i].yLocation < nwd.yLocation)
+			{
+				// Is anything visable?
+				if (nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height > nwd.yLocation)
+				{
+					clipy = nwd.yLocation;
+					hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation);
+				}
+				else
+					break;  // Button can't be seen, skip it
+			}
+			// Button is within the window
+			else
+			{
+				clipy = nwd.yLocation + nwd.Buttons[i].yLocation;
+				hght = nwd.Buttons[i].Height;
+			}				
+
 			switch (nwd.Buttons[i].Type)
 			{
-				case ZButton.standard:
-				case ZButton.radio:
-				case ZButton.check:
-					screen.SetClipRect(nwd.xLocation + nwd.Buttons[i].xLocation, 
-									nwd.yLocation + nwd.Buttons[i].yLocation,
-									nwd.Buttons[i].Width,
-									nwd.Buttons[i].Height);
+				case ZButton.standard:					
+					screen.SetClipRect(clipx, clipy, wdth, hght);
 					if (nwd.Buttons[i].Stretch)
 						screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
 										false, 
@@ -1054,11 +1098,111 @@ class zsys
 					}
 					nwd.zHandler.WindowClip(set:false);
 					break;
+				case ZButton.radio:
+				case ZButton.check:
+					screen.SetClipRect(clipx, clipy, wdth, hght);
+					screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
+									false, 
+									nwd.xLocation + nwd.Buttons[i].xLocation, 
+									nwd.yLocation + nwd.Buttons[i].yLocation,
+									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									DTA_DestWidth, nwd.Buttons[i].Width,
+									DTA_DestHeight, nwd.Buttons[i].Height);
+					nwd.zHandler.WindowClip(set:false); // this is the same as calling screen.ClearClipRect()
+					break;
 				case ZButton.zbtn:
-				
+					TextureId leftSide, middle, rightSide;
+					// Do we have more at least one TextureSet?
+					if (nwd.Buttons[i].btnTextures.Size() > 0)
+					{
+						// We do, so check if there's 3 sets with exactly 3 textures each
+						if (nwd.Buttons[i].btnTextures.Size() == 3 &&
+							nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet.Size() == 3)
+						{
+							leftSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[0].txtId;
+							middle = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[1].txtId;
+							rightSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[2].txtId;
+						}
+						// There's not, so check if there's 3 sets with at least one texure each
+						else if (nwd.Buttons[i].btnTextures.Size() == 3 &&
+								nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet.Size() > 0)
+							leftSide = middle = rightSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[0].txtId;
+						// Ok, theres at least one texture set, so check it has something in it and use it!
+						else if (nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 0)
+							leftSide = middle = rightSide = nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId;
+						// Something is really wrong, just stop.
+						else
+							break;
+					}
+					// The button doesn't have any textures?! WHAAAT?!
+					else
+						break;
+					
+					// Left and right sides are drawn, then the clipping boundary is ammended for the tiled middle
+					screen.SetClipRect(clipx, clipy, wdth, hght);
+					int lx, ly, rx, ry;
+					Vector2 lxy = TexMan.GetScaledSize(leftSide);
+					lx = lxy.x;
+					ly = lxy.y;
+					screen.DrawTexture(leftSide,
+									false, 
+									nwd.xLocation + nwd.Buttons[i].xLocation, 
+									nwd.yLocation + nwd.Buttons[i].yLocation,
+									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									DTA_DestWidth, lx,
+									DTA_DestHeight, ly);	
+					Vector2 rxy = TexMan.GetScaledSize(rightSide);
+					rx = rxy.x;
+					ry = rxy.y;	
+					screen.DrawTexture(rightSide,
+									false, 
+									nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width - rx, 
+									nwd.yLocation + nwd.Buttons[i].yLocation,
+									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									DTA_DestWidth, rx,
+									DTA_DestHeight, ry);										
+					nwd.zHandler.WindowClip(set:false);
+						
+					int midclipx, midwdth;
+					// The button clipping boundary is beyond the button location
+					if (clipx > nwd.xLocation + nwd.Buttons[i].xLocation)
+					{
+						midclipx = (clipx - (nwd.xLocation + nwd.Buttons[i].xLocation)) + lx;
+						// The middle clip x is greater than the button clipx, subtract the left and right dimensions from the width to get the middle width
+						if (midclipx > clipx)
+							midwdth = nwd.Buttons[i].Width - lx - rx;
+						// Other way around, do the same thing, but now subtract the different between the clipping edges
+						else
+							midwdth = (nwd.Buttons[i].Width - lx - rx) - (clipx - midclipx);
+					}
+					// The button is within the window, so left edge is edge of the left texture
+					else
+					{
+						midclipx = nwd.xLocation + nwd.Buttons[i].xLocation + lx;
+						midwdth = nwd.Buttons[i].Width - lx - rx;
+					}
+					
+					int mx, my;
+					Vector2 mxy = TexMan.GetScaledSize(middle);
+					mx = mxy.x;
+					my = mxy.y;
+					screen.SetClipRect(midclipx, clipy, midwdth, my);
+					int w = 0;
+					// No height loop because the height is the height of the textures
+					do
+					{
+						Screen.DrawTexture (middle, 
+							false,
+							nwd.xLocation + nwd.Buttons[i].xLocation + lx + (mx * w),
+							nwd.yLocation + nwd.Buttons[i].yLocation,
+							DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+							DTA_DestWidth, mx,
+							DTA_DestHeight, my);
+						w++;
+					} while ((((w - 1) * mx) + mx) <= midwdth);
+					nwd.zHandler.WindowClip(set:false);
 					break;
 			}
-			// Background
 			// Text
 			// Border
 		}

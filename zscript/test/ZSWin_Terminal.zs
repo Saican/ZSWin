@@ -66,7 +66,9 @@ class ZSWin_Terminal : ZSWindow
 												30)));			// xLocation is relative to the x_Start of the shape
 			
 			// Buttons may be initialized with as little as 2 arguments!
-			Buttons.Push(new("ZButton").Init("testButton", "Click Me!"));
+			// - All other args are defaulted so you can use named arguments to set what you need.
+			// - Here I skipped the Enabled argument to jump to the button type
+			Buttons.Push(new("ZButton").Init("testButton", "Click Me!", Type:ZButton.zbtn));
 		}
 	}
 	
