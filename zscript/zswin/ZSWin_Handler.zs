@@ -151,6 +151,9 @@ class ZSWin_Handler : EventHandler
 				zsys.WindowProcess_Buttons(nwd);
 				zsys.WindowProcess_Graphics(nwd);
 			}
+			// This EventHandler call appears to be causing the ZScript VSCode Extension to choke.
+			// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
+			// - There is another line in the WindowProcess_Text method which causes the same issue.
 			else
 				EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
 		}
