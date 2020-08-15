@@ -68,7 +68,7 @@ class ZSWin_Terminal : ZSWindow
 			// Buttons may be initialized with as little as 2 arguments!
 			// - All other args are defaulted so you can use named arguments to set what you need.
 			// - Here I skipped the Enabled argument to jump to the button type
-			Buttons.Push(new("ZButton").Init("testButton", "Click Me!" /*, Type:ZButton.zbtn*/));
+			Buttons.Push(new("ZButton").Init("testButton", "Click Me!" /*, Type:ZButton.zbtn*/, btn_xLocation:300, btn_yLocation:535));
 		}
 	}
 	

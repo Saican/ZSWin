@@ -1043,7 +1043,7 @@ class zsys
 						cliprht = true;
 					}
 					else
-						wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation);
+						wdth = nwd.Buttons[i].Width - (nwd.xLocation - (nwd.xLocation + nwd.Buttons[i].xLocation));
 					cliplft = true;
 				}
 				else
@@ -1056,7 +1056,7 @@ class zsys
 				// Check if the right side is beyond the window's right side
 				if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width)
 				{
-					wdth = nwd.Buttons.Width - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
+					wdth = nwd.Buttons[i].Width - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
 					cliprht = true;
 				}
 				else
@@ -1080,7 +1080,7 @@ class zsys
 						clipbot = true;
 					}
 					else
-						hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation);
+						hght = nwd.Buttons[i].Height - (nwd.yLocation - (nwd.yLocation + nwd.Buttons[i].yLocation));
 					cliptop = true;
 				}
 				else
@@ -1098,7 +1098,12 @@ class zsys
 				}
 				else				
 					hght = nwd.Buttons[i].Height;
-			}				
+			}
+
+			console.printf(string.format("clipx : %d", clipx));
+			console.printf(string.format("clipy : %d", clipy));
+			console.printf(string.format("wdth : %d", wdth));
+			console.printf(string.format("hght : %d", hght));
 
 			switch (nwd.Buttons[i].Type)
 			{
@@ -1145,31 +1150,37 @@ class zsys
 							/*
 								Ok, since Screen.SetClipRect does not clip lines, I'll have to do it manually.
 								Jesus fucking christ...*face to keyboard.
+								
+								If this works, I guess that's not too bad.
 							*/
-							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation - 1, 
-											nwd.yLocation + nwd.Buttons[i].yLocation - 1, 
-											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
-											nwd.yLocation + nwd.Buttons[i].yLocation - 1, 
-											nwd.BorderColor, 
-											int(255 * nwd.BorderAlpha));
-							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation - 1, 
-											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
-											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
-											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
-											nwd.BorderColor, 
-											int(255 * nwd.BorderAlpha));
-							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation, 
-											nwd.yLocation + nwd.Buttons[i].yLocation, 
-											nwd.xLocation + nwd.Buttons[i].xLocation, 
-											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
-											nwd.BorderColor, 
-											int(255 * nwd.BorderAlpha));
-							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
-											nwd.yLocation + nwd.Buttons[i].yLocation, 
-											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
-											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
-											nwd.BorderColor, 
-											int(255 * nwd.BorderAlpha));
+							if (!cliptop)
+								Screen.DrawLine(clipx - 1, 
+												clipy - 1, 
+												clipx + wdth, 
+												clipy - 1, 
+												nwd.BorderColor, 
+												int(255 * nwd.BorderAlpha));
+							if (!clipbot)
+								Screen.DrawLine(clipx - 1, 
+												clipy + hght, 
+												clipx + wdth, 
+												clipy + hght, 
+												nwd.BorderColor, 
+												int(255 * nwd.BorderAlpha));
+							if (!cliplft)
+								Screen.DrawLine(clipx, 
+												clipy, 
+												clipx, 
+												clipy + hght, 
+												nwd.BorderColor, 
+												int(255 * nwd.BorderAlpha));
+							if (!cliprht)
+								Screen.DrawLine(clipx + wdth, 
+												clipy, 
+												clipx + wdth, 
+												clipy + hght, 
+												nwd.BorderColor, 
+												int(255 * nwd.BorderAlpha));
 							break;
 						case ZShape.thickbox:
 							break;
