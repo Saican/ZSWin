@@ -57,8 +57,8 @@ class ZButton : ZControl_Base
 		self.Stretch = Stretch;
 		self.State = idle;
 		backgroundInit(idleTextureName, highlightTextureName, activeTextureName);
-		Border = new("ZShape").Init(string.Format("%s%s", self.Name, "_border"), self.Enabled, borderType == box || borderType == thickbox ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
-		Text = new("ZText").Init(string.Format("%s%s", self.Name, "_txt"), self.Enabled, btnText, CRColor, ZText.wrap, self.Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);
+		Border = new("ZShape").Init(string.Format("%s%s", self.Name, "_border"), self.Enabled, borderType == box || borderType == thickbox || borderType == noshape ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
+		Text = new("ZText").Init(string.Format("%s%s", self.Name, "_txt"), self.Enabled, btnText, CRColor, ZText.wrap, Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);
 		return self;
 	}
 	

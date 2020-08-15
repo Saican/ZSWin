@@ -187,7 +187,7 @@ class zsys
 				wrapWidth = shpref.x_End - shpref.x_Start;
 		}
 		else
-			wrapWidth = nwd.Width;
+			wrapWidth = nwd.Width - nwd.Title.xLocation;
 		
 		switch (nwd.Title.TextWrap)
 		{
@@ -239,7 +239,7 @@ class zsys
 					EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
 			}
 			else
-				wrapWidth = nwd.Width;
+				wrapWidth = nwd.Width - nwd.GetText(i).xLocation;
 			switch (nwd.GetText(i).TextWrap)
 			{
 				case ZText.wrap:
@@ -1100,11 +1100,6 @@ class zsys
 					hght = nwd.Buttons[i].Height;
 			}
 
-			console.printf(string.format("clipx : %d", clipx));
-			console.printf(string.format("clipy : %d", clipy));
-			console.printf(string.format("wdth : %d", wdth));
-			console.printf(string.format("hght : %d", hght));
-
 			switch (nwd.Buttons[i].Type)
 			{
 				case ZButton.standard:
@@ -1183,7 +1178,6 @@ class zsys
 												int(255 * nwd.Buttons[i].Border.Alpha));
 							break;
 						case ZShape.thickbox:
-							console.printf("thickbox");
 							if (!cliptop)
 								Screen.DrawThickLine(clipx - (!cliplft ? nwd.Buttons[i].Border.Thickness : 0), 
 													clipy - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness), 
@@ -1325,7 +1319,44 @@ class zsys
 					break;
 			}
 			// Text
-
+			BrokenLines blText;
+			int wrapWidth = 0;
+			if (nwd.Buttons[i].Text.WrapWidth > 0)
+				wrapWidth = nwd.Buttons[i].Text.WrapWidth;
+			else
+				wrapWidth = nwd.Buttons[i].Width - nwd.Buttons[i].Text.xLocation;
+			
+			switch (nwd.Buttons[i].Text.TextWrap)
+			{
+				case ZText.wrap:
+					blText = nwd.Buttons[i].Text.font.BreakLines(nwd.Buttons[i].Text.Text, wrapWidth);
+					for (int j = 0; j < blText.Count(); j++)
+						Screen.DrawText(nwd.Buttons[i].Text.font,
+									nwd.Buttons[i].Text.CRColor,
+									nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, wrapWidth, blText.StringAt(j)),
+									nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation + (j * nwd.Buttons[i].Text.font.GetHeight()),
+									blText.StringAt(j),
+									DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+					break;
+				case ZText.dynwrap:
+					blText = nwd.Buttons[i].Text.font.BreakLines(nwd.Buttons[i].Text.Text, wrapWidth /* + resize handlers*/);
+					for (int j = 0; j < blText.Count(); j++)
+						Screen.DrawText(nwd.Buttons[i].Text.font,
+									nwd.Buttons[i].Text.CRColor,
+									nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, wrapWidth, blText.StringAt(j)),
+									nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation + (j * nwd.Buttons[i].Text.font.GetHeight()),
+									blText.StringAt(j),
+									DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+					break;
+				default:
+					Screen.DrawText(nwd.Buttons[i].Text.font, 
+								nwd.Buttons[i].Text.CRColor, 
+								nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, nwd.Width, nwd.Buttons[i].Text.Text), 
+								nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation, 
+								nwd.Buttons[i].Text.Text, 
+								DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+					break;
+			}
 		}
 	}
 	
