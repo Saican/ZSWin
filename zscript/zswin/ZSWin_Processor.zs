@@ -1158,31 +1158,64 @@ class zsys
 												clipy - 1, 
 												clipx + wdth, 
 												clipy - 1, 
-												nwd.BorderColor, 
-												int(255 * nwd.BorderAlpha));
+												nwd.Buttons[i].Border.Color, 
+												int(255 * nwd.Buttons[i].Border.Alpha));
 							if (!clipbot)
 								Screen.DrawLine(clipx - 1, 
 												clipy + hght, 
 												clipx + wdth, 
 												clipy + hght, 
-												nwd.BorderColor, 
-												int(255 * nwd.BorderAlpha));
+												nwd.Buttons[i].Border.Color, 
+												int(255 * nwd.Buttons[i].Border.Alpha));
 							if (!cliplft)
 								Screen.DrawLine(clipx, 
 												clipy, 
 												clipx, 
 												clipy + hght, 
-												nwd.BorderColor, 
-												int(255 * nwd.BorderAlpha));
+												nwd.Buttons[i].Border.Color, 
+												int(255 * nwd.Buttons[i].Border.Alpha));
 							if (!cliprht)
 								Screen.DrawLine(clipx + wdth, 
 												clipy, 
 												clipx + wdth, 
 												clipy + hght, 
-												nwd.BorderColor, 
-												int(255 * nwd.BorderAlpha));
+												nwd.Buttons[i].Border.Color, 
+												int(255 * nwd.Buttons[i].Border.Alpha));
 							break;
 						case ZShape.thickbox:
+							console.printf("thickbox");
+							if (!cliptop)
+								Screen.DrawThickLine(clipx - (!cliplft ? nwd.Buttons[i].Border.Thickness : 0), 
+													clipy - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness), 
+													clipx + wdth + (!cliprht ? nwd.Buttons[i].Border.Thickness : 0), 
+													clipy - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
+													nwd.Buttons[i].Border.Thickness,
+													nwd.Buttons[i].Border.Color,
+													int(255 * nwd.Buttons[i].Border.Alpha));
+							if (!clipbot)
+								Screen.DrawThickLine(clipx - (!cliplft ? nwd.Buttons[i].Border.Thickness : 0), 
+													clipy + hght + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness), 
+													clipx + wdth + (!cliprht ? nwd.Buttons[i].Border.Thickness : 0), 
+													clipy + hght + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
+													nwd.Buttons[i].Border.Thickness,
+													nwd.Buttons[i].Border.Color,
+													int(255 * nwd.Buttons[i].Border.Alpha));
+							if (!cliplft)
+								Screen.DrawThickLine(clipx - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
+													clipy,
+													clipx - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
+													clipy + hght,
+													nwd.Buttons[i].Border.Thickness,
+													nwd.Buttons[i].Border.Color,
+													int(255 * nwd.Buttons[i].Border.Alpha));
+							if (!cliprht)
+								Screen.DrawThickLine(clipx + wdth + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
+													clipy,
+													clipx + wdth + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
+													clipy + hght,
+													nwd.Buttons[i].Border.Thickness,
+													nwd.Buttons[i].Border.Color,
+													int(255 * nwd.Buttons[i].Border.Alpha));
 							break;
 					}
 					break;

@@ -41,7 +41,7 @@ class ZButton : ZControl_Base
 				bool Enabled = true, BTNTYPE Type = standard, int Width = 100, int Height = 25, float btn_xLocation = 0, float btn_yLocation = 0, float btn_Alpha = 1,
 				// Background and border - width and height are used to set border dimensions
 				bool Stretch = false, string idleTextureName = "", string highlightTextureName = "", string activeTextureName = "",
-				SHAPETYPE borderType = box, uint color_a = 255, uint color_r = 255, uint color_g = 255, uint color_b = 255, float borderAlpha = 1, float borderThickness = 1,
+				SHAPETYPE borderType = box, color borderColor = 0xffffff, float borderAlpha = 1, float borderThickness = 1,
 				// Text
 				int CRColor = Font.CR_White, TEXTALIGN Alignment = center, name fontName = 'newsmallfont', float txt_xLocation = 0, float txt_yLocation = 0, float txt_Alpha = 1)
 	{
@@ -57,7 +57,6 @@ class ZButton : ZControl_Base
 		self.Stretch = Stretch;
 		self.State = idle;
 		backgroundInit(idleTextureName, highlightTextureName, activeTextureName);
-		color borderColor = { color_a, color_r, color_g, color_b };
 		Border = new("ZShape").Init(string.Format("%s%s", self.Name, "_border"), self.Enabled, borderType == box || borderType == thickbox ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
 		Text = new("ZText").Init(string.Format("%s%s", self.Name, "_txt"), self.Enabled, btnText, CRColor, ZText.wrap, self.Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);
 		return self;
