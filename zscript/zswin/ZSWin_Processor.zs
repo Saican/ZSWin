@@ -1019,6 +1019,12 @@ class zsys
 				clipy = 0, 
 				wdth = 0, 
 				hght = 0;
+			// This is the crap I have to do to clip lines
+			// Fix your code ZDoom Devs!
+			bool cliplft = false, 
+				cliprht = false, 
+				cliptop = false, 
+				clipbot = false;
 
 			// Check if button is beyond right edge
 			if (nwd.xLocation + nwd.Buttons[i].xLocation > nwd.xLocation + nwd.Width)
@@ -1030,7 +1036,15 @@ class zsys
 				if (nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width > nwd.xLocation)
 				{
 					clipx = nwd.xLocation; // There is, so the left edge is set to the window edge
-					wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation);
+					// Check if the right side is beyond the window's right side
+					if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width)
+					{
+						wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation) - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
+						cliprht = true;
+					}
+					else
+						wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation);
+					cliplft = true;
 				}
 				else
 					break; // This button cannot be seen so don't bother drawing it
@@ -1039,7 +1053,14 @@ class zsys
 			else
 			{
 				clipx = nwd.xLocation + nwd.Buttons[i].xLocation;
-				wdth = nwd.Buttons[i].Width;
+				// Check if the right side is beyond the window's right side
+				if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width)
+				{
+					wdth = nwd.Buttons.Width - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
+					cliprht = true;
+				}
+				else
+					wdth = nwd.Buttons[i].Width;
 			}
 			
 			// Check if button is beyond bottom edge
@@ -1052,7 +1073,15 @@ class zsys
 				if (nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height > nwd.yLocation)
 				{
 					clipy = nwd.yLocation;
-					hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation);
+					// Check if the bottom is beyond the windows bottom edge
+					if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height)
+					{
+						hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation) - ((nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height) - (nwd.yLocation + nwd.Height));
+						clipbot = true;
+					}
+					else
+						hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation);
+					cliptop = true;
 				}
 				else
 					break;  // Button can't be seen, skip it
@@ -1061,12 +1090,20 @@ class zsys
 			else
 			{
 				clipy = nwd.yLocation + nwd.Buttons[i].yLocation;
-				hght = nwd.Buttons[i].Height;
+				// Check if the bottom is beyond the windows bottom edge
+				if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height)
+				{
+					hght = nwd.Buttons[i].Height - ((nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height) - (nwd.yLocation + nwd.Height));
+					clipbot = true;
+				}
+				else				
+					hght = nwd.Buttons[i].Height;
 			}				
 
 			switch (nwd.Buttons[i].Type)
 			{
-				case ZButton.standard:					
+				case ZButton.standard:
+					// Background
 					screen.SetClipRect(clipx, clipy, wdth, hght);
 					if (nwd.Buttons[i].Stretch)
 						screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
@@ -1100,6 +1137,43 @@ class zsys
 						} while ((((w - 1) * tx) + tx) <= nwd.Buttons[i].Width);
 					}
 					nwd.zHandler.WindowClip(set:false);
+					// Border
+					// Code enforces box and thickbox types
+					switch (nwd.Buttons[i].Border.Type)
+					{
+						case ZShape.box:
+							/*
+								Ok, since Screen.SetClipRect does not clip lines, I'll have to do it manually.
+								Jesus fucking christ...*face to keyboard.
+							*/
+							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation - 1, 
+											nwd.yLocation + nwd.Buttons[i].yLocation - 1, 
+											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
+											nwd.yLocation + nwd.Buttons[i].yLocation - 1, 
+											nwd.BorderColor, 
+											int(255 * nwd.BorderAlpha));
+							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation - 1, 
+											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
+											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
+											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
+											nwd.BorderColor, 
+											int(255 * nwd.BorderAlpha));
+							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation, 
+											nwd.yLocation + nwd.Buttons[i].yLocation, 
+											nwd.xLocation + nwd.Buttons[i].xLocation, 
+											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
+											nwd.BorderColor, 
+											int(255 * nwd.BorderAlpha));
+							Screen.DrawLine(nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
+											nwd.yLocation + nwd.Buttons[i].yLocation, 
+											nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width, 
+											nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height, 
+											nwd.BorderColor, 
+											int(255 * nwd.BorderAlpha));
+							break;
+						case ZShape.thickbox:
+							break;
+					}
 					break;
 				case ZButton.radio:
 				case ZButton.check:
@@ -1207,7 +1281,7 @@ class zsys
 					break;
 			}
 			// Text
-			// Border
+
 		}
 	}
 	
