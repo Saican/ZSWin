@@ -34,8 +34,7 @@ class ZSWin_Console : ZSWin_Terminal
 				Here it's done individually because the Terminal Test initializes most of the Z-Windows default behaviors,
 				so just the text array needs cleared out so the handler can mess with it dynamically.
 			*/
-			Text.Clear();
-			Buttons.Clear();
+			ControlClear();
 			// This makes the windows be the window the debug output pushes string to.
 			SetWindowToConsole();
 		}

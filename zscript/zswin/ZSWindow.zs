@@ -139,6 +139,11 @@ class ZSWindow : ZSWin_Base abstract
 		}
 	}
 	
+	private void PassiveGibZoning()
+	{
+		
+	}
+	
 	// This methos sets everything to a safe default value
 	void TrueZero()
 	{
@@ -168,8 +173,7 @@ class ZSWindow : ZSWin_Base abstract
 		if (BorderType == ZWin_Border)
 			borderInit();
 	}
-	
-	
+		
 	// Sets up internal background options
 	// Custom backgrounds need to handle this manually
 	private void backgroundInit()

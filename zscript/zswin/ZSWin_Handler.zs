@@ -4,6 +4,31 @@ class ZSWin_Handler : EventHandler
 	const TIC = 35;
 	const ZVERSION = "0.1";
 	
+	enum CRSRSTATE
+	{
+		idle,
+		leftmousedown = 7,
+		leftmouseup,
+		leftmouseclick,
+		middlemousedown,
+		middlemouseup,
+		middlemouseclick,
+		rightmousedown,
+		rightmouseup,
+		rightmouseclick,
+		wheelmouseup,
+		wheelmousedown,
+	};
+	// Enums are just ints so this method really just checks for a valid range
+	CRSRSTATE intToCursorState(int i)
+	{
+		if (leftmousedown <= i && i <= wheelmousedown)
+			return i;
+		else
+			return 0;
+	}
+	// The three most important variables - the state of the cursor, and it's location
+	CRSRSTATE CursorState;
 	int CursorX, CursorY;
 	
 	bool bDebug, bDebugIsUpdating;
@@ -74,7 +99,9 @@ class ZSWin_Handler : EventHandler
 	
 	override bool UiProcess(UiEvent e)
 	{
+		// Log the cursor location
 		SendNetworkEvent("zswin_cursorLocationLog", e.MouseX, e.MouseY);
+		SendNetworkEvent("zswin_cursorActionLog", e.Type);
 		
 		switch (e.Type)
 		{
@@ -89,6 +116,24 @@ class ZSWin_Handler : EventHandler
 			case UiEvent.Type_LButtonDown:
 				break;
 			case UiEvent.Type_LButtonUp:
+				break;
+			case UiEvent.Type_LButtonClick:
+				break;
+			case UiEvent.Type_MButtonDown:
+				break;
+			case UiEvent.Type_MButtonUp:
+				break;
+			case UiEvent.Type_MButtonClick:
+				break;
+			case UiEvent.Type_RButtonDown:
+				break;
+			case UiEvent.Type_RButtonUp:
+				break;
+			case UiEvent.Type_RButtonClick:
+				break;
+			case UiEvent.Type_WheelUp:
+				break;
+			case UiEvent.Type_WheelDown:
 				break;
 		}
 		return false;
@@ -114,8 +159,10 @@ class ZSWin_Handler : EventHandler
 		// NetworkProcess and UiProcess look at this value differently; I think NetworkProcess
 		// deals with it as some kind of engine-specific value, while UiProcess can actually
 		// get the character the key represents - as a string, which is fine, chars are annoying.
-		if (e.Name == "zswin_cursorToggle" || e.Name == "zswin_UI_cursorToggle")
+		bool bStringProcessed = true;
+		if ((e.Name == "zswin_cursorToggle" || e.Name == "zswin_UI_cursorToggle") && e.Args.Size() == 1)
 		{
+			bStringProcessed = false;
 			int key1, key2;
 			[key1, key2] = Bindings.GetKeysForCommand("zswin_cmd_cursorToggle");
 			if (((key1 && key1 == e.Args[0]) || (key2 && key2 ==  e.Args[0])) || e.Name == "zswin_UI_cursorToggle")
@@ -125,30 +172,39 @@ class ZSWin_Handler : EventHandler
 			}
 		}
 		// Log the cursor location - windows need this to do passive GibZoning
-		else if (e.Name == "zswin_cursorLocationLog")
+		if (e.Name == "zswin_cursorLocationLog" && e.Args.Size() == 2)
 		{
+			bStringProcessed = false;
 			CursorX = e.Args[0];
 			CursorY = e.Args[1];
 		}
-		// Debugging Check
-		else if (e.Name == "zswin_debugToggle")
+		if (e.Name == "zswin_cursorActionLog" && e.Args.Size() == 1)
 		{
+			bStringProcessed = false;
+			CursorState = intToCursorState(e.Args[0]);
+		}
+		// Debugging Check
+		if (e.Name == "zswin_debugToggle")
+		{
+			bStringProcessed = false;
 			debugPlayer = e.Player;
 			bDebug = !bDebug;
 			CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 		}
 		// All other net events get string processed to see if they are sending string args or need ignored
-		else
+		// This will only happen if none of the above events are caught.
+		if (bStringProcessed)
 			NetworkProcess_String(e);
 	}
 
+	// String args get converted to an enum
 	enum CMDTYP
 	{
 		dbugout,
 		quikclose,
 		nocmd,
 	};
-	
+	// This is the supporting string conversion method
 	private CMDTYP stringToCmd(string e)
 	{
 		if (e ~== "zswin_debugOut")
@@ -367,6 +423,27 @@ class ZSWin_Handler : EventHandler
 			winStack.Clear();
 			winStack.Move(newStack);
 		}
+		
+		// Priority Sorting
+		//
+		// Window priority represents the draw order, however it runs in reverse.
+		// 0 represents the highest priority with ascending values representing lower priorities
+		// What is means is that a window with lower priority will be drawn before a window with higher priority
+		// This should make no difference to interactive performance and is just a curiosity of the system functionality
+		//
+		// This also means that the window stack must be sorted from lowest to highest.
+		// So more looping...*sigh
+		// This is acceptably simple, since the priorityStack can be initialized to the size of the window stack,
+		// then windows sorted in by priority.
+		// (priorityStack.Size() - 1) - winStack[i].Priority results in the inversion of the array.
+		// If a window has a priority of 3 and the size is 3, the result is 0
+		// If a window has a priority of 0 and the size is 3, the result is 3
+		Array<ZSWin_Base> priorityStack;
+		priorityStack.Reserve(winStack.Size());
+		for (int i = 0; i < winStack.Size(); i++)
+			priorityStack[(priorityStack.Size() - 1) - winStack[i].Priority] = winStack[i];
+		winStack.Clear();
+		winStack.Move(priorityStack);
 	}
 	
 	/* - END OF METHODS - */
