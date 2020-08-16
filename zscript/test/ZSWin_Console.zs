@@ -35,6 +35,7 @@ class ZSWin_Console : ZSWin_Terminal
 				so just the text array needs cleared out so the handler can mess with it dynamically.
 			*/
 			Text.Clear();
+			Buttons.Clear();
 			// This makes the windows be the window the debug output pushes string to.
 			SetWindowToConsole();
 		}

@@ -1,0 +1,1 @@
+alias zswin_cmd_cursorToggle ""

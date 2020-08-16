@@ -6,6 +6,8 @@ OPTMNU_ZSWINMNUNAME = "ZScript Windows Options";
 SUBMNU_ZSWINHEADER_GENERAL = "- General -";
 SUBMNU_ZSWINGENERAL_CURSORTOGGLE = "Cursor Toggle";
 SUBMNU_ZSWINGENERAL_CURSORTOGGLE_TOOLTIP = "Bind a key you don't use but is easy to reach.\nThis turns the cursor on and off.";
+SUBMNU_ZSWINGENERAL_QUIKCLOSE = "Quik Close©®ͭͫ";
+SUBMNU_ZSWINGENERAL_QUIKCLOSE_TOOLTIP = "Quik Close©®ͭͫ is a Classic Z-Windows functionality\nwhere pressing any of the movement keys will immediately\nterminate UI processing and return control to the player.\nThe default option is set to On.";
 
 SUBMNU_ZSWINHEADER_MISC = "- Miscellaneous -";
 SUBMNU_ZSWINMISC_DEBUG = "Send Debug Messages to Console";

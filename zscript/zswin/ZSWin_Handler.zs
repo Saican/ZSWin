@@ -4,6 +4,8 @@ class ZSWin_Handler : EventHandler
 	const TIC = 35;
 	const ZVERSION = "0.1";
 	
+	int CursorX, CursorY;
+	
 	bool bDebug, bDebugIsUpdating;
 	private int debugPlayer;
 	/*
@@ -67,16 +69,75 @@ class ZSWin_Handler : EventHandler
 		console.Printf(string.format("ZScript Windows v%s - Welcome!", ZVERSION));
 		bDebug = bDebugIsUpdating = false;
 		CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
+		CursorX = CursorY = 0;
+	}
+	
+	override bool UiProcess(UiEvent e)
+	{
+		SendNetworkEvent("zswin_cursorLocationLog", e.MouseX, e.MouseY);
+		
+		switch (e.Type)
+		{
+			case UiEvent.Type_KeyDown:
+				// This results in a NetworkProcess_String call where the QuikClose check is processed
+				SendNetworkEvent(string.format("zswin_quikCloseCheck:%s", e.KeyString));
+				break;
+			case UiEvent.Type_KeyUp:
+				if (KeyBindings.NameKeys(Bindings.GetKeysForCommand("zswin_cmd_cursorToggle"), 0) ~== e.KeyString)
+					SendNetworkEvent("zswin_UI_cursorToggle");
+				break;
+			case UiEvent.Type_LButtonDown:
+				break;
+			case UiEvent.Type_LButtonUp:
+				break;
+		}
+		return false;
+	}
+	
+	override bool InputProcess(InputEvent e)
+	{
+		if (e.Type == InputEvent.Type_KeyUp)
+			SendNetworkEvent("zswin_cursorToggle", e.KeyScan);
+		return false;
 	}
 
 	override void NetworkProcess(ConsoleEvent e)
 	{
-		if (e.Name == "zswin_debugToggle")
+		// zswin_cursorToggle is sent by InputProcess
+		// zswin_UI_cursorToggle is sent by UiProcess
+		// Basically the two event processors trade places when the mouse is on.
+		// What is received by the two events is very different and not compatible,
+		// so the two separate events are necessary.
+		// The final zswin_x_cursorToggle variable is the zswin_cmd_cursorToggle.
+		// This is the command alias for the toggle keybind and is only good for
+		// getting what key is bound to the toggle keybind.
+		// NetworkProcess and UiProcess look at this value differently; I think NetworkProcess
+		// deals with it as some kind of engine-specific value, while UiProcess can actually
+		// get the character the key represents - as a string, which is fine, chars are annoying.
+		if (e.Name == "zswin_cursorToggle" || e.Name == "zswin_UI_cursorToggle")
+		{
+			int key1, key2;
+			[key1, key2] = Bindings.GetKeysForCommand("zswin_cmd_cursorToggle");
+			if (((key1 && key1 == e.Args[0]) || (key2 && key2 ==  e.Args[0])) || e.Name == "zswin_UI_cursorToggle")
+			{
+				self.IsUiProcessor = !self.IsUiProcessor;
+				self.RequireMouse = !self.RequireMouse;
+			}
+		}
+		// Log the cursor location - windows need this to do passive GibZoning
+		else if (e.Name == "zswin_cursorLocationLog")
+		{
+			CursorX = e.Args[0];
+			CursorY = e.Args[1];
+		}
+		// Debugging Check
+		else if (e.Name == "zswin_debugToggle")
 		{
 			debugPlayer = e.Player;
 			bDebug = !bDebug;
 			CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 		}
+		// All other net events get string processed to see if they are sending string args or need ignored
 		else
 			NetworkProcess_String(e);
 	}
@@ -84,6 +145,7 @@ class ZSWin_Handler : EventHandler
 	enum CMDTYP
 	{
 		dbugout,
+		quikclose,
 		nocmd,
 	};
 	
@@ -91,6 +153,8 @@ class ZSWin_Handler : EventHandler
 	{
 		if (e ~== "zswin_debugOut")
 			return dbugout;
+		else if (e ~== "zswin_quikCloseCheck")
+			return quikclose;
 		else
 			return nocmd;
 	}
@@ -129,7 +193,56 @@ class ZSWin_Handler : EventHandler
 					else
 						DebugOut("netCmd", "ERROR! - Got an invalid debug out message from a UI context method!");
 					break;
+				/*
+					This version of Quik Close takes more inputs into account
+					than the original, which only looked at forward/back, strafe left/right,
+					and turn left/right.
+				
+				*/
+				case quikclose:
+					if (cmdc.Size() == 2) // have to have a keystring to check
+					{
+						int key1, key2;
+						bool quikclose = false;
+						[key1, key2] = Bindings.GetKeysForCommand("+forward");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+back");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+moveleft");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+moveright");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+left");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+right");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("turn180");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+jump");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("+crouch");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						[key1, key2] = Bindings.GetKeysForCommand("crouch");
+						if(KeyBindings.NameKeys(key1, key2) ~== cmdc[1])
+							quikclose = true;
+						
+						if (quikclose)
+							SendNetworkEvent("zswin_UI_cursorToggle");
+					}
+					else
+						DebugOut("quikClose", "ERROR! - Did not get a valid key for Quik Close check!");
+					break;
 				default:
+					DebugOut("badCmd", string.Format("NOTICE! Received unknown net event, \"%s\".  Ignore if event corresponds to a different mod.", cmdc[0]), Font.CR_Yellow);
 					break;
 			}
 		}

@@ -1,1 +1,2 @@
 server noarchive bool ZSWINVAR_DEBUG = false;
+user bool ZSWINVAR_QUIKCLOSE = true;

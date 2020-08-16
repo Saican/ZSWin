@@ -62,10 +62,11 @@ class ZSWindow : ZSWin_Base abstract
 	
 	// Text
 	ZText Title;
+	bool SysUpdate_Text;
 	Array<ZText> Text;
 	private Array<ZText> CopyText;
-	ui int GetTextSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
-	ui ZText GetText(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
+	ui int GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
+	ui ZText GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
 	ui ZText FindText(string Name) 
 	{ 
 		for (int i = 0; i < GetTextSize(); i++) 
@@ -77,10 +78,11 @@ class ZSWindow : ZSWin_Base abstract
 	}
 	
 	// Lines and Boxes
+	bool SysUpdate_Shapes;
 	Array<ZShape> Shapes;
 	private Array<ZShape> CopyShapes;
-	ui int GetShapeSize() { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
-	ui ZShape GetShape(int i) { return ConsoleUpdater && zHandler.bDebugIsUpdating ? CopyShapes[i]: Shapes[i]; }
+	ui int GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
+	ui ZShape GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
 	ui ZShape FindShape(string Name) 
 	{ 
 		for (int i = 0; i < GetShapeSize(); i++) 
@@ -92,13 +94,17 @@ class ZSWindow : ZSWin_Base abstract
 	}
 	
 	// Buttons
+	bool SysUpdate_Buttons;
 	Array<ZButton> Buttons;
+	private Array<ZButton> CopyButtons;
+	ui int GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
+	ui ZButton GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
 	ui ZButton FindButton(string Name)
 	{
-		for (int i = 0; i < Buttons.Size(); i++)
+		for (int i = 0; i < GetButtonSize(); i++)
 		{
-			if (Buttons[i].Name ~== Name)
-				return Buttons[i];
+			if (GetButton(i).Name ~== Name)
+				return GetButton(i);
 		}
 		return null;
 	}
@@ -107,19 +113,20 @@ class ZSWindow : ZSWin_Base abstract
 	bool SetWindowToConsole() { return zHandler ? ConsoleUpdater = zHandler.SetWindowToConsole(self) : false; }
 	void IsUpdating(bool updating = true) 
 	{
-		if (ConsoleUpdater)
-		{
-			if (updating)
-			{
-				CopyText.Move(Text);
-				CopyShapes.Move(Shapes);
-			}
-			else
-			{
-				CopyText.Clear();
-				CopyShapes.Clear();
-			}
-		}
+		if ((SysUpdate_Text || ConsoleUpdater) && updating)
+			CopyText.Move(Text);
+		else
+			CopyText.Clear();	
+		
+		if (SysUpdate_Shapes && updating)
+			CopyShapes.Move(Shapes);
+		else
+			CopyShapes.Clear();
+		
+		if (SysUpdate_Buttons && updating)
+			CopyButtons.Move(Buttons);
+		else
+			CopyButtons.Clear();
 	}
 	
 	override void Tick()
@@ -280,6 +287,7 @@ class ZSWindow : ZSWin_Base abstract
 	{
 		Text.Clear();
 		Shapes.Clear();
+		Buttons.Clear();
 	}
 	
 	/* - End of methods - */

@@ -1027,23 +1027,23 @@ class zsys
 				clipbot = false;
 
 			// Check if button is beyond right edge
-			if (nwd.xLocation + nwd.Buttons[i].xLocation > nwd.xLocation + nwd.Width)
+			if (nwd.xLocation + nwd.GetButton(i).xLocation > nwd.xLocation + nwd.Width)
 				break; // This button cannot be seen so don't bother drawing it
 			// Check if button is beyond left edge
-			else if (nwd.xLocation + nwd.Buttons[i].xLocation < nwd.xLocation)
+			else if (nwd.xLocation + nwd.GetButton(i).xLocation < nwd.xLocation)
 			{
 				// Now check if there's anything of the button to draw
-				if (nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width > nwd.xLocation)
+				if (nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width > nwd.xLocation)
 				{
 					clipx = nwd.xLocation; // There is, so the left edge is set to the window edge
 					// Check if the right side is beyond the window's right side
-					if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width)
+					if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
 					{
-						wdth = nwd.Buttons[i].Width - (nwd.xLocation - nwd.Buttons[i].xLocation) - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
+						wdth = nwd.GetButton(i).Width - (nwd.xLocation - nwd.GetButton(i).xLocation) - ((nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwd.xLocation + nwd.Width));
 						cliprht = true;
 					}
 					else
-						wdth = nwd.Buttons[i].Width - (nwd.xLocation - (nwd.xLocation + nwd.Buttons[i].xLocation));
+						wdth = nwd.GetButton(i).Width - (nwd.xLocation - (nwd.xLocation + nwd.GetButton(i).xLocation));
 					cliplft = true;
 				}
 				else
@@ -1052,35 +1052,35 @@ class zsys
 			// Button is within the window
 			else
 			{
-				clipx = nwd.xLocation + nwd.Buttons[i].xLocation;
+				clipx = nwd.xLocation + nwd.GetButton(i).xLocation;
 				// Check if the right side is beyond the window's right side
-				if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width)
+				if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
 				{
-					wdth = nwd.Buttons[i].Width - ((nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width) - (nwd.xLocation + nwd.Width));
+					wdth = nwd.GetButton(i).Width - ((nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwd.xLocation + nwd.Width));
 					cliprht = true;
 				}
 				else
-					wdth = nwd.Buttons[i].Width;
+					wdth = nwd.GetButton(i).Width;
 			}
 			
 			// Check if button is beyond bottom edge
-			if (nwd.yLocation + nwd.Buttons[i].yLocation > nwd.yLocation + nwd.Height)
+			if (nwd.yLocation + nwd.GetButton(i).yLocation > nwd.yLocation + nwd.Height)
 				break; // Button can't be seen, skip it
 			// Check if button is beyond top edge
-			else if (nwd.yLocation + nwd.Buttons[i].yLocation < nwd.yLocation)
+			else if (nwd.yLocation + nwd.GetButton(i).yLocation < nwd.yLocation)
 			{
 				// Is anything visable?
-				if (nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height > nwd.yLocation)
+				if (nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height > nwd.yLocation)
 				{
 					clipy = nwd.yLocation;
 					// Check if the bottom is beyond the windows bottom edge
-					if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height)
+					if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
 					{
-						hght = nwd.Buttons[i].Height - (nwd.Buttons[i].yLocation - nwd.yLocation) - ((nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height) - (nwd.yLocation + nwd.Height));
+						hght = nwd.GetButton(i).Height - (nwd.GetButton(i).yLocation - nwd.yLocation) - ((nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwd.yLocation + nwd.Height));
 						clipbot = true;
 					}
 					else
-						hght = nwd.Buttons[i].Height - (nwd.yLocation - (nwd.yLocation + nwd.Buttons[i].yLocation));
+						hght = nwd.GetButton(i).Height - (nwd.yLocation - (nwd.yLocation + nwd.GetButton(i).yLocation));
 					cliptop = true;
 				}
 				else
@@ -1089,34 +1089,34 @@ class zsys
 			// Button is within the window
 			else
 			{
-				clipy = nwd.yLocation + nwd.Buttons[i].yLocation;
+				clipy = nwd.yLocation + nwd.GetButton(i).yLocation;
 				// Check if the bottom is beyond the windows bottom edge
-				if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height)
+				if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
 				{
-					hght = nwd.Buttons[i].Height - ((nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Height) - (nwd.yLocation + nwd.Height));
+					hght = nwd.GetButton(i).Height - ((nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwd.yLocation + nwd.Height));
 					clipbot = true;
 				}
 				else				
-					hght = nwd.Buttons[i].Height;
+					hght = nwd.GetButton(i).Height;
 			}
 
-			switch (nwd.Buttons[i].Type)
+			switch (nwd.GetButton(i).Type)
 			{
 				case ZButton.standard:
 					// Background
 					screen.SetClipRect(clipx, clipy, wdth, hght);
-					if (nwd.Buttons[i].Stretch)
-						screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
+					if (nwd.GetButton(i).Stretch)
+						screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 										false, 
-										nwd.xLocation + nwd.Buttons[i].xLocation, 
-										nwd.yLocation + nwd.Buttons[i].yLocation,
-										DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
-										DTA_DestWidth, nwd.Buttons[i].Width,
-										DTA_DestHeight, nwd.Buttons[i].Height);
+										nwd.xLocation + nwd.GetButton(i).xLocation, 
+										nwd.yLocation + nwd.GetButton(i).yLocation,
+										DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
+										DTA_DestWidth, nwd.GetButton(i).Width,
+										DTA_DestHeight, nwd.GetButton(i).Height);
 					else
 					{
 						int tx, ty, w = 0;
-						Vector2 txy = TexMan.GetScaledSize(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId);
+						Vector2 txy = TexMan.GetScaledSize(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId);
 						tx = txy.x;
 						ty = txy.y;
 						do
@@ -1124,22 +1124,22 @@ class zsys
 							int h = 0;
 							do
 							{
-								Screen.DrawTexture (nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId, 
+								Screen.DrawTexture (nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId, 
 									false,
-									nwd.xLocation + nwd.Buttons[i].xLocation + (tx * w),
-									nwd.yLocation + nwd.Buttons[i].yLocation + (ty * h),
-									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									nwd.xLocation + nwd.GetButton(i).xLocation + (tx * w),
+									nwd.yLocation + nwd.GetButton(i).yLocation + (ty * h),
+									DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
 									DTA_DestWidth, tx,
 									DTA_DestHeight, ty);
 								h++;
-							} while ((((h - 1) * ty) + ty) < nwd.Buttons[i].Height);
+							} while ((((h - 1) * ty) + ty) < nwd.GetButton(i).Height);
 							w++;
-						} while ((((w - 1) * tx) + tx) <= nwd.Buttons[i].Width);
+						} while ((((w - 1) * tx) + tx) <= nwd.GetButton(i).Width);
 					}
 					nwd.zHandler.WindowClip(set:false);
 					// Border
 					// Code enforces box and thickbox types
-					switch (nwd.Buttons[i].Border.Type)
+					switch (nwd.GetButton(i).Border.Type)
 					{
 						case ZShape.box:
 							/*
@@ -1153,98 +1153,98 @@ class zsys
 												clipy - 1, 
 												clipx + wdth, 
 												clipy - 1, 
-												nwd.Buttons[i].Border.Color, 
-												int(255 * nwd.Buttons[i].Border.Alpha));
+												nwd.GetButton(i).Border.Color, 
+												int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!clipbot)
 								Screen.DrawLine(clipx - 1, 
 												clipy + hght, 
 												clipx + wdth, 
 												clipy + hght, 
-												nwd.Buttons[i].Border.Color, 
-												int(255 * nwd.Buttons[i].Border.Alpha));
+												nwd.GetButton(i).Border.Color, 
+												int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!cliplft)
 								Screen.DrawLine(clipx, 
 												clipy, 
 												clipx, 
 												clipy + hght, 
-												nwd.Buttons[i].Border.Color, 
-												int(255 * nwd.Buttons[i].Border.Alpha));
+												nwd.GetButton(i).Border.Color, 
+												int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!cliprht)
 								Screen.DrawLine(clipx + wdth, 
 												clipy, 
 												clipx + wdth, 
 												clipy + hght, 
-												nwd.Buttons[i].Border.Color, 
-												int(255 * nwd.Buttons[i].Border.Alpha));
+												nwd.GetButton(i).Border.Color, 
+												int(255 * nwd.GetButton(i).Border.Alpha));
 							break;
 						case ZShape.thickbox:
 							if (!cliptop)
-								Screen.DrawThickLine(clipx - (!cliplft ? nwd.Buttons[i].Border.Thickness : 0), 
-													clipy - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness), 
-													clipx + wdth + (!cliprht ? nwd.Buttons[i].Border.Thickness : 0), 
-													clipy - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
-													nwd.Buttons[i].Border.Thickness,
-													nwd.Buttons[i].Border.Color,
-													int(255 * nwd.Buttons[i].Border.Alpha));
+								Screen.DrawThickLine(clipx - (!cliplft ? nwd.GetButton(i).Border.Thickness : 0), 
+													clipy - (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : ((nwd.GetButton(i).Border.Thickness - 1) / 2) + 1) : nwd.GetButton(i).Border.Thickness), 
+													clipx + wdth + (!cliprht ? nwd.GetButton(i).Border.Thickness : 0), 
+													clipy - (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : ((nwd.GetButton(i).Border.Thickness - 1) / 2) + 1) : nwd.GetButton(i).Border.Thickness),
+													nwd.GetButton(i).Border.Thickness,
+													nwd.GetButton(i).Border.Color,
+													int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!clipbot)
-								Screen.DrawThickLine(clipx - (!cliplft ? nwd.Buttons[i].Border.Thickness : 0), 
-													clipy + hght + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness), 
-													clipx + wdth + (!cliprht ? nwd.Buttons[i].Border.Thickness : 0), 
-													clipy + hght + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
-													nwd.Buttons[i].Border.Thickness,
-													nwd.Buttons[i].Border.Color,
-													int(255 * nwd.Buttons[i].Border.Alpha));
+								Screen.DrawThickLine(clipx - (!cliplft ? nwd.GetButton(i).Border.Thickness : 0), 
+													clipy + hght + (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : (nwd.GetButton(i).Border.Thickness - 1) / 2) : nwd.GetButton(i).Border.Thickness), 
+													clipx + wdth + (!cliprht ? nwd.GetButton(i).Border.Thickness : 0), 
+													clipy + hght + (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : (nwd.GetButton(i).Border.Thickness - 1) / 2) : nwd.GetButton(i).Border.Thickness),
+													nwd.GetButton(i).Border.Thickness,
+													nwd.GetButton(i).Border.Color,
+													int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!cliplft)
-								Screen.DrawThickLine(clipx - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
+								Screen.DrawThickLine(clipx - (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : (nwd.GetButton(i).Border.Thickness - 1) / 2) : nwd.GetButton(i).Border.Thickness),
 													clipy,
-													clipx - (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : (nwd.Buttons[i].Border.Thickness - 1) / 2) : nwd.Buttons[i].Border.Thickness),
+													clipx - (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : (nwd.GetButton(i).Border.Thickness - 1) / 2) : nwd.GetButton(i).Border.Thickness),
 													clipy + hght,
-													nwd.Buttons[i].Border.Thickness,
-													nwd.Buttons[i].Border.Color,
-													int(255 * nwd.Buttons[i].Border.Alpha));
+													nwd.GetButton(i).Border.Thickness,
+													nwd.GetButton(i).Border.Color,
+													int(255 * nwd.GetButton(i).Border.Alpha));
 							if (!cliprht)
-								Screen.DrawThickLine(clipx + wdth + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
+								Screen.DrawThickLine(clipx + wdth + (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : ((nwd.GetButton(i).Border.Thickness - 1) / 2) + 1) : nwd.GetButton(i).Border.Thickness),
 													clipy,
-													clipx + wdth + (nwd.Buttons[i].Border.Thickness > 1 ? (nwd.Buttons[i].Border.Thickness % 2 == 0 ? nwd.Buttons[i].Border.Thickness / 2 : ((nwd.Buttons[i].Border.Thickness - 1) / 2) + 1) : nwd.Buttons[i].Border.Thickness),
+													clipx + wdth + (nwd.GetButton(i).Border.Thickness > 1 ? (nwd.GetButton(i).Border.Thickness % 2 == 0 ? nwd.GetButton(i).Border.Thickness / 2 : ((nwd.GetButton(i).Border.Thickness - 1) / 2) + 1) : nwd.GetButton(i).Border.Thickness),
 													clipy + hght,
-													nwd.Buttons[i].Border.Thickness,
-													nwd.Buttons[i].Border.Color,
-													int(255 * nwd.Buttons[i].Border.Alpha));
+													nwd.GetButton(i).Border.Thickness,
+													nwd.GetButton(i).Border.Color,
+													int(255 * nwd.GetButton(i).Border.Alpha));
 							break;
 					}
 					break;
 				case ZButton.radio:
 				case ZButton.check:
 					screen.SetClipRect(clipx, clipy, wdth, hght);
-					screen.DrawTexture(nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.Buttons[i].btnTextures[0].dar_TextureSet[nwd.Buttons[i].State].txtId : nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId,
+					screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 									false, 
-									nwd.xLocation + nwd.Buttons[i].xLocation, 
-									nwd.yLocation + nwd.Buttons[i].yLocation,
-									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
-									DTA_DestWidth, nwd.Buttons[i].Width,
-									DTA_DestHeight, nwd.Buttons[i].Height);
+									nwd.xLocation + nwd.GetButton(i).xLocation, 
+									nwd.yLocation + nwd.GetButton(i).yLocation,
+									DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
+									DTA_DestWidth, nwd.GetButton(i).Width,
+									DTA_DestHeight, nwd.GetButton(i).Height);
 					nwd.zHandler.WindowClip(set:false); // this is the same as calling screen.ClearClipRect()
 					break;
 				case ZButton.zbtn:
 					TextureId leftSide, middle, rightSide;
 					// Do we have more at least one TextureSet?
-					if (nwd.Buttons[i].btnTextures.Size() > 0)
+					if (nwd.GetButton(i).btnTextures.Size() > 0)
 					{
 						// We do, so check if there's 3 sets with exactly 3 textures each
-						if (nwd.Buttons[i].btnTextures.Size() == 3 &&
-							nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet.Size() == 3)
+						if (nwd.GetButton(i).btnTextures.Size() == 3 &&
+							nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet.Size() == 3)
 						{
-							leftSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[0].txtId;
-							middle = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[1].txtId;
-							rightSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[2].txtId;
+							leftSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[0].txtId;
+							middle = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[1].txtId;
+							rightSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[2].txtId;
 						}
 						// There's not, so check if there's 3 sets with at least one texure each
-						else if (nwd.Buttons[i].btnTextures.Size() == 3 &&
-								nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet.Size() > 0)
-							leftSide = middle = rightSide = nwd.Buttons[i].btnTextures[nwd.Buttons[i].State].dar_TextureSet[0].txtId;
+						else if (nwd.GetButton(i).btnTextures.Size() == 3 &&
+								nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet.Size() > 0)
+							leftSide = middle = rightSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[0].txtId;
 						// Ok, theres at least one texture set, so check it has something in it and use it!
-						else if (nwd.Buttons[i].btnTextures[0].dar_TextureSet.Size() > 0)
-							leftSide = middle = rightSide = nwd.Buttons[i].btnTextures[0].dar_TextureSet[0].txtId;
+						else if (nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 0)
+							leftSide = middle = rightSide = nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId;
 						// Something is really wrong, just stop.
 						else
 							break;
@@ -1261,9 +1261,9 @@ class zsys
 					ly = lxy.y;
 					screen.DrawTexture(leftSide,
 									false, 
-									nwd.xLocation + nwd.Buttons[i].xLocation, 
-									nwd.yLocation + nwd.Buttons[i].yLocation,
-									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									nwd.xLocation + nwd.GetButton(i).xLocation, 
+									nwd.yLocation + nwd.GetButton(i).yLocation,
+									DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
 									DTA_DestWidth, lx,
 									DTA_DestHeight, ly);	
 					Vector2 rxy = TexMan.GetScaledSize(rightSide);
@@ -1271,30 +1271,30 @@ class zsys
 					ry = rxy.y;	
 					screen.DrawTexture(rightSide,
 									false, 
-									nwd.xLocation + nwd.Buttons[i].xLocation + nwd.Buttons[i].Width - rx, 
-									nwd.yLocation + nwd.Buttons[i].yLocation,
-									DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+									nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width - rx, 
+									nwd.yLocation + nwd.GetButton(i).yLocation,
+									DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
 									DTA_DestWidth, rx,
 									DTA_DestHeight, ry);										
 					nwd.zHandler.WindowClip(set:false);
 						
 					int midclipx, midwdth;
 					// The button clipping boundary is beyond the button location
-					if (clipx > nwd.xLocation + nwd.Buttons[i].xLocation)
+					if (clipx > nwd.xLocation + nwd.GetButton(i).xLocation)
 					{
-						midclipx = (clipx - (nwd.xLocation + nwd.Buttons[i].xLocation)) + lx;
+						midclipx = (clipx - (nwd.xLocation + nwd.GetButton(i).xLocation)) + lx;
 						// The middle clip x is greater than the button clipx, subtract the left and right dimensions from the width to get the middle width
 						if (midclipx > clipx)
-							midwdth = nwd.Buttons[i].Width - lx - rx;
+							midwdth = nwd.GetButton(i).Width - lx - rx;
 						// Other way around, do the same thing, but now subtract the different between the clipping edges
 						else
-							midwdth = (nwd.Buttons[i].Width - lx - rx) - (clipx - midclipx);
+							midwdth = (nwd.GetButton(i).Width - lx - rx) - (clipx - midclipx);
 					}
 					// The button is within the window, so left edge is edge of the left texture
 					else
 					{
-						midclipx = nwd.xLocation + nwd.Buttons[i].xLocation + lx;
-						midwdth = nwd.Buttons[i].Width - lx - rx;
+						midclipx = nwd.xLocation + nwd.GetButton(i).xLocation + lx;
+						midwdth = nwd.GetButton(i).Width - lx - rx;
 					}
 					
 					int mx, my;
@@ -1308,9 +1308,9 @@ class zsys
 					{
 						Screen.DrawTexture (middle, 
 							false,
-							nwd.xLocation + nwd.Buttons[i].xLocation + lx + (mx * w),
-							nwd.yLocation + nwd.Buttons[i].yLocation,
-							DTA_Alpha, int(nwd.Buttons[i].Alpha * 255),
+							nwd.xLocation + nwd.GetButton(i).xLocation + lx + (mx * w),
+							nwd.yLocation + nwd.GetButton(i).yLocation,
+							DTA_Alpha, int(nwd.GetButton(i).Alpha * 255),
 							DTA_DestWidth, mx,
 							DTA_DestHeight, my);
 						w++;
@@ -1321,40 +1321,40 @@ class zsys
 			// Text
 			BrokenLines blText;
 			int wrapWidth = 0;
-			if (nwd.Buttons[i].Text.WrapWidth > 0)
-				wrapWidth = nwd.Buttons[i].Text.WrapWidth;
+			if (nwd.GetButton(i).Text.WrapWidth > 0)
+				wrapWidth = nwd.GetButton(i).Text.WrapWidth;
 			else
-				wrapWidth = nwd.Buttons[i].Width - nwd.Buttons[i].Text.xLocation;
+				wrapWidth = nwd.GetButton(i).Width - nwd.GetButton(i).Text.xLocation;
 			
-			switch (nwd.Buttons[i].Text.TextWrap)
+			switch (nwd.GetButton(i).Text.TextWrap)
 			{
 				case ZText.wrap:
-					blText = nwd.Buttons[i].Text.font.BreakLines(nwd.Buttons[i].Text.Text, wrapWidth);
+					blText = nwd.GetButton(i).Text.font.BreakLines(nwd.GetButton(i).Text.Text, wrapWidth);
 					for (int j = 0; j < blText.Count(); j++)
-						Screen.DrawText(nwd.Buttons[i].Text.font,
-									nwd.Buttons[i].Text.CRColor,
-									nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, wrapWidth, blText.StringAt(j)),
-									nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation + (j * nwd.Buttons[i].Text.font.GetHeight()),
+						Screen.DrawText(nwd.GetButton(i).Text.font,
+									nwd.GetButton(i).Text.CRColor,
+									nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
+									nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
 									blText.StringAt(j),
-									DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+									DTA_Alpha, nwd.GetButton(i).Text.Alpha);
 					break;
 				case ZText.dynwrap:
-					blText = nwd.Buttons[i].Text.font.BreakLines(nwd.Buttons[i].Text.Text, wrapWidth /* + resize handlers*/);
+					blText = nwd.GetButton(i).Text.font.BreakLines(nwd.GetButton(i).Text.Text, wrapWidth /* + resize handlers*/);
 					for (int j = 0; j < blText.Count(); j++)
-						Screen.DrawText(nwd.Buttons[i].Text.font,
-									nwd.Buttons[i].Text.CRColor,
-									nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, wrapWidth, blText.StringAt(j)),
-									nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation + (j * nwd.Buttons[i].Text.font.GetHeight()),
+						Screen.DrawText(nwd.GetButton(i).Text.font,
+									nwd.GetButton(i).Text.CRColor,
+									nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
+									nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
 									blText.StringAt(j),
-									DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+									DTA_Alpha, nwd.GetButton(i).Text.Alpha);
 					break;
 				default:
-					Screen.DrawText(nwd.Buttons[i].Text.font, 
-								nwd.Buttons[i].Text.CRColor, 
-								nwd.Buttons[i].Text.GetAlignment(nwd.xLocation + nwd.Buttons[i].xLocation, nwd.Width, nwd.Buttons[i].Text.Text), 
-								nwd.yLocation + nwd.Buttons[i].yLocation + nwd.Buttons[i].Text.yLocation, 
-								nwd.Buttons[i].Text.Text, 
-								DTA_Alpha, nwd.Buttons[i].Text.Alpha);
+					Screen.DrawText(nwd.GetButton(i).Text.font, 
+								nwd.GetButton(i).Text.CRColor, 
+								nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, nwd.Width, nwd.GetButton(i).Text.Text), 
+								nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation, 
+								nwd.GetButton(i).Text.Text, 
+								DTA_Alpha, nwd.GetButton(i).Text.Alpha);
 					break;
 			}
 		}
