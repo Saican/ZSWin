@@ -14,3 +14,4 @@ version "4.2.1"
 
 #include "zscript/test/ZSWin_Console.zs"
 #include "zscript/test/ZSWin_Terminal.zs"
+#include "zscript/test/ZSWin_TerminalButton.zs"

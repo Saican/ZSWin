@@ -266,10 +266,10 @@ class ZSWindow : ZSWin_Base abstract
 				else
 					mouseOver = true;
 				
-				if (mouseOver)
+				if (mouseOver && _GetButton(i).State == ZButton.idle)
 					_GetButton(i).State = ZButton.highlight;
-				else
-					_GetButton(i).State = ZButton.idle;
+				//else
+					//_GetButton(i).State = ZButton.idle;
 			}
 			else
 				_GetButton(i).State = ZButton.idle;
