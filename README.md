@@ -14,7 +14,12 @@
  - ZScript Windows Package or download the code from here
  - - [The ZScript Windows Forum can be found here]()
  
- Load ZScript Windows first and any mod requiring it after.  Tooltips may be loaded anywhere, although it's reccomended it be loaded absolutely first.
+ #### Load Order
+ - Tooltips
+ - ZScript Windows
+ - ...other mods
+
+This isn't necessarily the required load order, but should ensure there are no problems.
  
  #### First Startup
  Go to the Options Menu.  ZScript Windows has it's own settings and one you must personally set - the mouse control toggle.  This is a keybind.  Assign a key you don't already use but is within easy reach.  Other options you may tweak to your liking - it is recommended you leave QuikClose©®ͭͫ set to On.  QuikClose©®ͭͫ allows users to press any of the movement keys to immediately return control to the player; the game does not pause when the mouse is enabled.
@@ -25,3 +30,7 @@
  - [Creating a ZWindow](https://github.com/Saican/ZSWin/blob/master/README/02%20-%20Creating%20a%20ZWindow.md)
  - [Receiving Mouse Events](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Receiving%20Mouse%20Events.md)
  - [GibZoning](https://github.com/Saican/ZSWin/blob/master/README/04%20-%20GibZoning.md)
+ 
+ 
+ ##### Disclaimer
+ - QuikClose©®ͭͫ  is in no way copyrighted, registered, or trade marked.  It's more of a really bad inside joke to just myself because the name is an unintentional mispelling that comes from the original Z-Windows that became the name of the actual system feature.
