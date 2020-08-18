@@ -9,8 +9,10 @@
  #### Requirements
  - Version of [(G)ZDoom](https://zdoom.org/downloads) that supports ZScript version 4.2.1 or higher
  - [Launcher such as ZDL](https://zdoom.org/wiki/ZDL)
- - [Tooltips](https://drive.google.com/file/d/1up3XI8uKaCPuKd57hCXOWIN97f2DEOVH/view?usp=sharing) or [the Repo](https://github.com/Saican/Tooltips)
+ - [Tooltips](https://drive.google.com/file/d/1up3XI8uKaCPuKd57hCXOWIN97f2DEOVH/view?usp=sharing) or download the code from [the Repo](https://github.com/Saican/Tooltips)
+ - - Check out the [the forum](https://forum.zdoom.org/viewtopic.php?f=105&t=68495) for usage information
  - ZScript Windows Package or download the code from here
+ - - [The ZScript Windows Forum can be found here]()
  
  Load ZScript Windows first and any mod requiring it after.  Tooltips may be loaded anywhere, although it's reccomended it be loaded absolutely first.
  
