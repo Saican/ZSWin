@@ -226,4 +226,5 @@ class ZButton : ZControl_Base
 		}
 	}
 	
+	/* END OF METHODS */
 }

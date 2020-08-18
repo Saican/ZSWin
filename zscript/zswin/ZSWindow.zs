@@ -66,7 +66,9 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZText> Text;
 	private Array<ZText> CopyText;
 	ui int GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
+	private int _GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
 	ui ZText GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
+	private ZText _GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
 	ui ZText FindText(string Name) 
 	{ 
 		for (int i = 0; i < GetTextSize(); i++) 
@@ -82,7 +84,9 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZShape> Shapes;
 	private Array<ZShape> CopyShapes;
 	ui int GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
+	private int _GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
 	ui ZShape GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
+	private ZShape _GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
 	ui ZShape FindShape(string Name) 
 	{ 
 		for (int i = 0; i < GetShapeSize(); i++) 
@@ -98,6 +102,7 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZButton> Buttons;
 	private Array<ZButton> CopyButtons;
 	ui int GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
+	private int _GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
 	ui ZButton GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
 	private ZButton _GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
 	ui ZButton FindButton(string Name)
@@ -140,14 +145,14 @@ class ZSWindow : ZSWin_Base abstract
 		}
 		
 		PassiveGibZoning();
+		ActiveGibZoning();
 	}
 	
 	/*
-		This method is the primary method by which windows and the mouse interact.
-		
-		What this needs to do is, compare the location of the mouse to each button.
-		However if the window's priority is greater than 0, it needs take the location
-		of each higher priority window into account.
+		This method looks to see if the cusor is over a button.
+		However the button may not be visually under another window.
+		The checks attempt to see if any portion of the button is visible,
+		and if so this area is checked.
 	
 	*/
 	private void PassiveGibZoning()
@@ -245,13 +250,17 @@ class ZSWindow : ZSWin_Base abstract
 							availHeight = _GetButton(i).Height;
 						}
 
+						// Finally, check the adjusted dimensions, if it's clear, the check continues, if not we're done here.
 						if ((availX < CursorX && CursorX < availX + availWidth &&
 							availY < CursorY && CursorY < availY + availHeight) ||
 							(splitDims && splitX < CursorX && CursorX < splitX + splitWidth &&
 							splitY < CursorY && CursorY < splitY + splitHeight))
 							mouseOver = true;
 						else
+						{
 							mouseOver = false;
+							break; // Where the mouse is is covered so higher windows don't matter
+						}
 					}
 				}
 				else
@@ -264,6 +273,56 @@ class ZSWindow : ZSWin_Base abstract
 			}
 			else
 				_GetButton(i).State = ZButton.idle;
+		}
+	}
+	
+	private void ActiveGibZoning()
+	{
+		for (int i = 0; i < _GetTextSize(); i++)
+			ActiveGibZoning_EventCaller(ZControl_Base(_GetText(i)));
+		for (int i = 0; i < _GetShapeSize(); i++)
+			ActiveGibZoning_EventCaller(ZControl_Base(_GetShape(i)));
+		for (int i = 0; i < _GetButtonSize(); i++)
+			ActiveGibZoning_EventCaller(ZControl_Base(_GetButton(i)));
+	}
+	
+	private void ActiveGibZoning_EventCaller(ZControl_Base control)
+	{
+		switch (zHandler.CursorState)
+		{
+			case zHandler.leftmousedown:
+				control.OnLeftMouseDown();
+				break;
+			case zHandler.leftmouseup:
+				control.OnLeftMouseUp();
+				break;
+			case zHandler.leftmouseclick:
+				control.OnLeftMouseClick();
+				break;
+			case zHandler.middlemousedown:
+				control.OnMiddleMouseDown();
+				break;
+			case zHandler.middlemouseup:
+				control.OnMiddleMouseUp();
+				break;
+			case zHandler.middlemouseclick:
+				control.OnMiddleMouseClick();
+				break;
+			case zHandler.rightmousedown:
+				control.OnRightMouseDown();
+				break;
+			case zHandler.rightmouseup:
+				control.OnRightMouseUp();
+				break;
+			case zHandler.rightmouseclick:
+				control.OnRightMouseClick();
+				break;
+			case zHandler.wheelmouseup:
+				control.OnWheelMouseDown();
+				break;
+			case zHandler.wheelmousedown:
+				control.OnWheelMouseUp();
+				break;
 		}
 	}
 	
