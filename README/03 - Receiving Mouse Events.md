@@ -52,4 +52,27 @@ When overriding control event methods, you do not need to call the Super of the 
     	}
     }
 
+------------
+
+
+**ZControl Mouse Events**
+
+    	virtual void OnLeftMouseDown() {}
+    	virtual void OnLeftMouseUp() {}
+    	virtual void OnLeftMouseClick() {}
+    	
+    	virtual void OnMiddleMouseDown() {}
+    	virtual void OnMiddleMouseUp() {}
+    	virtual void OnMiddleMouseClick() {}
+    	
+    	virtual void OnRightMouseDown() {}
+    	virtual void OnRightMouseUp() {}
+    	virtual void OnRightMouseClick() {}
+    	
+    	virtual void OnWheelMouseDown() {}
+    	virtual void OnWheelMouseUp() {}
+
+------------
+
+
 [Back to Project Main](https://github.com/Saican/ZSWin "Back to Project Main")

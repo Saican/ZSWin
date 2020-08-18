@@ -12,6 +12,7 @@
 
 - GibZoning became a term in Z-Windows to refer to making the same calculations for a far greater interactive environment.  So the term "GibZone" refers to the interactive area of an object.  Where Z-Windows only technically supported two mouse events, ZScript Windows fully supports eleven mouse events, all of which may be used by any ZControl object.
 
-
+**Further Information**
+[Receiving Mouse Events](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Receiving%20Mouse%20Events.md)
 
 [Back to Project Main](https://github.com/Saican/ZSWin "Back to Project Main")
