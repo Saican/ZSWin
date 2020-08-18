@@ -8,3 +8,4 @@
 
 **Documentation**
  - [Introduction](https://github.com/Saican/ZSWin/blob/master/README/01%20-%20ZScript%20Windows.md)
+ - [Creating a ZWindow](https://github.com/Saican/ZSWin/blob/master/README/02%20-%20Creating%20a%20ZWindow.md)
