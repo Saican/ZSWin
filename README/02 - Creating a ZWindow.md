@@ -2,26 +2,108 @@
 
 ![](https://github.com/Saican/ZSWin/blob/master/README/ZSWin_Logo.png)
 
-## A Generic GUI API for (G)ZDoom
+## Creating a ZWindow
 
-**Written in ZScript!**
+    /*
+    	This is a demo ZS-Window that can actually be inherited from
+    	and modified.
+    	
+    	Usage would call PostBeginPlay as a super, and then initialize to 
+    	desired outcome.  Inherited windows do not need to override Init.
+    	
+    	You may call DebugOut at any point to send messages to the screen,
+    	however until the window has found the handler, messages will be
+    	held in a temporary array and printed when possible.
+    
+    */
+    class ZSWin_Terminal : ZSWindow
+    {
+    	string WindowName;
+    	
+    	override void PostBeginPlay()
+    	{
+    		if (GetAge() < 1)
+    		{
+    			if (!WindowName)
+    				WindowName = "ZSWINTerminalTest";
+    			
+    			self.Init(true, WindowName, self.tid);
+    			// If inheriting, do further initialization from here.
+    			// This will give the inheriting window the final say.
+    			
+    			// - While the title is a unique member, it is still a ZText instance and users have full control over it.
+    			// - The Init method defaults the yLocation and Alpha args
+    			// - Locations are relative to the window
+    			// - All controls have a Name member that is a unique identifier for Find methods
+    			Title = new("ZText").Init("DemoTitle", true, "ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
+    									Font.CR_Gold, 
+    									ZText.wrap,
+    									0,	// if 0, the text is wrapped to the window width
+    									ZText.center, 
+    									"bigfont", 
+    									0);
+    									
+    			Text.Push(new("ZText").Init("txtNews_A", true, "Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
+    										Font.CR_White,		// text color...kinda obvious
+    										ZText.wrap,			// text wrap setting - this is given priority
+    										0,					// wrap width
+    										ZText.Left,			// alignment
+    										"consolefont",		// font name
+    										5,					// x location - relative to window
+    										55,					// y location - same
+    										1,					// alpha (float)
+    										"bigGroupBox"));  	// if provided the name of a ZShape, the width calculated width of the shape (x_End - x_Start) will be the wrap width
+    										
+    			Shapes.Push(new("ZShape").Init("bigGroupbox", true, ZShape.thinroundgroupbox,
+    											"Green",
+    											0, 45, 			// start x/y
+    											Width, Height, 	// end x/y
+    											1, 				// alpha
+    											3,	 			// thickness
+    											ZShape.noscale, // scaling in relation to window resizing
+    											20,				// radius for round corners
+    											10,				// number of vertices on curve
+    											new("ZText").Init("bigGroupbox_Title", true, "Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
+    												Font.CR_Orange,
+    												ZText.nowrap, 	// text wrapping is ignored for the title
+    												0,
+    												ZText.left,		// alignment is also ignored
+    												"newsmallfont",
+    												30)));			// xLocation is relative to the x_Start of the shape
+    			
+    			// Buttons may be initialized with as little as 2 arguments!
+    			// - All other args are defaulted so you can use named arguments to set what you need.
+    			// - Here I skipped the Enabled argument to jump to the button type
+    			Buttons.Push(new("ZButton").Init("testButton", "Click Me!" , Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:300, txt_yLocation:10));
+    		}
+    	}
+    	
+    	override void Init(bool enabled, string name, int player)
+    	{
+    		DebugOut("TerminalInitMsg", "Initializing window.", Font.CR_Gray);
+    		
+    		// This has to be called first prior to all other initialization
+    		TrueZero();
+    		
+    		// Starting dimensions
+    		Width = 350;
+    		Height = 550;
+    		
+    		// Starting location
+    		[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
+    		
+    		BackgroundType = ZWin_Default;
+    		BackgroundAlpha = 0.8;
+    		Stretch = true;
+    		
+    		BorderType = ZWin_Border;
+    
+    		// Call the super last - it does further initializaton from what is defined here
+    		super.Init(enabled, name, player);
+    	}
+    }
 
-ZScript Windows is a generic GUI API aimed at enabling unique implementations that are flexible and dynamic, specific to the needs of the user, fast, powerful, and simple to use. The entire ZScript Windows API is written in (G)ZDoom's native ZScript, allowing users to design GUI systems rendered at the game's framerate **and multiplayer compatible**.
-
-Unlike the old GDCC dinosaur, Z-Windows, ZScript Windows is actually fairly straightforward to use for developers who are familiar with C++, if not familiar with ZScript.  Getting ZScript Windows up and working is even easier than Z-Windows, requiring no extra compilers or batch files.  ZScript Windows functions just like any other (G)ZDoom mod.
-
-##### A Bit of History and the Concept of ZScript Windows:
-I started delving into GUI design several years ago when I wanted mouse-driven menus for a long dead project called *[all] Alone*.  At the time the only way to do this was through ACS methods.  This pretty much immediately made my GUI systems incompatible with multiplayer games.  My project was singleplayer so it that did not matter.  The project went through three iterations before finally being shelved, and the GUI system went through two distinct iterations as well, one being a full rewrite.  Both systems included the HUD.  This ACS GUI system, while functional, was not expandable.  Then I did an experiment.
-
-I wanted to see if I could create any sort of tiling method for a background image in preparation to create a text-box system.  My method was unreasonable, but it gave me another idea: use one image for a background and clip it off based on a specific width and height.  Z-Windows was born.  Over the course of development, Z-Windows was quickly ported to GDCC, a full C compiler that compiles to ACS bytecode.  This laid the foundation for the concept of a ZWindow.
-
-ZScript Windows, and obviously Z-Windows, gets its name not from Microsoft Windows, but from the X Window System (also ZDoom), which provides the basic GUI functionality for many UNIX-like operating systems. Just like X, ZScript Windows provides just the basic GUI framework without mandating what the actual interface is supposed to look like. The term windows is both a GUI organizational concept and a programming concept the interpretations of which can vary dramatically. ZScript Windows does deviate from X in that the functionality of ZScript Windows is geared toward complete GUI management in a video game architecture and as such can mimic the appearance of an actual operating system but is not actually an operating system.  However, implementation does not restrict what the user intends to do with a window, thus only the limits of ZScript actually restrict the user.
-
-###### The Z-Windows Concept
-C is not an object-oriented programming language, however it supports structures so it sort of is.  C++, however is an object-oriented programming language, thus ZScript is too.  So a ZWindow is an object.  In Z-Windows, every object was a structure, including the actual window.  This limited the functionality because, in C, structures cannot contain methods.  To get around this, there are function pointers, and this was used to give windows a Procedure Function, much like the ZScript Tick() function.  In fact, ZScript Windows are ZScript Actors!  To function correctly, a window must be somehow spawned into the game world, and this can only be done through the Actor class.
-
-While ZWindows are actors, they aren't meant to have sprites, but there's nothing stopping a ZWindow from becoming a full-fledged actor that interacts with the game world.  ZWindows, and all related classes are mostly containers for the plethora of information required to create the GUI abstraction.
-
-A window is assigned to a player, usually the player that spawned the window actor.  **There are no modifications made to the player class by ZScript Windows**, a ZWindow is most often spawned through a short ACS script or by another window.  This means that ZScript Windows does not require much, if any, tweaking to be integrated into another mod.
+### All ZWindows Must Inherit from a ZWindow!
+- It's not really rocket science, if you want to create a ZWindow, it has to be created from a ZWindow.  So don't inherit from Actor, inherit from ZWindow, which inherits from ZSWin_Base, which inherits from Actor.
 
 [Back to Project Main](https://github.com/Saican/ZSWin "Back to Project Main")
