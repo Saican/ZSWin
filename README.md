@@ -10,3 +10,4 @@
  - [Introduction](https://github.com/Saican/ZSWin/blob/master/README/01%20-%20ZScript%20Windows.md)
  - [Creating a ZWindow](https://github.com/Saican/ZSWin/blob/master/README/02%20-%20Creating%20a%20ZWindow.md)
  - [Receiving Mouse Events](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Receiving%20Mouse%20Events.md)
+ - [GibZoning](https://github.com/Saican/ZSWin/blob/master/README/04%20-%20GibZoning.md)
