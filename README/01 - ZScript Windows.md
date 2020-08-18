@@ -3,7 +3,7 @@
 ![](urltozswinlogo.png)
 
 ## A Generic GUI API for (G)ZDoom
-####Written in ZScript!
+###Written in ZScript!
 
 ZScript Windows is a generic GUI API aimed at enabling unique implementations that are flexible and dynamic, specific to the needs of the user, fast, powerful, and simple to use. The entire ZScript Windows API is written in (G)ZDoom's native ZScript, allowing users to design GUI systems rendered at the game's framerate **and multiplayer compatible**.
 
