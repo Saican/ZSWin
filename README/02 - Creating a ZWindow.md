@@ -104,6 +104,6 @@
     }
 
 ### All ZWindows Must Inherit from a ZWindow!
-- It's not really rocket science, if you want to create a ZWindow, it has to be created from a ZWindow.  So don't inherit from Actor, inherit from ZWindow, which inherits from ZSWin_Base, which inherits from Actor.  Or you can inherit from ZSWin_Terminal.  You can find this particular ZWindow in the **test** folder of the ZScript Windows source files.
+- It's not really rocket science, if you want to create a ZWindow, it has to be created from a ZWindow.  So don't inherit from Actor, inherit from ZWindow, which inherits from ZSWin_Base, which inherits from Actor.  Or you can inherit from ZSWin_Terminal.  You can find this particular ZWindow in the [test](https://github.com/Saican/ZSWin/blob/master/zscript/test/ZSWin_Terminal.zs "test") folder of the ZScript Windows source files.
 
 [Back to Project Main](https://github.com/Saican/ZSWin "Back to Project Main")
