@@ -1,6 +1,6 @@
 # ZScript Windows v0.1
 
-![](urltozswinlogo.png)
+![](https://github.com/Saican/ZSWin/blob/master/README/ZSWin_Logo.png)
 
 ## A Generic GUI API for (G)ZDoom
 
