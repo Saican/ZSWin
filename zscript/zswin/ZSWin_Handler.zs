@@ -88,6 +88,36 @@ class ZSWin_Handler : EventHandler
 			DebugOut("WinStkError_NullWindow", "ZSWin Handler: ERROR! - Got a null window!");
 	}
 	int GetStackSize() { return winStack.Size(); }
+	uint GetStackIndex(ZSWin_Base nwd) { return winStack.Find(nwd); }
+	WindowStats GetWindowStats(int StackIndex = 0, string name = "")
+	{
+		WindowStats winstat;
+		if (name == "")
+			_winstat(ZSWindow(winStack[StackIndex])); // 0 is a valid index :P
+		else
+		{
+			for (int i = 0; i < winStack.Size(); i++)
+			{
+				if (winStack[i].name == name)
+				{
+					_winstat(ZSWindow(winStack[i]));
+					break;
+				}
+			}
+		}
+		return winstat;
+	}
+	
+	private WindowStats _winstat(ZSWindow nwd)
+	{
+		WindowStats winstat;
+		winstat.Priority = nwd.Priority;
+		winstat.xLocation = nwd.xLocation;
+		winstat.yLocation = nwd.yLocation;
+		winstat.Width = nwd.Width;
+		winstat.Height = nwd.Height;
+		return winstat;
+	}
 
 	override void OnRegister()
 	{
@@ -100,7 +130,7 @@ class ZSWin_Handler : EventHandler
 	override bool UiProcess(UiEvent e)
 	{
 		// Log the cursor location
-		SendNetworkEvent("zswin_cursorLocationLog", e.MouseX, e.MouseY);
+		SendNetworkEvent(string.Format("zswin_cursorLocationLog:%d:%d", e.MouseX, e.MouseY));
 		SendNetworkEvent("zswin_cursorActionLog", e.Type);
 		
 		switch (e.Type)
@@ -114,26 +144,17 @@ class ZSWin_Handler : EventHandler
 					SendNetworkEvent("zswin_UI_cursorToggle");
 				break;
 			case UiEvent.Type_LButtonDown:
-				break;
 			case UiEvent.Type_LButtonUp:
-				break;
 			case UiEvent.Type_LButtonClick:
-				break;
 			case UiEvent.Type_MButtonDown:
-				break;
 			case UiEvent.Type_MButtonUp:
-				break;
 			case UiEvent.Type_MButtonClick:
-				break;
 			case UiEvent.Type_RButtonDown:
-				break;
 			case UiEvent.Type_RButtonUp:
-				break;
 			case UiEvent.Type_RButtonClick:
-				break;
 			case UiEvent.Type_WheelUp:
-				break;
 			case UiEvent.Type_WheelDown:
+			default:
 				break;
 		}
 		return false;
@@ -160,31 +181,24 @@ class ZSWin_Handler : EventHandler
 		// deals with it as some kind of engine-specific value, while UiProcess can actually
 		// get the character the key represents - as a string, which is fine, chars are annoying.
 		bool bStringProcessed = true;
-		if ((e.Name == "zswin_cursorToggle" || e.Name == "zswin_UI_cursorToggle") && e.Args.Size() == 1)
+		if (e.Name ~== "zswin_cursorToggle" || e.Name ~== "zswin_UI_cursorToggle")
 		{
 			bStringProcessed = false;
 			int key1, key2;
 			[key1, key2] = Bindings.GetKeysForCommand("zswin_cmd_cursorToggle");
-			if (((key1 && key1 == e.Args[0]) || (key2 && key2 ==  e.Args[0])) || e.Name == "zswin_UI_cursorToggle")
+			if (((key1 && key1 == e.Args[0]) || (key2 && key2 ==  e.Args[0])) || e.Name ~== "zswin_UI_cursorToggle")
 			{
 				self.IsUiProcessor = !self.IsUiProcessor;
 				self.RequireMouse = !self.RequireMouse;
 			}
 		}
-		// Log the cursor location - windows need this to do passive GibZoning
-		if (e.Name == "zswin_cursorLocationLog" && e.Args.Size() == 2)
-		{
-			bStringProcessed = false;
-			CursorX = e.Args[0];
-			CursorY = e.Args[1];
-		}
-		if (e.Name == "zswin_cursorActionLog" && e.Args.Size() == 1)
+		if (e.Name ~== "zswin_cursorActionLog")
 		{
 			bStringProcessed = false;
 			CursorState = intToCursorState(e.Args[0]);
 		}
 		// Debugging Check
-		if (e.Name == "zswin_debugToggle")
+		if (e.Name ~== "zswin_debugToggle")
 		{
 			bStringProcessed = false;
 			debugPlayer = e.Player;
@@ -202,6 +216,7 @@ class ZSWin_Handler : EventHandler
 	{
 		dbugout,
 		quikclose,
+		cursorLog,
 		nocmd,
 	};
 	// This is the supporting string conversion method
@@ -211,6 +226,8 @@ class ZSWin_Handler : EventHandler
 			return dbugout;
 		else if (e ~== "zswin_quikCloseCheck")
 			return quikclose;
+		else if (e ~== "zswin_cursorLocationLog")
+			return cursorLog;
 		else
 			return nocmd;
 	}
@@ -296,6 +313,15 @@ class ZSWin_Handler : EventHandler
 					}
 					else
 						DebugOut("quikClose", "ERROR! - Did not get a valid key for Quik Close check!");
+					break;
+				case cursorLog:
+					if (cmdc.Size() == 3) // must be a command and the x/y of the mouse
+					{
+						CursorX = cmdc[1].ToInt();
+						CursorY = cmdc[2].ToInt();
+					}
+					else
+						DebugOut("mousePosition", "ERROR! - Not enough args for cursor log!");
 					break;
 				default:
 					DebugOut("badCmd", string.Format("NOTICE! Received unknown net event, \"%s\".  Ignore if event corresponds to a different mod.", cmdc[0]), Font.CR_Yellow);

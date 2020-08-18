@@ -99,6 +99,7 @@ class ZSWindow : ZSWin_Base abstract
 	private Array<ZButton> CopyButtons;
 	ui int GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
 	ui ZButton GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
+	private ZButton _GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
 	ui ZButton FindButton(string Name)
 	{
 		for (int i = 0; i < GetButtonSize(); i++)
@@ -137,11 +138,133 @@ class ZSWindow : ZSWin_Base abstract
 			zHandler.bDebugIsUpdating = false;
 			IsUpdating(false);
 		}
+		
+		PassiveGibZoning();
 	}
 	
+	/*
+		This method is the primary method by which windows and the mouse interact.
+		
+		What this needs to do is, compare the location of the mouse to each button.
+		However if the window's priority is greater than 0, it needs take the location
+		of each higher priority window into account.
+	
+	*/
 	private void PassiveGibZoning()
 	{
-		
+		// Get the location of the cursor
+		int CursorX = zHandler.CursorX, 
+			CursorY = zHandler.CursorY;
+		// Get the stats of every window of higher priority
+		Array<WindowStats> higherStats;
+		for (int i = zHandler.GetStackIndex(self) + 1; i < zHandler.GetStackSize() - 1; i++)
+			higherStats.Push(zHandler.GetWindowStats(i));
+		for (int i = 0; i < Buttons.Size(); i++)
+		{
+			// Check if the mouse is over a button - do this first to skip the next part
+			if (self.xLocation + _GetButton(i).xLocation < CursorX && CursorX < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
+				self.yLocation + _GetButton(i).yLocation < CursorY && CursorY < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+			{
+				bool mouseOver = false;
+				// Check if the button is under any of the windows in higherStats
+				if (higherStats.Size() > 0)
+				{
+					for (int j = 0; j < higherStats.Size(); j++)
+					{
+						float availX = 0, availY = 0,
+							splitX = 0, splitY = 0;
+						int availWidth = 0, availHeight = 0,
+							splitWidth = 0, splitHeight = 0;
+						bool splitDims = false;
+						// Check if any part of the button is covered up
+						// left side is covered up
+						if (higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation && 
+							higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation &&
+							higherStats[j].xLocation + higherStats[j].Width < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+						{
+							availX = higherStats[j].xLocation + higherStats[j].Width;
+							availWidth = (self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width) - (higherStats[j].xLocation + higherStats[j].Width);
+						}
+						// right side is covered up
+						else if (higherStats[j].xLocation > self.xLocation + _GetButton(i).xLocation &&
+								higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
+								higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+						{
+							availX = self.xLocation + _GetButton(i).xLocation;
+							availWidth = higherStats[j].xLocation - (self.xLocation + _GetButton(i).xLocation);
+						}
+						// the window is literally between the button!
+						else if (higherStats[j].xLocation > self.xLocation + _GetButton(i).xLocation &&
+								higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
+								higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation &&
+								higherStats[j].xLocation + higherStats[j].Width < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+						{	// honestly a buttons's width may allow another window to fit between it - true evil will be the y values
+							splitDims = true;
+							availX = self.xLocation + _GetButton(i).xLocation;
+							availWidth = higherStats[j].xLocation - (self.xLocation + _GetButton(i).xLocation);
+							splitX = higherStats[j].xLocation + higherStats[j].Width;
+							splitWidth = (self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width) - higherStats[j].xLocation + higherStats[j].Width;
+						}
+						else
+						{
+							availX = self.xLocation + _GetButton(i).xLocation;
+							availWidth = _GetButton(i).Width;
+						}
+						
+						// top is covered up
+						if (higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation && 
+							higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation &&
+							higherStats[j].yLocation + higherStats[j].Height < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+						{
+							availY = higherStats[j].yLocation + higherStats[j].Height;
+							availHeight = (self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height) - (higherStats[j].yLocation + higherStats[j].Height);
+						}
+						// bottom is covered up
+						else if (higherStats[j].yLocation > self.yLocation + _GetButton(i).yLocation &&
+								higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height &&
+								higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+						{
+							availY = self.yLocation + _GetButton(i).yLocation;
+							availHeight = higherStats[j].yLocation - (self.yLocation + _GetButton(i).yLocation);
+						}
+						// the window is literally between the button!
+						else if (higherStats[j].yLocation > self.yLocation + _GetButton(i).yLocation &&
+								higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height &&
+								higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation &&
+								higherStats[j].yLocation + higherStats[j].Height < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+						{	// this is true evil - is the button really that tall or is the window really that short???!!!!
+							splitDims = true;
+							availY = self.yLocation + _GetButton(i).yLocation;
+							availHeight = higherStats[j].yLocation - (self.yLocation + _GetButton(i).yLocation);
+							splitY = higherStats[j].yLocation + higherStats[j].Height;
+							splitHeight = (self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height) - higherStats[j].yLocation + higherStats[j].Height;
+						}
+						else
+						{
+							availY = self.yLocation + _GetButton(i).yLocation;
+							availHeight = _GetButton(i).Height;
+						}
+
+						if ((availX < CursorX && CursorX < availX + availWidth &&
+							availY < CursorY && CursorY < availY + availHeight) ||
+							(splitDims && splitX < CursorX && CursorX < splitX + splitWidth &&
+							splitY < CursorY && CursorY < splitY + splitHeight))
+							mouseOver = true;
+						else
+							mouseOver = false;
+					}
+				}
+				else
+					mouseOver = true;
+				
+				if (mouseOver)
+					_GetButton(i).State = ZButton.highlight;
+				else
+					_GetButton(i).State = ZButton.idle;
+			}
+			else
+				_GetButton(i).State = ZButton.idle;
+		}
 	}
 	
 	// This methos sets everything to a safe default value
