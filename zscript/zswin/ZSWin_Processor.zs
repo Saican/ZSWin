@@ -1121,7 +1121,7 @@ class zsys
 											false, 
 											nwd.xLocation + nwd.GetButton(i).xLocation, 
 											nwd.yLocation + nwd.GetButton(i).yLocation,
-											DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+											DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 											DTA_DestWidth, nwd.GetButton(i).Width,
 											DTA_DestHeight, nwd.GetButton(i).Height);
 						else
@@ -1139,7 +1139,7 @@ class zsys
 										false,
 										nwd.xLocation + nwd.GetButton(i).xLocation + (tx * w),
 										nwd.yLocation + nwd.GetButton(i).yLocation + (ty * h),
-										DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, tx,
 										DTA_DestHeight, ty);
 									h++;
@@ -1231,7 +1231,7 @@ class zsys
 										false, 
 										nwd.xLocation + nwd.GetButton(i).xLocation, 
 										nwd.yLocation + nwd.GetButton(i).yLocation,
-										DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, nwd.GetButton(i).Width,
 										DTA_DestHeight, nwd.GetButton(i).Height);
 						nwd.zHandler.WindowClip(set:false); // this is the same as calling screen.ClearClipRect()
@@ -1274,7 +1274,7 @@ class zsys
 										false, 
 										nwd.xLocation + nwd.GetButton(i).xLocation, 
 										nwd.yLocation + nwd.GetButton(i).yLocation,
-										DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, lx,
 										DTA_DestHeight, ly);	
 						Vector2 rxy = TexMan.GetScaledSize(rightSide);
@@ -1284,7 +1284,7 @@ class zsys
 										false, 
 										nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width - rx, 
 										nwd.yLocation + nwd.GetButton(i).yLocation,
-										DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, rx,
 										DTA_DestHeight, ry);										
 						nwd.zHandler.WindowClip(set:false);
@@ -1321,7 +1321,7 @@ class zsys
 								false,
 								nwd.xLocation + nwd.GetButton(i).xLocation + lx + (mx * w),
 								nwd.yLocation + nwd.GetButton(i).yLocation,
-								DTA_Alpha, int((nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255),
+								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 								DTA_DestWidth, mx,
 								DTA_DestHeight, my);
 							w++;

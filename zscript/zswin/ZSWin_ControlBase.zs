@@ -8,6 +8,17 @@
 class ZControl_Base abstract
 {
 	string Name;
+	private bool wasEnabled;
+	void ShowCheck()
+	{
+		if (!Show)
+		{
+			wasEnabled = Enabled;
+			Enabled = false;
+		}
+		else if (wasEnabled && !Enabled)
+			Enabled = true;
+	}
 	bool Enabled,
 		Show;
 	float Alpha;

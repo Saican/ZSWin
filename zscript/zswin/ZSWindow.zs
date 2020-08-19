@@ -284,16 +284,19 @@ class ZSWindow : ZSWin_Base abstract
 	{
 		for (int i = 0; i < _GetTextSize(); i++)
 		{
+			_GetText(i).ShowCheck();
 			if (_GetText(i).Enabled)
 				ActiveGibZoning_EventCaller(ZControl_Base(_GetText(i)));
 		}
 		for (int i = 0; i < _GetShapeSize(); i++)
 		{
+			_GetShape(i).ShowCheck();
 			if (_GetShape(i).Enabled)
 				ActiveGibZoning_EventCaller(ZControl_Base(_GetShape(i)));
 		}
 		for (int i = 0; i < _GetButtonSize(); i++)
 		{
+			_GetButton(i).ShowCheck();
 			if (_GetButton(i).Enabled)
 				ActiveGibZoning_EventCaller(ZControl_Base(_GetButton(i)));
 		}
