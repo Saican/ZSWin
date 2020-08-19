@@ -336,7 +336,7 @@ class ZSWin_Handler : EventHandler
 		for (int i = 0; i < winStack.Size(); i++)
 		{
 			// Check that this window can be drawn for the given player.
-			if (consoleplayer == ZSWin_Base(winStack[i]).player)
+			if (consoleplayer == ZSWin_Base(winStack[i]).player && ZSWin_Base(winStack[i]).GlobalShow)
 			{
 				let nwd = ZSWindow(winStack[i]);
 				zsys.WindowProcess_Background(nwd);
@@ -413,6 +413,7 @@ class ZSWin_Handler : EventHandler
 			{
 				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).Name,
 												ZText(dar_DebugMsgs[i]).Enabled,
+												true,
 												ZText(dar_DebugMsgs[i]).TicAppend ? 
 													string.Format("%s : tics - %d", ZText(dar_DebugMsgs[i]).Text, ZText(dar_DebugMsgs[i]).Tics) : 
 													ZText(dar_DebugMsgs[i]).Text,

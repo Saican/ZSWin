@@ -1,8 +1,10 @@
 class ZSWin_Base : actor abstract
 {
-	bool enabled,
+	private bool wasEnabled;
+	bool GlobalEnabled,
+		GlobalShow,
 		bDestroyed;
-	float globalAlpha;
+	float GlobalAlpha;
 	string name;
 	int player, Priority;
 	ZSWin_Base this;
@@ -16,15 +18,16 @@ class ZSWin_Base : actor abstract
 	}
 	private Array<ZText> dar_HeldMsgs;
 	
-	virtual void Init(bool enabled, string name, int player)
+	virtual void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
 	{
 		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
-		self.enabled = enabled;
+		self.GlobalEnabled = GlobalEnabled;
+		self.GlobalShow = GlobalShow;
 		bDestroyed = false;
-		if (enabled)
-			globalAlpha = 1.0;
+		if (GlobalEnabled)
+			GlobalAlpha = 1.0;
 		else
-			globalAlpha = 0.5;
+			GlobalAlpha = 0.5;
 		self.name = name;
 		self.player = player;
 		self.ChangeTid(0);
@@ -59,6 +62,16 @@ class ZSWin_Base : actor abstract
 				
 				dar_HeldMsgs.Clear();
 			}
+			
+			GlobalAlpha = 0.5 + (0.5 * (GlobalEnabled));
+			
+			if (!GlobalShow)
+			{
+				wasEnabled = GlobalEnabled;
+				GlobalEnabled = false;
+			}
+			else if (wasEnabled && !GlobalEnabled)
+				GlobalEnabled = true;
 		}
 	}
 }

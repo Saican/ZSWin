@@ -8,7 +8,8 @@
 class ZControl_Base abstract
 {
 	string Name;
-	bool Enabled;
+	bool Enabled,
+		Show;
 	float Alpha;
 	
 	enum SCALETYP

@@ -33,7 +33,5 @@ class TerminalButton : ZButton
 			self.Text.Text = "Ha ha!";
 			CallACS("TerminalTest_ForceFieldDeactivator", 0);
 		}
-		else
-			console.printf(string.format("state is : %d", State));
 	}
 }

@@ -33,10 +33,11 @@ class ZText : ZControl_Base
 	uint Tics;
 	bool TicAppend;
 	
-	ZText Init (string Name, bool Enabled, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
+	ZText Init (string Name, bool Enabled, bool Show, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
 	{
 		self.Name = Name;
 		self.Enabled = Enabled;
+		self.Show = Show;
 		self.Text = Text;
 		self.CRColor = CRColor;
 		self.TextWrap = TextWrap;
