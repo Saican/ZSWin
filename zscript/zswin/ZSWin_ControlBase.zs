@@ -54,18 +54,18 @@ class ZControl_Base abstract
 		noshape,
 	};
 	
-	virtual void OnLeftMouseDown() {}
-	virtual void OnLeftMouseUp() {}
-	virtual void OnLeftMouseClick() {}
+	virtual void OnLeftMouseDown(ZSWindow nwd) {}
+	virtual void OnLeftMouseUp(ZSWindow nwd) {}
+	virtual void OnLeftMouseClick(ZSWindow nwd) {}
 	
-	virtual void OnMiddleMouseDown() {}
-	virtual void OnMiddleMouseUp() {}
-	virtual void OnMiddleMouseClick() {}
+	virtual void OnMiddleMouseDown(ZSWindow nwd) {}
+	virtual void OnMiddleMouseUp(ZSWindow nwd) {}
+	virtual void OnMiddleMouseClick(ZSWindow nwd) {}
 	
-	virtual void OnRightMouseDown() {}
-	virtual void OnRightMouseUp() {}
-	virtual void OnRightMouseClick() {}
+	virtual void OnRightMouseDown(ZSWindow nwd) {}
+	virtual void OnRightMouseUp(ZSWindow nwd) {}
+	virtual void OnRightMouseClick(ZSWindow nwd) {}
 	
-	virtual void OnWheelMouseDown() {}
-	virtual void OnWheelMouseUp() {}
+	virtual void OnWheelMouseDown(ZSWindow nwd) {}
+	virtual void OnWheelMouseUp(ZSWindow nwd) {}
 }

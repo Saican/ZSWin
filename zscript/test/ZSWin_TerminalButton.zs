@@ -13,7 +13,7 @@ class TerminalButton : ZButton
 	// and define things as needed here as well.
 
 	// Use this to set the button state to active
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(ZSWindow nwd)
 	{
 		// The window's passive GibZoning will set the button's state to
 		// highlight if the cursor is on the button and the button isn't
@@ -23,7 +23,7 @@ class TerminalButton : ZButton
 	}
 	
 	// Use this to do the action
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(ZSWindow nwd)
 	{
 		if (self.State == ZButton.active)
 		{
@@ -31,7 +31,8 @@ class TerminalButton : ZButton
 			// You don't have to call ACS, just this example does to deactivate the force field
 			// in the demo map.
 			self.Text.Text = "Ha ha!";
-			CallACS("TerminalTest_ForceFieldDeactivator", 0);
+			self.Enabled = false;
+			CallACS("TerminalTest_ForceFieldDeactivator", 0, nwd.player);
 		}
 	}
 }

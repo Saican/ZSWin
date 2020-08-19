@@ -5,3 +5,5 @@
 *.backup3
 *.xcf
 README/ZSWin_Logo.jpg
+*.wav
+sndinfo.txt

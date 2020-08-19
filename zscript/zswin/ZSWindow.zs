@@ -307,37 +307,37 @@ class ZSWindow : ZSWin_Base abstract
 		switch (zHandler.CursorState)
 		{
 			case zHandler.leftmousedown:
-				control.OnLeftMouseDown();
+				control.OnLeftMouseDown(self);
 				break;
 			case zHandler.leftmouseup:
-				control.OnLeftMouseUp();
+				control.OnLeftMouseUp(self);
 				break;
 			case zHandler.leftmouseclick:
-				control.OnLeftMouseClick();
+				control.OnLeftMouseClick(self);
 				break;
 			case zHandler.middlemousedown:
-				control.OnMiddleMouseDown();
+				control.OnMiddleMouseDown(self);
 				break;
 			case zHandler.middlemouseup:
-				control.OnMiddleMouseUp();
+				control.OnMiddleMouseUp(self);
 				break;
 			case zHandler.middlemouseclick:
-				control.OnMiddleMouseClick();
+				control.OnMiddleMouseClick(self);
 				break;
 			case zHandler.rightmousedown:
-				control.OnRightMouseDown();
+				control.OnRightMouseDown(self);
 				break;
 			case zHandler.rightmouseup:
-				control.OnRightMouseUp();
+				control.OnRightMouseUp(self);
 				break;
 			case zHandler.rightmouseclick:
-				control.OnRightMouseClick();
+				control.OnRightMouseClick(self);
 				break;
 			case zHandler.wheelmouseup:
-				control.OnWheelMouseDown();
+				control.OnWheelMouseDown(self);
 				break;
 			case zHandler.wheelmousedown:
-				control.OnWheelMouseUp();
+				control.OnWheelMouseUp(self);
 				break;
 		}
 	}
