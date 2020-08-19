@@ -69,8 +69,7 @@ class ZSWin_Handler : EventHandler
 	private Array<ZText> dar_DebugMsgs;
 	int GetDebugSize() { return dar_DebugMsgs.Size(); }
 	private ZSWindow ncon;
-	bool SetWindowToConsole(ZSWindow nwd) { return (ncon = nwd); }
-	
+	bool SetWindowToConsole(ZSWindow nwd) { return (ncon = nwd); }	
 	private Array<ZSWin_Base> winStack;
 	void AddWindow(ZSWin_Base win) 
 	{ 
@@ -91,32 +90,18 @@ class ZSWin_Handler : EventHandler
 	uint GetStackIndex(ZSWin_Base nwd) { return winStack.Find(nwd); }
 	WindowStats GetWindowStats(int StackIndex = 0, string name = "")
 	{
-		WindowStats winstat;
 		if (name == "")
-			_winstat(ZSWindow(winStack[StackIndex])); // 0 is a valid index :P
+			return new("WindowStats").Init(winStack[StackIndex].Priority, ZSWindow(winStack[StackIndex]).Width, ZSWindow(winStack[StackIndex]).Height, ZSWindow(winStack[StackIndex]).xLocation, ZSWindow(winStack[StackIndex]).yLocation); // 0 is a valid index :P
 		else
 		{
 			for (int i = 0; i < winStack.Size(); i++)
 			{
 				if (winStack[i].name == name)
-				{
-					_winstat(ZSWindow(winStack[i]));
-					break;
-				}
+					return new("WindowStats").Init(winStack[i].Priority, ZSWindow(winStack[i]).Width, ZSWindow(winStack[i]).Height, ZSWindow(winStack[i]).xLocation, ZSWindow(winStack[i]).yLocation);
 			}
 		}
-		return winstat;
-	}
-	
-	private WindowStats _winstat(ZSWindow nwd)
-	{
-		WindowStats winstat;
-		winstat.Priority = nwd.Priority;
-		winstat.xLocation = nwd.xLocation;
-		winstat.yLocation = nwd.yLocation;
-		winstat.Width = nwd.Width;
-		winstat.Height = nwd.Height;
-		return winstat;
+		
+		return null;
 	}
 
 	override void OnRegister()
@@ -451,6 +436,25 @@ class ZSWin_Handler : EventHandler
 			winStack.Move(newStack);
 		}
 		
+		// Priority GibZoning
+		// 
+		// Windows handle GibZoning for their controls.
+		// The handler handles GibZoning for the windows.
+		if (CursorState != idle) // idle actually excludes mousemove
+		{
+			int priorityWin = windowPriorityGibZoning();
+			if (priorityWin >= 0)
+			{
+				for (int i = priorityWin; i < winStack.Size(); i++)
+				{
+					if (i == priorityWin)
+						winStack[i].Priority = 0;
+					else
+						winStack[i].Priority += 1;
+				}
+			}
+		}
+		
 		// Priority Sorting
 		//
 		// Window priority represents the draw order, however it runs in reverse.
@@ -471,6 +475,31 @@ class ZSWin_Handler : EventHandler
 			priorityStack[(priorityStack.Size() - 1) - winStack[i].Priority] = winStack[i];
 		winStack.Clear();
 		winStack.Move(priorityStack);
+	}
+	
+	/*
+		This method is one of the nastier methods in the system.
+		This is PassiveGibZoning for windows.
+		
+		Unlike PassiveGibZoning this method returns an int
+		which is equal to the winStack index of the window to
+		become highest priority (priority 0, or last in the draw stack)
+		
+		Returns -1 if no window is found
+	
+	*/
+	private int windowPriorityGibZoning()
+	{
+		for (int i = winStack.Size() - 1; i >= 0; i--)
+		{
+			ZSWindow nwd = ZSWindow(winStack[i]);
+			if (!nwd.IsPlayerIgnored() && nwd.GlobalShow && nwd.GlobalEnabled && CursorState != idle &&
+				nwd.xLocation < CursorX && CursorX < nwd.xLocation + nwd.Width &&
+				nwd.yLocation < CursorY && CursorY < nwd.yLocation + nwd.Height)
+				return i;
+		}
+		
+		return -1;
 	}
 	
 	/* - END OF METHODS - */

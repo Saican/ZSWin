@@ -144,7 +144,7 @@ class ZSWindow : ZSWin_Base abstract
 			IsUpdating(false);
 		}
 		
-		if (GlobalEnabled)
+		if (GlobalEnabled /*&& zHandler.CursorState != zHandler.idle*/)
 		{
 			PassiveGibZoning();
 			ActiveGibZoning();
@@ -165,8 +165,9 @@ class ZSWindow : ZSWin_Base abstract
 			CursorY = zHandler.CursorY;
 		// Get the stats of every window of higher priority
 		Array<WindowStats> higherStats;
-		for (int i = zHandler.GetStackIndex(self) + 1; i < zHandler.GetStackSize() - 1; i++)
+		for (int i = zHandler.GetStackIndex(self) + 1; i < zHandler.GetStackSize(); i++)
 			higherStats.Push(zHandler.GetWindowStats(i));
+		
 		for (int i = 0; i < Buttons.Size(); i++)
 		{
 			if (_GetButton(i).Enabled)
@@ -186,6 +187,12 @@ class ZSWindow : ZSWin_Base abstract
 							int availWidth = 0, availHeight = 0,
 								splitWidth = 0, splitHeight = 0;
 							bool splitDims = false;
+							// Button is covered so skip it
+							if (higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation &&
+								higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
+								higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation &&
+								higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+								break;
 							// Check if any part of the button is covered up
 							// left side is covered up
 							if (higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation && 

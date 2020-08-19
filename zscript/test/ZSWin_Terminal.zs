@@ -90,7 +90,9 @@ class ZSWin_Terminal : ZSWindow
 		
 		// Starting location
 		//[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
-		[xLocation, yLocation] = WindowLocation_Default();
+		//[xLocation, yLocation] = WindowLocation_Default();
+		xLocation = 200;
+		yLocation = 200;
 		
 		BackgroundType = ZWin_Default;
 		BackgroundAlpha = 0.8;
@@ -100,5 +102,15 @@ class ZSWin_Terminal : ZSWindow
 
 		// Call the super last - it does further initializaton from what is defined here
 		super.Init(GlobalEnabled, GlobalShow, name, player);
+	}
+	
+	// YOU MUST CALL THE SUPER TO THIS OVERRIDE - IF YOU USE IT!!!!
+	// OTHERWISE YOUR WINDOW WILL NOT DO ANYTHING!!!!
+	//
+	// In other words, if you don't need to use the Tick method, then don't override it.
+	override void Tick()
+	{
+		super.Tick();
+		DebugOut("PriorityName", string.Format("Window: %s, priority is: %d, stack index: %d", self.Name, self.Priority, zHandler.GetStackIndex(self)));
 	}
 }

@@ -18,6 +18,8 @@ class ZSWin_Base : actor abstract
 	}
 	private Array<ZText> dar_HeldMsgs;
 	
+	bool IsPlayerIgnored() { return (consoleplayer != player); }
+	
 	virtual void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
 	{
 		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
@@ -41,7 +43,7 @@ class ZSWin_Base : actor abstract
 		else
 		{
 			zHandler.AddWindow(self);
-			Priority = zHandler.GetStackSize() - 1;
+			Priority = zHandler.GetStackIndex(self);
 		}
 	}
 	
@@ -49,12 +51,14 @@ class ZSWin_Base : actor abstract
 	{
 		if (GetAge() > 1)
 		{
+			// Self Destruction
 			if (bDestroyed)
 			{
 				DebugOut("WindowDestroyMsg", string.format("Object named, %s, marked for destruction.  Goodbye!", name == "" ? "NO NAME" : name));
 				self.Destroy();
 			}
 			
+			// Held Messages for the console
 			if (zHandler && dar_HeldMsgs.Size() > 0)
 			{
 				for (int i = 0; i < dar_HeldMsgs.Size(); i++)
@@ -63,8 +67,10 @@ class ZSWin_Base : actor abstract
 				dar_HeldMsgs.Clear();
 			}
 			
+			// Global Alpha
 			GlobalAlpha = 0.5 + (0.5 * (GlobalEnabled));
 			
+			// Global Show/Enabled toggle
 			if (!GlobalShow)
 			{
 				wasEnabled = GlobalEnabled;
