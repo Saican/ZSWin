@@ -27,7 +27,7 @@
     			if (!WindowName)
     				WindowName = "ZSWINTerminalTest";
     			
-    			self.Init(true, WindowName, self.tid);
+    			self.Init(true, true, WindowName, self.tid);
     			// If inheriting, do further initialization from here.
     			// This will give the inheriting window the final say.
     			
@@ -35,7 +35,7 @@
     			// - The Init method defaults the yLocation and Alpha args
     			// - Locations are relative to the window
     			// - All controls have a Name member that is a unique identifier for Find methods
-    			Title = new("ZText").Init("DemoTitle", true, "ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
+    			Title = new("ZText").Init("DemoTitle", true, true, "ZScript Windows v0.1 Demo Terminal - Welcome, Slayer!", 
     									Font.CR_Gold, 
     									ZText.wrap,
     									0,	// if 0, the text is wrapped to the window width
@@ -43,7 +43,7 @@
     									"bigfont", 
     									0);
     									
-    			Text.Push(new("ZText").Init("txtNews_A", true, "Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
+    			Text.Push(new("ZText").Init("txtNews_A", true, true, "Z-Windows is back!  ZScript Windows is a full rewrite of the GDCC-based mod.  All of the same features are present, but instead of hackily creating this functionality by hand, the power of ZScript has been unleashed!  ZScript Windows functions the same as its predecessor, it isn't telling you what your interface should look like, it's just telling you how to display it.  Whether making a HUD or a conversation system, ZScript Windows offers an intuitive interface for rapidly creating your ideas.",
     										Font.CR_White,		// text color...kinda obvious
     										ZText.wrap,			// text wrap setting - this is given priority
     										0,					// wrap width
@@ -54,7 +54,7 @@
     										1,					// alpha (float)
     										"bigGroupBox"));  	// if provided the name of a ZShape, the width calculated width of the shape (x_End - x_Start) will be the wrap width
     										
-    			Shapes.Push(new("ZShape").Init("bigGroupbox", true, ZShape.thinroundgroupbox,
+    			Shapes.Push(new("ZShape").Init("bigGroupbox", true, true, ZShape.thinroundgroupbox,
     											"Green",
     											0, 45, 			// start x/y
     											Width, Height, 	// end x/y
@@ -63,7 +63,7 @@
     											ZShape.noscale, // scaling in relation to window resizing
     											20,				// radius for round corners
     											10,				// number of vertices on curve
-    											new("ZText").Init("bigGroupbox_Title", true, "Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
+    											new("ZText").Init("bigGroupbox_Title", true, true, "Slaying GUIs with ZScript!", // if the shape is a groupbox, the GroupTitle needs initialized
     												Font.CR_Orange,
     												ZText.nowrap, 	// text wrapping is ignored for the title
     												0,
@@ -74,11 +74,16 @@
     			// Buttons may be initialized with as little as 2 arguments!
     			// - All other args are defaulted so you can use named arguments to set what you need.
     			// - Here I skipped the Enabled argument to jump to the button type
-    			Buttons.Push(new("ZButton").Init("testButton", "Click Me!" , Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:300, txt_yLocation:10));
+    			Buttons.Push(new("TerminalButton").Init("testButton", "Click Me!", Enabled:false, Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:300, txt_yLocation:10));
+    			
+    			Buttons.Push(new("TerminalButton").Init("testButton2", "No Me!" , Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:350, txt_yLocation:10));
+    			
+    			//self.GlobalEnabled = false;
+    			//self.GlobalShow = false;
     		}
     	}
     	
-    	override void Init(bool enabled, string name, int player)
+    	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
     	{
     		DebugOut("TerminalInitMsg", "Initializing window.", Font.CR_Gray);
     		
@@ -90,7 +95,10 @@
     		Height = 550;
     		
     		// Starting location
-    		[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
+    		//[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
+    		//[xLocation, yLocation] = WindowLocation_Default();
+    		xLocation = 200;
+    		yLocation = 200;
     		
     		BackgroundType = ZWin_Default;
     		BackgroundAlpha = 0.8;
@@ -99,7 +107,17 @@
     		BorderType = ZWin_Border;
     
     		// Call the super last - it does further initializaton from what is defined here
-    		super.Init(enabled, name, player);
+    		super.Init(GlobalEnabled, GlobalShow, name, player);
+    	}
+    	
+    	// YOU MUST CALL THE SUPER TO THIS OVERRIDE - IF YOU USE IT!!!!
+    	// OTHERWISE YOUR WINDOW WILL NOT DO ANYTHING!!!!
+    	//
+    	// In other words, if you don't need to use the Tick method, then don't override it.
+    	override void Tick()
+    	{
+    		super.Tick();
+    		DebugOut("PriorityName", string.Format("Window: %s, priority is: %d, stack index: %d", self.Name, self.Priority, zHandler.GetStackIndex(self)));
     	}
     }
 
