@@ -464,6 +464,8 @@ class ZSWin_Handler : EventHandler
 			else if (winStack[i])
 			{
 				winStack[i].bDestroyed = true;
+				// This window is going away so all the windows behind it have to
+				// have their priorities adjusted by 1 (0 is highest priority so subtract)
 				for (int j = i - 1; j >= 0; j--)
 					winStack[j].Priority -= 1;
 			}
@@ -520,12 +522,9 @@ class ZSWin_Handler : EventHandler
 	}
 	
 	/*
-		This method is one of the nastier methods in the system.
-		This is PassiveGibZoning for windows.
+		This method is pretty simple, it figures out which window was interacted with.
+		It runs the window stack in reverse, since the last window has highest priority,
 		
-		Unlike PassiveGibZoning this method returns an int
-		which is equal to the winStack index of the window to
-		become highest priority (priority 0, or last in the draw stack)
 		
 		Returns -1 if no window is found
 	

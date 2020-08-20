@@ -12,7 +12,7 @@
 */
 class ZSWin_Terminal : ZSWindow
 {	
-	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
+	override ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("InitMsg", string.Format("Initializing window, %s.", name), Font.CR_Gray);
 		
@@ -80,7 +80,8 @@ class ZSWin_Terminal : ZSWindow
 		//self.GlobalShow = false;
 
 		// Call the super last - it does further initializaton from what is defined here
-		super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
+		return super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
+		
 	}
 	
 	// YOU MUST CALL THE SUPER TO THIS OVERRIDE - IF YOU USE IT!!!!

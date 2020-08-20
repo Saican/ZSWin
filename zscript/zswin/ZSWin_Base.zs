@@ -19,7 +19,7 @@ class ZSWin_Base : thinker abstract
 	
 	bool IsPlayerIgnored() { return (consoleplayer != player); }
 	
-	virtual void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
+	virtual ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
 		self.GlobalEnabled = GlobalEnabled;
@@ -45,6 +45,8 @@ class ZSWin_Base : thinker abstract
 			if (uiToggle)
 				zHandler.SendUIToggleEvent();
 		}
+		
+		return self;
 	}
 	
 	override void Tick()

@@ -10,8 +10,9 @@
 
 class ZSWin_Console : ZSWin_Terminal
 {
-	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
+	override ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
+		// Where you call the super will depend on what you need to do.  Here I need to overwrite the Terminal Window
 		super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
 		// The title will have been initialized, so just modify to suit
 		Title.Text = "ZSWin Console Messages";
@@ -33,5 +34,7 @@ class ZSWin_Console : ZSWin_Terminal
 		ControlClear();
 		// This makes the window be the window the debug output pushes string to.
 		SetWindowToConsole();
+		
+		return self;
 	}
 }

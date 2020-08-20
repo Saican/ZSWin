@@ -367,7 +367,7 @@ class ZSWindow : ZSWin_Base abstract
 		BorderAlpha = 1.0;
 	}
 	
-	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
+	override ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("WindowInitMsg", "Window abstract initialized.", Font.CR_Yellow);		
 		super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
@@ -377,6 +377,8 @@ class ZSWindow : ZSWin_Base abstract
 		backgroundInit();
 		if (BorderType == ZWin_Border)
 			borderInit();
+		
+		return self;
 	}
 		
 	// Sets up internal background options
