@@ -53,5 +53,5 @@
 - ***Tick*** : ZScript native method.
 - - **Arguments** : none
 
-[Back to Class Detail Links]()
+[Back to Class Detail Links](https://github.com/Saican/ZSWin/blob/master/README/05%20-%20Classes.md)
 [Back to Project Main](https://github.com/Saican/ZSWin "Back to Project Main")
