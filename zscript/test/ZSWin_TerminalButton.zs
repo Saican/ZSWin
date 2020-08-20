@@ -28,11 +28,8 @@ class TerminalButton : ZButton
 		if (self.State == ZButton.active)
 		{
 			self.State = ZButton.idle;  // reset the button's state, passive gibzoning will reset it
-			// You don't have to call ACS, just this example does to deactivate the force field
-			// in the demo map.
-			self.Text.Text = "Ha ha!";
-			self.Enabled = false;
-			CallACS("TerminalTest_ForceFieldDeactivator", 0, nwd.player);
+			// can't modify a window from here, have to work that out.
+			EventHandler.SendNetworkEvent(string.Format("zswin_windowPurge:%s", nwd.name));
 		}
 	}
 }

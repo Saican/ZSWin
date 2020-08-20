@@ -21,7 +21,7 @@ class ZSWin_Terminal : ZSWindow
 		
 		// Starting dimensions
 		Width = 350;
-		Height = 550;
+		Height = 350;
 		
 		// Starting location
 		//[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
@@ -74,9 +74,7 @@ class ZSWin_Terminal : ZSWindow
 		// Buttons may be initialized with as little as 2 arguments!
 		// - All other args are defaulted so you can use named arguments to set what you need.
 		// - Here I skipped the Enabled argument to jump to the button type
-		Buttons.Push(new("TerminalButton").Init("testButton", "Click Me!", Enabled:false, Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:300, txt_yLocation:10));
-		
-		Buttons.Push(new("TerminalButton").Init("testButton2", "No Me!" , Type:ZButton.zbtn, btn_xLocation:100, btn_yLocation:350, txt_yLocation:10));
+		Buttons.Push(new("TerminalButton").Init("testButton", "Close", Type:ZButton.zbtn, btn_xLocation:15, btn_yLocation:300, txt_yLocation:10));
 		
 		//self.GlobalEnabled = false;
 		//self.GlobalShow = false;

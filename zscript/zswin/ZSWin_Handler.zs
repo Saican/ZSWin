@@ -203,6 +203,7 @@ class ZSWin_Handler : EventHandler
 		dbugout,
 		quikclose,
 		cursorLog,
+		windowPurge,
 		nocmd,
 	};
 	// This is the supporting string conversion method
@@ -214,6 +215,8 @@ class ZSWin_Handler : EventHandler
 			return quikclose;
 		else if (e ~== "zswin_cursorLocationLog")
 			return cursorLog;
+		else if (e ~== "zswin_windowPurge")
+			return windowPurge;
 		else
 			return nocmd;
 	}
@@ -308,6 +311,18 @@ class ZSWin_Handler : EventHandler
 					}
 					else
 						DebugOut("mousePosition", "ERROR! - Not enough args for cursor log!");
+					break;
+				case windowPurge:
+					if (cmdc.Size() == 2) // command and window name
+					{
+						for (int i = 0; i < winStack.Size(); i++)
+						{
+							if (winStack[i].name == cmdc[1])
+								ZSWindow(winStack[i]).bStackPurged = true;
+						}
+					}
+					else
+						DebugOut("windowPurge", "ERROR! - No window name for purge!");
 					break;
 				default:
 					DebugOut("badCmd", string.Format("NOTICE! Received unknown net event, \"%s\".  Ignore if event corresponds to a different mod.", cmdc[0]), Font.CR_Yellow);
