@@ -1,4 +1,4 @@
 gameinfo
 {
-	EventHandlers = "ZSWin_Handler"
+	AddEventHandlers = "ZSWin_Handler"
 }
