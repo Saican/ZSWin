@@ -10,33 +10,40 @@
 
 class ZSWin_Console : ZSWin_Terminal
 {
-	override void PostBeginPlay()
+	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
 	{
-		if (GetAge() < 1)
-		{
-			WindowName = "ZSWinConsole";
-			super.PostBeginPlay();
+		super.Init(GlobalEnabled, GlobalShow, name, player);
+		// The title will have been initialized, so just modify to suit
+		Title.Text = "ZSWin Console Messages";
+		Title.TextWrap = ZText.nowrap;
+		
+		[xLocation, yLocation] = WindowLocation_Default();
+		Width = 1000;
+		
+		/*
+			All object arrays you intend to use need cleared, if they inherit from another window.
+			You can call ControlClear() to empty all arrays,
+			or clear them individuallly if needed.
 			
-			// The title will have been initialized, so just modify to suit
-			Title.Text = "ZSWin Console Messages";
-			Title.TextWrap = ZText.nowrap;
+			(Or modify the contents, etc.)
 			
-			[xLocation, yLocation] = WindowLocation_Default();
-			Width = 1000;
-			
-			/*
-				All object arrays you intend to use need cleared, if they inherit from another window.
-				You can call ControlClear() to empty all arrays,
-				or clear them individuallly if needed.
-				
-				(Or modify the contents, etc.)
-				
-				Here it's done individually because the Terminal Test initializes most of the Z-Windows default behaviors,
-				so just the text array needs cleared out so the handler can mess with it dynamically.
-			*/
-			ControlClear();
-			// This makes the windows be the window the debug output pushes string to.
-			SetWindowToConsole();
-		}
+			Here it's done individually because the Terminal Test initializes most of the Z-Windows default behaviors,
+			so just the text array needs cleared out so the handler can mess with it dynamically.
+		*/
+		ControlClear();
+		// This makes the window be the window the debug output pushes string to.
+		SetWindowToConsole();
+	}
+}
+
+class ZLostConsoleSoul : LostSoul
+{
+	override void BeginPlay()
+	{
+		let zconsole = new("ZSWin_Console");
+		if (zconsole)
+			zconsole.Init(true, true, "ZConsoleWindow", consoleplayer);
+		A_Scream();
+		A_Die();
 	}
 }

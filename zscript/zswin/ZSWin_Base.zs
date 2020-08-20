@@ -1,4 +1,4 @@
-class ZSWin_Base : actor abstract
+class ZSWin_Base : thinker abstract
 {
 	private bool wasEnabled;
 	bool GlobalEnabled,
@@ -31,7 +31,7 @@ class ZSWin_Base : actor abstract
 			GlobalAlpha = 0.5;
 		self.name = name;
 		self.player = player;
-		self.ChangeTid(0);
+		//self.ChangeTid(0);
 		zHandler = ZSWin_Handler(EventHandler.Find("ZSWin_Handler"));
 		
 		if (!zHandler)
@@ -48,7 +48,7 @@ class ZSWin_Base : actor abstract
 	
 	override void Tick()
 	{
-		if (GetAge() > 1)
+		if (Level.Time > 1)
 		{
 			// Self Destruction
 			if (bDestroyed)

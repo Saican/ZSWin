@@ -76,7 +76,8 @@ class ZSWin_Handler : EventHandler
 		if (win != null ? (win.name != "" ? true : false) : false) 
 		{
 			winStack.Push(win); 
-			DebugOut("WinStkMsg", string.format("ZSWin Handler - Window, %s, for player #%d, with TID, %d added to processing stack.", win.name, win.player, win.tid), Font.CR_Gold);
+			DebugOut("WinStkMsg", string.Format("ZSWin Handler - Window, %s, for player %d added to processing stack", win.name, win.player), Font.CR_Gold);
+			//DebugOut("WinStkMsg", string.format("ZSWin Handler - Window, %s, for player #%d, with TID, %d added to processing stack.", win.name, win.player, win.tid), Font.CR_Gold);
 		}
 		else if (win != null)
 		{
