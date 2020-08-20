@@ -7,7 +7,6 @@ class ZSWin_Base : actor abstract
 	float GlobalAlpha;
 	string name;
 	int player, Priority;
-	ZSWin_Base this;
 	ZSWin_Handler zHandler;
 	void DebugOut(string name, string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
 	{ 
