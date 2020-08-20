@@ -12,7 +12,7 @@
  - [Tooltips](https://drive.google.com/file/d/1up3XI8uKaCPuKd57hCXOWIN97f2DEOVH/view?usp=sharing) or download the code from [the Repo](https://github.com/Saican/Tooltips)
  - - Check out the [the forum](https://forum.zdoom.org/viewtopic.php?f=105&t=68495) for usage information
  - ZScript Windows Package or download the code from here
- - - [The ZScript Windows Forum can be found here]()
+ - - [The ZScript Windows Forum can be found here](https://forum.zdoom.org/viewtopic.php?f=105&t=69630)
  
  #### Load Order
  - Tooltips
