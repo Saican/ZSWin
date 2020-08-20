@@ -3,12 +3,12 @@
 ![](https://github.com/Saican/ZSWin/blob/master/README/ZSWin_Logo.png)
 
 ## ZSWin_Base
-###Window base class
+### Window base class
 
 ------------
 
 
-####Public Members:
+#### Public Members:
     class ZSWin_Base : actor abstract
     {
     	bool GlobalEnabled, GlobalShow, bDestroyed;
@@ -22,7 +22,7 @@
     	override void Tick();
     }
 
-####Properties:
+#### Properties:
 - **GlobalEnabled** : bool, controls if the window is interactive.
 -- Window and controls will be drawn using GlobalAlpha property.
 - **GlobalShow** : bool, controls if the window is drawn.
@@ -33,7 +33,7 @@
 -- A value of 0 represent the highest priority, however this also means the window is drawn last.
 - **zHandler** : ZSWin_Handler, this is a reference to the system event handler.
 
-####Methods:
+#### Methods:
 - ***DebugOut*** : Sends a string to the console window.
 -- This method can be called at any time.  It may even be called from UI scoped methods through sending net events.  If a window is unable to send messages to the system event handler, it will hold them until it can.  Messages will be marked as "held messages" in the console window.
 -- **Arguments**
