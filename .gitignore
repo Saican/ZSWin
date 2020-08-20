@@ -1,9 +1,6 @@
 *.dbs
-*.wad
 *.backup1
 *.backup2
 *.backup3
 *.xcf
 README/ZSWin_Logo.jpg
-*.wav
-sndinfo.txt
