@@ -331,6 +331,26 @@ class ZSWin_Handler : EventHandler
 		}
 	}
 	
+	override void WorldLineActivated(WorldEvent e)
+	{
+		if (e.ActivatedLine)
+		{
+			bool globEnabled, globShow, uiTog;
+			string windowClass, windowName;
+			int playerNum;
+			
+			globEnabled = e.ActivatedLine.GetUDMFInt("user_globalenabled");
+			globShow = e.ActivatedLine.GetUDMFInt("user_globalshow");
+			windowClass = e.ActivatedLine.GetUDMFString("user_windowclass");
+			windowName = e.ActivatedLine.GetUDMFString("user_windowname");
+			uiTog = e.ActivatedLine.GetUDMFInt("user_uitoggle");
+			playerNum = e.ActivatedLine.GetUDMFInt("user_consoleplayer");
+			
+			if (windowClass != "")
+				let zwin = ZSWin_Base(new(windowclass)).Init(globEnabled, globShow, windowName, playerNum, uiTog);
+		}
+	}
+	
 	void SetWindowForPurge(string name, bool uiToggle)
 	{
 		if (uiToggle)

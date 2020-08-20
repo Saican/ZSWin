@@ -38,3 +38,15 @@ class ZSWin_Console : ZSWin_Terminal
 		return self;
 	}
 }
+
+class ZSWin_BFGTerminal : ZSWin_Terminal
+{
+	override ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
+	{
+		super.Init(GlobalEnabled, Globalshow, name, player, uiToggle);
+		Title.Text = "BFG Terminal";
+		[xLocation, yLocation] = WindowLocation_ScreenCenter(Width, Height);
+		ControlClear();
+		return self;
+	}
+}
