@@ -19,7 +19,7 @@ class ZSWin_Base : thinker abstract
 	
 	bool IsPlayerIgnored() { return (consoleplayer != player); }
 	
-	virtual void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
+	virtual void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
 		self.GlobalEnabled = GlobalEnabled;
@@ -31,7 +31,6 @@ class ZSWin_Base : thinker abstract
 			GlobalAlpha = 0.5;
 		self.name = name;
 		self.player = player;
-		//self.ChangeTid(0);
 		zHandler = ZSWin_Handler(EventHandler.Find("ZSWin_Handler"));
 		
 		if (!zHandler)
@@ -43,6 +42,8 @@ class ZSWin_Base : thinker abstract
 		{
 			zHandler.AddWindow(self);
 			Priority = zHandler.GetStackIndex(self);
+			if (uiToggle)
+				zHandler.SendUIToggleEvent();
 		}
 	}
 	

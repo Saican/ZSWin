@@ -27,9 +27,15 @@ class TerminalButton : ZButton
 	{
 		if (self.State == ZButton.active)
 		{
-			self.State = ZButton.idle;  // reset the button's state, passive gibzoning will reset it
-			// can't modify a window from here, have to work that out.
-			EventHandler.SendNetworkEvent(string.Format("zswin_windowPurge:%s", nwd.name));
+			// Reset the button's state to idle, passive GibZoning will reset it to highlight if needed.
+			self.State = ZButton.idle;
+			
+			// All three of the following are valid methods of closing a window
+			// That is to say deleting it from every player's window stack.
+			//
+			nwd.Close();
+			//EventHandler.SendNetworkEvent(string.Format("zswin_windowPurge:%s", nwd.name));
+			//nwd.bStackPurged = true;
 		}
 	}
 }

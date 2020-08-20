@@ -8,7 +8,7 @@ class ZSWindow : ZSWin_Base abstract
 	// INTERNAL BUT PUBLIC MEMBERS
 	//
 	bool bStackPurged;
-	
+	void Close(bool UIToggle = true) { zHandler.SetWindowForPurge(self.name, UIToggle); }
 	
 	//
 	// PUBLIC MEMBERS
@@ -367,10 +367,10 @@ class ZSWindow : ZSWin_Base abstract
 		BorderAlpha = 1.0;
 	}
 	
-	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
+	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("WindowInitMsg", "Window abstract initialized.", Font.CR_Yellow);		
-		super.Init(GlobalEnabled, GlobalShow, name, player);
+		super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
 		
 		bStackPurged = false;
 		

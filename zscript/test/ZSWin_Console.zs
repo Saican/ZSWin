@@ -10,9 +10,9 @@
 
 class ZSWin_Console : ZSWin_Terminal
 {
-	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player)
+	override void Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
-		super.Init(GlobalEnabled, GlobalShow, name, player);
+		super.Init(GlobalEnabled, GlobalShow, name, player, uiToggle);
 		// The title will have been initialized, so just modify to suit
 		Title.Text = "ZSWin Console Messages";
 		Title.TextWrap = ZText.nowrap;
@@ -33,17 +33,5 @@ class ZSWin_Console : ZSWin_Terminal
 		ControlClear();
 		// This makes the window be the window the debug output pushes string to.
 		SetWindowToConsole();
-	}
-}
-
-class ZLostConsoleSoul : LostSoul
-{
-	override void BeginPlay()
-	{
-		let zconsole = new("ZSWin_Console");
-		if (zconsole)
-			zconsole.Init(true, true, "ZConsoleWindow", consoleplayer);
-		A_Scream();
-		A_Die();
 	}
 }

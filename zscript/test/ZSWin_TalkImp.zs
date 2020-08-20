@@ -18,7 +18,7 @@ class ZSImp : DoomImp replaces DoomImp
 		{
 			zterm = new ("ZSWin_Terminal");
 			if (zterm)
-				zterm.Init(true, true, "TalkImpTerminal", consoleplayer);
+				zterm.Init(true, true, "TalkImpTerminal", consoleplayer, true);
 		}
 		else
 			zterm.bStackPurged = true;

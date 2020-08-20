@@ -5,7 +5,7 @@
 
 */
 
-class ZControl_Base abstract
+class ZControl_Base play abstract
 {
 	string Name;
 	private bool wasEnabled;

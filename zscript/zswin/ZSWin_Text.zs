@@ -74,7 +74,7 @@ class ZText : ZControl_Base
 		return self;  // no font check, debugging handles the font.
 	}
 	
-	float GetAlignment (float nwd_xLocation, float nwd_Width = 0.0, string line = "")
+	ui float GetAlignment (float nwd_xLocation, float nwd_Width = 0.0, string line = "")
 	{
 		switch (Alignment)
 		{

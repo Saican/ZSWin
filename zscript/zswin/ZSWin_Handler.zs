@@ -330,6 +330,23 @@ class ZSWin_Handler : EventHandler
 			}
 		}
 	}
+	
+	void SetWindowForPurge(string name, bool uiToggle)
+	{
+		if (uiToggle)
+			SendNetworkEvent("zswin_UI_cursorToggle");
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if (winStack[i].name == name)
+				ZSWindow(winStack[i]).bStackPurged = true;
+		}		
+	}
+	
+	void SendUIToggleEvent()
+	{
+		if (!self.IsUiProcessor)
+			SendNetworkEvent("zswin_UI_cursorToggle");
+	}
 
 	// This is the primary draw caller
 	override void RenderOverlay(RenderEvent e)
@@ -337,7 +354,7 @@ class ZSWin_Handler : EventHandler
 		for (int i = 0; i < winStack.Size(); i++)
 		{
 			// Check that this window can be drawn for the given player.
-			if (consoleplayer == ZSWin_Base(winStack[i]).player && ZSWin_Base(winStack[i]).GlobalShow)
+			if (winStack[i] ? (consoleplayer == ZSWin_Base(winStack[i]).player && ZSWin_Base(winStack[i]).GlobalShow) : false)
 			{
 				let nwd = ZSWindow(winStack[i]);
 				zsys.WindowProcess_Background(nwd);
@@ -350,8 +367,8 @@ class ZSWin_Handler : EventHandler
 			// This EventHandler call appears to be causing the ZScript VSCode Extension to choke.
 			// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
 			// - There is another line in the WindowProcess_Text method which causes the same issue.
-			else
-				EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
+			else if (winStack[i])
+				SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
 		}
 	}
 	
@@ -380,7 +397,11 @@ class ZSWin_Handler : EventHandler
 		// There is no console window and there should be, so call up old croney ACS to get a console window.
 		// Seems hacky but its the legit method here - windows are actors!
 		else if (!ncon && bDebug)
-			CallACS("ZSWin_SpawnConsole", 0, debugPlayer);
+		{
+			let zconsole = new("ZSWin_Console");
+			if (zconsole)
+				zconsole.Init(true, true, "ZConsoleWindow", consoleplayer, false);
+		}
 		
 		// Iterate through the debug messages - if it still has time to display it gets passed to the new array,
 		// otherwise it's skipped and erased.
@@ -438,10 +459,14 @@ class ZSWin_Handler : EventHandler
 		Array<ZSWin_Base> newStack;
 		for (int i = 0; i < winStack.Size(); i++)
 		{
-			if (!ZSWindow(winStack[i]).bStackPurged)
+			if (winStack[i] ? (!ZSWindow(winStack[i]).bStackPurged) : false)
 				newStack.Push(winStack[i]);
-			else
+			else if (winStack[i])
+			{
 				winStack[i].bDestroyed = true;
+				for (int j = i - 1; j >= 0; j--)
+					winStack[j].Priority -= 1;
+			}
 		}
 		
 		DebugOut("WinStkContents", string.Format("ZSWin Handler - Processing Stack contains %d objects, New Stack contains %d objects, %d objects destroyed.", winStack.Size(), newStack.Size(), winStack.Size() - newStack.Size()), Font.CR_LightBlue, 175, true);
@@ -458,16 +483,14 @@ class ZSWin_Handler : EventHandler
 		// The handler handles GibZoning for the windows.
 		if (CursorState != idle) // idle actually excludes mousemove
 		{
+			// returns winStack index of window that was clicked on - so 0 is a valid index
+			// returns -1 if no window was clicked on
 			int priorityWin = windowPriorityGibZoning();
 			if (priorityWin >= 0)
 			{
-				for (int i = priorityWin; i < winStack.Size(); i++)
-				{
-					if (i == priorityWin)
-						winStack[i].Priority = 0;
-					else
-						winStack[i].Priority += 1;
-				}
+				winStack[priorityWin].Priority = 0;
+				for (int i = priorityWin + 1; i < winStack.Size(); i++)
+					winStack[i].Priority += 1;
 			}
 		}
 		
@@ -488,7 +511,10 @@ class ZSWin_Handler : EventHandler
 		Array<ZSWin_Base> priorityStack;
 		priorityStack.Reserve(winStack.Size());
 		for (int i = 0; i < winStack.Size(); i++)
+		{
+			console.printf(string.format("winstack size: %d, priority stack size: %d, i: %d, priority: %d", winStack.Size(), priorityStack.Size(), i, winStack[i].Priority));
 			priorityStack[(priorityStack.Size() - 1) - winStack[i].Priority] = winStack[i];
+		}
 		winStack.Clear();
 		winStack.Move(priorityStack);
 	}
