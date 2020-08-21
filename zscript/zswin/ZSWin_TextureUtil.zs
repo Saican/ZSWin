@@ -7,16 +7,5 @@
 
 class TextureSet
 {
-	Array<SetId> dar_TextureSet;
-}
-
-class SetId
-{
-	TextureId txtId;
-	
-	SetId Init(TextureId txtId)
-	{
-		self.txtId = txtId;
-		return self;
-	}
+	Array<TextureId> dar_TextureSet;
 }

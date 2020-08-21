@@ -26,7 +26,7 @@ class ZButton : ZControl_Base
 	ZText Text;
 	ZShape Border;  // only square boxes supported
 	bool Stretch;
-	Array<TextureSet> btnTextures;
+	Array<TextureSet> ButtonsTextures;
 	
 	enum BTNSTATE
 	{
@@ -98,13 +98,13 @@ class ZButton : ZControl_Base
 					
 					if (idleId.IsValid() && highId.IsValid() && activeId.IsValid())
 					{
-						newSet.dar_TextureSet.Push(new("SetId").Init(idleId));
-						newSet.dar_TextureSet.Push(new("SetId").Init(highId));
-						newSet.dar_TextureSet.Push(new("SetId").Init(activeId));
+						newSet.dar_TextureSet.Push(int(idleId));
+						newSet.dar_TextureSet.Push(int(highId));
+						newSet.dar_TextureSet.Push(int(activeId));
 					}
 					else
-						newSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
-					btnTextures.Push(newSet);
+						newSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					ButtonsTextures.Push(newSet);
 				}
 				else
 				{
@@ -113,14 +113,14 @@ class ZButton : ZControl_Base
 					activeId = TexMan.CheckForTexture(activeTextureName, TexMan.TYPE_ANY);
 					if (idleId.IsValid() && highId.IsValid() && activeId.IsValid())
 					{
-						newSet.dar_TextureSet.Push(new("SetId").Init(idleId));
-						newSet.dar_TextureSet.Push(new("SetId").Init(highId));
-						newSet.dar_TextureSet.Push(new("SetId").Init(activeId));
+						newSet.dar_TextureSet.Push(int(idleId));
+						newSet.dar_TextureSet.Push(int(highId));
+						newSet.dar_TextureSet.Push(int(activeId));
 					}
 					else
-						newSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+						newSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 					
-					btnTextures.Push(newSet);
+					ButtonsTextures.Push(newSet);
 				}
 				break;
 			case zbtn:
@@ -143,33 +143,33 @@ class ZButton : ZControl_Base
 				bool validIdle = false, validHighlight = false, validActive = false;
 				if (idleLeft.IsValid() && idleMiddle.IsValid() && idleRight.IsValid())
 				{
-					idleSet.dar_TextureSet.Push(new("SetId").Init(idleLeft));
-					idleSet.dar_TextureSet.Push(new("SetId").Init(idleMiddle));
-					idleSet.dar_TextureSet.Push(new("SetId").Init(idleRight));
+					idleSet.dar_TextureSet.Push(int(idleLeft));
+					idleSet.dar_TextureSet.Push(int(idleMiddle));
+					idleSet.dar_TextureSet.Push(int(idleRight));
 					validIdle = true;
 				}
 				else
-					idleSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					idleSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 				
 				if (highLeft.IsValid() && highMiddle.IsValid() && highRight.IsValid())
 				{
-					highSet.dar_TextureSet.Push(new("SetId").Init(highLeft));
-					highSet.dar_TextureSet.Push(new("SetId").Init(highMiddle));
-					highSet.dar_TextureSet.Push(new("SetId").Init(highRight));					
+					highSet.dar_TextureSet.Push(int(highLeft));
+					highSet.dar_TextureSet.Push(int(highMiddle));
+					highSet.dar_TextureSet.Push(int(highRight));					
 					validHighlight = true;
 				}
 				else
-					highSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					highSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 				
 				if (activeLeft.IsValid() && activeMiddle.IsValid() && activeRight.IsValid())
 				{
-					activeSet.dar_TextureSet.Push(new("SetId").Init(activeLeft));
-					activeSet.dar_TextureSet.Push(new("SetId").Init(activeMiddle));
-					activeSet.dar_TextureSet.Push(new("SetId").Init(activeRight));					
+					activeSet.dar_TextureSet.Push(int(activeLeft));
+					activeSet.dar_TextureSet.Push(int(activeMiddle));
+					activeSet.dar_TextureSet.Push(int(activeRight));					
 					validActive = true;
 				}
 				else
-					activeSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					activeSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 				
 				if (validIdle && validHighlight && validActive)
 				{
@@ -178,9 +178,9 @@ class ZButton : ZControl_Base
 					Height = twh.y;
 				}
 				
-				btnTextures.Push(idleSet);
-				btnTextures.Push(highSet);
-				btnTextures.Push(activeSet);
+				ButtonsTextures.Push(idleSet);
+				ButtonsTextures.Push(highSet);
+				ButtonsTextures.Push(activeSet);
 				break;
 			case radio:
 				idleId = TexMan.CheckForTexture("BRDCKIS", TexMan.TYPE_ANY);
@@ -189,9 +189,9 @@ class ZButton : ZControl_Base
 				
 				if (idleId.IsValid() && highId.IsValid() && activeId.IsValid())
 				{
-					newSet.dar_TextureSet.Push(new("SetId").Init(idleId));
-					newSet.dar_TextureSet.Push(new("SetId").Init(highId));
-					newSet.dar_TextureSet.Push(new("SetId").Init(activeId));
+					newSet.dar_TextureSet.Push(int(idleId));
+					newSet.dar_TextureSet.Push(int(highId));
+					newSet.dar_TextureSet.Push(int(activeId));
 					
 					// Width and Height is overwriten here to the size of the idle texture
 					// - it's assumed all three textures are the same size
@@ -200,9 +200,9 @@ class ZButton : ZControl_Base
 					Height = twh.y;
 				}
 				else
-					newSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					newSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 				
-				btnTextures.Push(newSet);
+				ButtonsTextures.Push(newSet);
 				break;
 			case check:
 				idleId = TexMan.CheckForTexture("BRDCKIS", TexMan.TYPE_ANY);
@@ -211,9 +211,9 @@ class ZButton : ZControl_Base
 				
 				if (idleId.IsValid() && highId.IsValid() && activeId.IsValid())
 				{
-					newSet.dar_TextureSet.Push(new("SetId").Init(idleId));
-					newSet.dar_TextureSet.Push(new("SetId").Init(highId));
-					newSet.dar_TextureSet.Push(new("SetId").Init(activeId));
+					newSet.dar_TextureSet.Push(int(idleId));
+					newSet.dar_TextureSet.Push(int(highId));
+					newSet.dar_TextureSet.Push(int(activeId));
 					
 					// Width and Height is overwriten here to the size of the idle texture
 					// - it's assumed all three textures are the same size
@@ -222,9 +222,9 @@ class ZButton : ZControl_Base
 					Height = twh.y;
 				}
 				else
-					newSet.dar_TextureSet.Push(new("SetId").Init(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
+					newSet.dar_TextureSet.Push(int(TexMan.CheckForTexture("TGRAY", TexMan.TYPE_ANY)));
 				
-				btnTextures.Push(newSet);
+				ButtonsTextures.Push(newSet);
 				break;
 
 			default:
