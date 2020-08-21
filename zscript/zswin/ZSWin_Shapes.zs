@@ -18,7 +18,7 @@ class ZShape : ZControl_Base
 		Radius,
 		Vertices;
 		
-	float Thickness;
+	float LineThickness;
 	
 	/*
 		If this instance of ZText is not null, and the shape type is one of the group box types,
@@ -39,7 +39,7 @@ class ZShape : ZControl_Base
 		self.x_End = x_End;
 		self.y_End = y_End;
 		self.Alpha = Alpha;
-		self.Thickness = Thickness;
+		self.LineThickness = Thickness;
 		self.ScaleType = ScaleType;
 		self.Radius = Radius;
 		self.Vertices = Vertices;
