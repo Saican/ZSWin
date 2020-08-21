@@ -16,8 +16,10 @@ class ZButton : ZControl_Base
 	};
 	BTNTYPE Type;
 	
+	//button wiodth and heaight
 	int Width, Height;
 	
+	//location of the button on the screen
 	float xLocation,
 		yLocation;
 		
@@ -224,6 +226,10 @@ class ZButton : ZControl_Base
 				
 				btnTextures.Push(newSet);
 				break;
+
+			default:
+				console.printf("Z Windows: button "..name.." have faulty background texture flag");
+			break;
 		}
 	}
 	
