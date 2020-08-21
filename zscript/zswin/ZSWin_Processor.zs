@@ -250,9 +250,10 @@ class zsys
 			break;
 
 			default:
-				console.printf("Z Windows: window "..nwd.WindowName.." have wrong BorderType");
+				EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:txtProcess:%s:%s", "badBorder", string.Format("ERROR! - Window, %s, uses invalid border type, %d. Valid type range: %d - %d", nwd.WindowName, nwd.BorderType, nwd.Game, nwd.noBorder)));
+			case nwd.noBorder:
+				//not an error, just no border
 			break;
-
 		}	
 	}
 	
