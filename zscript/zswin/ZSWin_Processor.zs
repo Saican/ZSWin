@@ -9,16 +9,38 @@
 
 class zsys
 {
+	/*
+		Calculates and returns the real window location;
+	
+	*/
+	clearscope static float, float realWindowLocation(ZSWindow nwd)
+	{
+		int diffx, diffy;
+		[diffx, diffy] = nwd.MoveDifference();
+		return nwd.xLocation + nwd.moveAccumulateX + diffx,
+				nwd.yLocation + nwd.moveAccumulateY + diffy;
+	}
+	
+	/*
+		Draws the window background
+	
+	*/
 	ui static void WindowProcess_Background(ZSWindow nwd)
 	{
+		// Check that the textures is valid
 		if (nwd.BackgroundTexture.IsValid())
 		{
+			float nwdX, nwdY;
+			[nwdX, nwdY] = realWindowLocation(nwd);
+			
+			// Stretch texture
 			if (nwd.Stretch)
 				Screen.DrawTexture(nwd.BackgroundTexture, false,
-					nwd.xLocation, nwd.yLocation,
+					nwdX, nwdY,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BackgroundAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.Width,
 					DTA_DestHeight, nwd.Height);
+			// Tile texture
 			else
 			{
 				nwd.zHandler.WindowClip(nwd);
@@ -32,8 +54,8 @@ class zsys
 					do
 					{
 						Screen.DrawTexture (nwd.BackgroundTexture, false,
-							nwd.xLocation + (tx * w),
-							nwd.yLocation + (ty * h),
+							nwdX + (tx * w),
+							nwdY + (ty * h),
 							DTA_Alpha, nwd.GlobalEnabled ? nwd.BackgroundAlpha : nwd.GlobalAlpha,
 							DTA_DestWidth, tx,
 							DTA_DestHeight, ty);
@@ -46,49 +68,56 @@ class zsys
 		}
 	}
 	
+	/*
+		Window Border Drawer
+	
+	*/
 	ui static void WindowProcess_Border(ZSWindow nwd)
 	{
+		float nwdX, nwdY;
+		[nwdX, nwdY] = realWindowLocation(nwd);
+		
 		switch (nwd.BorderType)
 		{
 			case nwd.Game:
-				Screen.DrawFrame(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);
+				Screen.DrawFrame(nwdX, nwdY, nwd.Width, nwd.Height);
 				break;
 			case nwd.Line:
-				Screen.DrawLine(nwd.xLocation, nwd.yLocation, nwd.xLocation + nwd.Width, nwd.yLocation, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwd.xLocation, nwd.yLocation + nwd.Height, nwd.xLocation + nwd.Width, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwd.xLocation, nwd.yLocation, nwd.xLocation, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwd.xLocation + nwd.Width, nwd.yLocation, nwd.xLocation + nwd.Width, nwd.yLocation + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY, nwdX + nwd.Width, nwdY, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY + nwd.Height, nwdX + nwd.Width, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY, nwdX, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX + nwd.Width, nwdY, nwdX + nwd.Width, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				break;
 			case nwd.ThickLine:
 				// Top
-				Screen.DrawThickLine(nwd.xLocation - nwd.BorderThickness, 
-									nwd.yLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
-									nwd.xLocation + nwd.Width + nwd.BorderThickness, 
-									nwd.yLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+				Screen.DrawThickLine(nwdX - nwd.BorderThickness, 
+									nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwdX + nwd.Width + nwd.BorderThickness, 
+									nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				// Bottom
-				Screen.DrawThickLine(nwd.xLocation - nwd.BorderThickness, 
-									nwd.yLocation + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
-									nwd.xLocation + nwd.Width + nwd.BorderThickness, 
-									nwd.yLocation + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+				Screen.DrawThickLine(nwdX - nwd.BorderThickness, 
+									nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwdX + nwd.Width + nwd.BorderThickness, 
+									nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				// Left
-				Screen.DrawThickLine(nwd.xLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
-									nwd.yLocation, 
-									nwd.xLocation - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
-									nwd.yLocation + nwd.Height, 
+				Screen.DrawThickLine(nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwdY, 
+									nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwdY + nwd.Height, 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				// Right
-				Screen.DrawThickLine(nwd.xLocation + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
-									nwd.yLocation, 
-									nwd.xLocation + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
-									nwd.yLocation + nwd.Height, 
+				Screen.DrawThickLine(nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwdY, 
+									nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwdY + nwd.Height, 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
@@ -96,49 +125,49 @@ class zsys
 			case nwd.ZWin_Border:
 				// Top Left Corner
 				Screen.DrawTexture(nwd.gfxBorder.Corner_TopLeft, false,
-					nwd.xLocation - nwd.gfxBorder.BorderWidth, 
-					nwd.yLocation - nwd.gfxBorder.BorderHeight,
+					nwdX - nwd.gfxBorder.BorderWidth, 
+					nwdY - nwd.gfxBorder.BorderHeight,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				// Top Right Corner	
 				Screen.DrawTexture(nwd.gfxBorder.Corner_TopRight, false,
-					nwd.xLocation + nwd.Width, 
-					nwd.yLocation - nwd.gfxBorder.BorderHeight,
+					nwdX + nwd.Width, 
+					nwdY - nwd.gfxBorder.BorderHeight,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				// Bottom Left Corner
 				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomLeft, false,
-					nwd.xLocation - nwd.gfxBorder.BorderWidth, 
-					nwd.yLocation + nwd.Height,
+					nwdX - nwd.gfxBorder.BorderWidth, 
+					nwdY + nwd.Height,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				// Bottom Right Corner	
 				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomRight, false,
-					nwd.xLocation + nwd.Width, 
-					nwd.yLocation + nwd.Height,
+					nwdX + nwd.Width, 
+					nwdY + nwd.Height,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				
-				Screen.SetClipRect(nwd.xLocation,
-								nwd.yLocation - nwd.gfxBorder.BorderHeight,
+				Screen.SetClipRect(nwdX,
+								nwdY - nwd.gfxBorder.BorderHeight,
 								nwd.Width,
 								nwd.Height + (nwd.gfxBorder.BorderHeight * 2));				
 				int w = 0;
 				do
 				{
 					Screen.DrawTexture(nwd.gfxBorder.Side_Top, false,
-									nwd.xLocation + (nwd.gfxBorder.BorderWidth * w),
-									nwd.yLocation - nwd.gfxBorder.BorderHeight,
+									nwdX + (nwd.gfxBorder.BorderWidth * w),
+									nwdY - nwd.gfxBorder.BorderHeight,
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					Screen.DrawTexture(nwd.gfxBorder.Side_Bottom, false,
-									nwd.xLocation + (nwd.gfxBorder.BorderWidth * w),
-									nwd.yLocation + nwd.Height,
+									nwdX + (nwd.gfxBorder.BorderWidth * w),
+									nwdY + nwd.Height,
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
@@ -146,22 +175,22 @@ class zsys
 				} while (((w - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= nwd.Width);
 				nwd.zHandler.WindowClip(set:false);
 				
-				Screen.SetClipRect(nwd.xLocation - nwd.gfxBorder.BorderWidth,
-								nwd.yLocation,
+				Screen.SetClipRect(nwdX - nwd.gfxBorder.BorderWidth,
+								nwdY,
 								nwd.Width + (nwd.gfxBorder.BorderWidth * 2),
 								nwd.Height);
 				int h = 0;
 				do
 				{
 					Screen.DrawTexture(nwd.gfxBorder.Side_Left, false,
-									nwd.xLocation - nwd.gfxBorder.BorderWidth,
-									nwd.yLocation + (nwd.gfxBorder.BorderHeight * h),
+									nwdX - nwd.gfxBorder.BorderWidth,
+									nwdY + (nwd.gfxBorder.BorderHeight * h),
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					Screen.DrawTexture(nwd.gfxBorder.Side_Right, false,
-									nwd.xLocation + nwd.Width,
-									nwd.yLocation + (nwd.gfxBorder.BorderHeight * h),
+									nwdX + nwd.Width,
+									nwdY + (nwd.gfxBorder.BorderHeight * h),
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
@@ -172,10 +201,16 @@ class zsys
 		}	
 	}
 	
+	/*
+		Text Drawer
+	
+	*/
 	ui static void WindowProcess_Text(ZSWindow nwd)
 	{
 		nwd.zHandler.WindowClip(nwd);
 		BrokenLines blText;
+		float nwdX, nwdY;
+		[nwdX, nwdY] = realWindowLocation(nwd);
 		// Title
 		int wrapWidth = 0;
 		if (nwd.Title.Show)
@@ -198,8 +233,8 @@ class zsys
 					for (int i = 0; i < blText.Count(); i++)
 						Screen.DrawText(nwd.Title.font,
 									nwd.Title.CRColor,
-									nwd.Title.GetAlignment(nwd.xLocation, wrapWidth, blText.StringAt(i)),
-									nwd.yLocation + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+									nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+									nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
 									blText.StringAt(i),
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
 					break;
@@ -208,16 +243,16 @@ class zsys
 					for (int i = 0; i < blText.Count(); i++)
 						Screen.DrawText(nwd.Title.font,
 									nwd.Title.CRColor,
-									nwd.Title.GetAlignment(nwd.xLocation, wrapWidth, blText.StringAt(i)),
-									nwd.yLocation + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+									nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+									nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
 									blText.StringAt(i),
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
 					break;
 				default:
 					Screen.DrawText(nwd.Title.font, 
 								nwd.Title.CRColor, 
-								nwd.Title.GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
-								nwd.yLocation + nwd.Title.yLocation, 
+								nwd.Title.GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
+								nwdY + nwd.Title.yLocation, 
 								nwd.Title.Text, 
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
 					break;
@@ -252,8 +287,8 @@ class zsys
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetText(i).font,
 										nwd.GetText(i).CRColor,
-										nwd.GetText(i).GetAlignment(nwd.xLocation, wrapWidth, blText.StringAt(i)),
-										nwd.yLocation + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
+										nwd.GetText(i).GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+										nwdY + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
 										blText.StringAt(j),
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
 						break;
@@ -262,16 +297,16 @@ class zsys
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetText(i).font,
 										nwd.GetText(i).CRColor,
-										nwd.GetText(i).GetAlignment(nwd.xLocation, wrapWidth, blText.StringAt(i)),
-										nwd.yLocation + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
+										nwd.GetText(i).GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+										nwdY + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
 										blText.StringAt(j),
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
 						break;
 					default:
 						Screen.DrawText(nwd.GetText(i).font, 
 									nwd.GetText(i).CRColor, 
-									nwd.GetText(i).GetAlignment(nwd.xLocation, nwd.Width, nwd.Title.Text), 
-									nwd.yLocation + nwd.GetText(i).yLocation, 
+									nwd.GetText(i).GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
+									nwdY + nwd.GetText(i).yLocation, 
 									nwd.GetText(i).Text, 
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
 						break;
@@ -282,7 +317,7 @@ class zsys
 	}
 	
 	/*
-		This method is a mess of insanity, but Z-Windows was too...the whole thing
+		This method draws the contents of ZShape classes
 	
 	*/
 	ui static void WindowProcess_Shapes(ZSWindow nwd)
@@ -291,7 +326,8 @@ class zsys
 			cxstart, cystart, 
 			cxend, cyend, 
 			ang;
-		
+		float nwdX, nwdY;
+		[nwdX, nwdY] = realWindowLocation(nwd);		
 		nwd.zHandler.WindowClip(nwd);
 		for (int i = 0; i < nwd.GetShapeSize(); i++)
 		{	
@@ -303,10 +339,10 @@ class zsys
 					// Thin Line
 					//
 					case ZShape.thinline:
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
-										nwd.yLocation + nwd.GetShape(i).y_Start, 
-										nwd.xLocation + nwd.GetShape(i).x_End, 
-										nwd.yLocation + nwd.GetShape(i).y_End, 
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start, 
+										nwdY + nwd.GetShape(i).y_Start, 
+										nwdX + nwd.GetShape(i).x_End, 
+										nwdY + nwd.GetShape(i).y_End, 
 										nwd.GetShape(i).Color, 
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						break;
@@ -314,10 +350,10 @@ class zsys
 					// Thick Line
 					//
 					case ZShape.thickline:
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start, 
-											nwd.yLocation + nwd.GetShape(i).y_Start, 
-											nwd.xLocation + nwd.GetShape(i).x_End, 
-											nwd.yLocation + nwd.GetShape(i).y_End, 
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start, 
+											nwdY + nwd.GetShape(i).y_Start, 
+											nwdX + nwd.GetShape(i).x_End, 
+											nwdY + nwd.GetShape(i).y_End, 
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color, 
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -327,31 +363,31 @@ class zsys
 					//
 					case ZShape.box:
 						// Top
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start - 1,
+										nwdY + nwd.GetShape(i).y_Start - 1,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start - 1,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start - 1,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						break;
@@ -360,34 +396,34 @@ class zsys
 					//
 					case ZShape.thickbox:
 						// Top
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 										nwd.GetShape(i).Thickness, 
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
 										nwd.GetShape(i).Thickness, 
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										(nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_Start,
+										(nwdX + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										(nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_Start,
+										(nwdX + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -397,45 +433,45 @@ class zsys
 					//
 					case ZShape.roundbox:
 						// Top
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_Start,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 										
 						ang = 90 / nwd.GetShape(i).Vertices;
 						// Upper Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start;
+						cystart = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
 							cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -443,45 +479,45 @@ class zsys
 						}
 						
 						// Upper Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_Start;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_End;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End;
+						cystart = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 							cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -493,49 +529,49 @@ class zsys
 					//
 					case ZShape.roundthickbox:
 						// Top
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_Start,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 										
 						ang = 90 / nwd.GetShape(i).Vertices;
 						// Upper Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
-						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
+						originy = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start;
+						cystart = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
 							cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -543,45 +579,45 @@ class zsys
 						}
 						
 						// Upper Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_Start;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_End;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End;
+						cystart = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 							cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -596,14 +632,14 @@ class zsys
 						if (nwd.GetShape(i).GroupTitle)
 						{
 							// Left side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											nwd.yLocation + nwd.GetShape(i).y_Start);
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start - 1,
+											nwdY + nwd.GetShape(i).y_Start - 1,
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											nwdY + nwd.GetShape(i).y_Start);
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start - 1,
+											nwdY + nwd.GetShape(i).y_Start - 1,
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											nwdY + nwd.GetShape(i).y_Start - 1,
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							Screen.ClearClipRect();
@@ -612,51 +648,51 @@ class zsys
 							nwd.zHandler.WindowClip(nwd);
 							Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
 								nwd.GetShape(i).GroupTitle.CRColor,
-								nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
-								nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+								nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+								nwdY + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
 								nwd.GetShape(i).GroupTitle.Text,
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).GroupTitle.Enabled ? nwd.GetShape(i).GroupTitle.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha);
 							nwd.zHandler.WindowClip(set:false);
 							// Right side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-											nwd.xLocation + nwd.GetShape(i).x_End,
-											nwd.yLocation + nwd.GetShape(i).y_Start);
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-											nwd.xLocation + nwd.GetShape(i).x_End,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											nwdY + nwd.GetShape(i).y_Start - 1,
+											nwdX + nwd.GetShape(i).x_End,
+											nwdY + nwd.GetShape(i).y_Start);
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											nwdY + nwd.GetShape(i).y_Start - 1,
+											nwdX + nwd.GetShape(i).x_End,
+											nwdY + nwd.GetShape(i).y_Start - 1,
 											nwd.GetShape(i).color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							Screen.ClearClipRect();
 						}
 						// Normal line if the text isn't found
 						else
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
-											nwd.xLocation + nwd.GetShape(i).x_End,
-											nwd.yLocation + nwd.GetShape(i).y_Start - 1,
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start - 1,
+											nwdY + nwd.GetShape(i).y_Start - 1,
+											nwdX + nwd.GetShape(i).x_End,
+											nwdY + nwd.GetShape(i).y_Start - 1,
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start - 1,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));					
 						break;
@@ -668,14 +704,14 @@ class zsys
 						if (nwd.GetShape(i).GroupTitle)
 						{
 							// Left side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start - 1,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
-							Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start - 1,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											(nwdY + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+							Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -685,20 +721,20 @@ class zsys
 							nwd.zHandler.WindowClip(nwd);
 							Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
 								nwd.GetShape(i).GroupTitle.CRColor,
-								nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
-								nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+								nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+								nwdY + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
 								nwd.GetShape(i).GroupTitle.Text,
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).GroupTitle.Enabled ? nwd.GetShape(i).GroupTitle.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha);
 							nwd.zHandler.WindowClip(set:false);
 							// Right side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).x_End,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
-							Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).x_End,
+											(nwdY + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+							Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -706,34 +742,34 @@ class zsys
 						}
 						// Normal line if the text isn't found
 						else
-							Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
-										(nwd.yLocation + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness,
+										(nwdY + nwd.GetShape(i).y_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
 										nwd.GetShape(i).Thickness, 
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										(nwd.xLocation + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_Start,
+										(nwdX + nwd.GetShape(i).x_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : (nwd.GetShape(i).Thickness - 1) / 2) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_Start,
-										(nwd.xLocation + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_Start,
+										(nwdX + nwd.GetShape(i).x_End) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -746,14 +782,14 @@ class zsys
 						if (nwd.GetShape(i).GroupTitle)
 						{
 							// Left side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											nwd.yLocation + nwd.GetShape(i).y_Start);
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start,
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											nwdY + nwd.GetShape(i).y_Start);
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start,
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											nwdY + nwd.GetShape(i).y_Start,
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							Screen.ClearClipRect();
@@ -762,65 +798,65 @@ class zsys
 							nwd.zHandler.WindowClip(nwd);
 							Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
 								nwd.GetShape(i).GroupTitle.CRColor,
-								nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation,
-								nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2),
+								nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation,
+								nwdY + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2),
 								nwd.GetShape(i).GroupTitle.Text,
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).GroupTitle.Enabled ? nwd.GetShape(i).GroupTitle.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha);
 							nwd.zHandler.WindowClip(set:false);
 							// Right side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
-											nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start);
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
-											nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
+											nwdY + nwd.GetShape(i).y_Start,
+											nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start);
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth,
+											nwdY + nwd.GetShape(i).y_Start,
+											nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start,
 											nwd.GetShape(i).color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							Screen.ClearClipRect();
 						}
 						// Normal line if the text isn't found
 						else
-							Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
-											nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-											nwd.yLocation + nwd.GetShape(i).y_Start,
+							Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start,
+											nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+											nwdY + nwd.GetShape(i).y_Start,
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 										
 						ang = 90 / nwd.GetShape(i).Vertices;
 						// Upper Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start;
+						cystart = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
 							cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -828,45 +864,45 @@ class zsys
 						}
 						
 						// Upper Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_Start;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_End;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End;
+						cystart = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 							cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -881,14 +917,14 @@ class zsys
 						if (nwd.GetShape(i).GroupTitle)
 						{
 							// Left side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
-							Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).GroupTitle.xLocation - 3,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											(nwdY + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+							Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).GroupTitle.xLocation - 3,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -898,20 +934,20 @@ class zsys
 							nwd.zHandler.WindowClip(nwd);
 							Screen.DrawText(nwd.GetShape(i).GroupTitle.font,
 								nwd.GetShape(i).GroupTitle.CRColor,
-								nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
-								nwd.yLocation + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
+								nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation - 1,
+								nwdY + nwd.GetShape(i).y_Start - (nwd.GetShape(i).GroupTitle.font.GetHeight() / 2) - 1,
 								nwd.GetShape(i).GroupTitle.Text,
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).GroupTitle.Enabled ? nwd.GetShape(i).GroupTitle.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha);
 							nwd.zHandler.WindowClip(set:false);
 							// Right side
-							Screen.SetClipRect(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
-							Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.SetClipRect(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+											(nwdY + nwd.GetShape(i).y_Start) + (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness));
+							Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).GroupTitle.xLocation + txtWidth - 1,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
@@ -919,49 +955,49 @@ class zsys
 						}
 						// Normal line if the text isn't found
 						else
-							Screen.DrawThickLine((nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
-											(nwd.xLocation + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
-											(nwd.yLocation + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+							Screen.DrawThickLine((nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius) - nwd.GetShape(i).Thickness,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
+											(nwdX + nwd.GetShape(i).x_End) + nwd.GetShape(i).Thickness - nwd.GetShape(i).Radius,
+											(nwdY + nwd.GetShape(i).y_Start) - (nwd.GetShape(i).Thickness > 1 ? (nwd.GetShape(i).Thickness % 2 == 0 ? nwd.GetShape(i).Thickness / 2 : ((nwd.GetShape(i).Thickness - 1) / 2) + 1) : nwd.GetShape(i).Thickness),
 											nwd.GetShape(i).Thickness, 
 											nwd.GetShape(i).Color,
 											int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Bottom
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
-										nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
-										nwd.yLocation + nwd.GetShape(i).y_End,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
+										nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius,
+										nwdY + nwd.GetShape(i).y_End,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Left
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_Start,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_Start,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 						// Right
-						Screen.DrawThickLine(nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
-										nwd.xLocation + nwd.GetShape(i).x_End,
-										nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
+						Screen.DrawThickLine(nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius,
+										nwdX + nwd.GetShape(i).x_End,
+										nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius,
 										nwd.GetShape(i).Thickness,
 										nwd.GetShape(i).Color,
 										int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 										
 						ang = 90 / nwd.GetShape(i).Vertices;
 						// Upper Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
-						originy = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius; 
+						originy = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start;
+						cystart = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
 							cyend = originy - sin(ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -969,45 +1005,45 @@ class zsys
 						}
 						
 						// Upper Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_Start;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_Start + nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_Start;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(90 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(90 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_Start + nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Left
-						originx = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End;
+						originx = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_Start + nwd.GetShape(i).Radius;
+						cystart = nwdY + nwd.GetShape(i).y_End;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(270 + ang * j) * nwd.GetShape(i).Radius;
 							cyend = originy - sin(270 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cyend = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+								cyend = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
 							cystart = cyend;					
 						}
 						// Lower Right
-						originx = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
-						originy = nwd.yLocation + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
-						cxstart = nwd.xLocation + nwd.GetShape(i).x_End;
-						cystart = nwd.yLocation + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
+						originx = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+						originy = nwdY + nwd.Getshape(i).y_End - nwd.GetShape(i).Radius;
+						cxstart = nwdX + nwd.GetShape(i).x_End;
+						cystart = nwdY + nwd.GetShape(i).y_End - nwd.GetShape(i).Radius;
 						for (int j = 0; j < nwd.GetShape(i).Vertices; j++)
 						{
 							cxend = originx - cos(180 + ang * j) * nwd.GetShape(i).Radius;
 							if (j == nwd.GetShape(i).Vertices - 1)
-								cxend = nwd.xLocation + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
+								cxend = nwdX + nwd.GetShape(i).x_End - nwd.GetShape(i).Radius;
 							cyend = originy - sin(180 + ang * j) * nwd.GetShape(i).Radius;
 							Screen.DrawThickLine(cxstart, cystart, cxend, cyend, nwd.GetShape(i).Thickness, nwd.GetShape(i).Color, int((nwd.GlobalEnabled ? nwd.GetShape(i).Enabled ? nwd.GetShape(i).Alpha : 0.5 : nwd.GlobalAlpha) * 255));
 							cxstart = cxend;
@@ -1022,6 +1058,8 @@ class zsys
 	
 	ui static void WindowProcess_Buttons(ZSWindow nwd)
 	{
+		float nwdX, nwdY;
+		[nwdX, nwdY] = realWindowLocation(nwd);	
 		for (int i = 0; i < nwd.Buttons.Size(); i++)
 		{		
 			if (nwd.GetButton(i).Show)
@@ -1038,23 +1076,23 @@ class zsys
 					clipbot = false;
 
 				// Check if button is beyond right edge
-				if (nwd.xLocation + nwd.GetButton(i).xLocation > nwd.xLocation + nwd.Width)
+				if (nwdX + nwd.GetButton(i).xLocation > nwdX + nwd.Width)
 					break; // This button cannot be seen so don't bother drawing it
 				// Check if button is beyond left edge
-				else if (nwd.xLocation + nwd.GetButton(i).xLocation < nwd.xLocation)
+				else if (nwdX + nwd.GetButton(i).xLocation < nwdX)
 				{
 					// Now check if there's anything of the button to draw
-					if (nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width > nwd.xLocation)
+					if (nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width > nwdX)
 					{
-						clipx = nwd.xLocation; // There is, so the left edge is set to the window edge
+						clipx = nwdX; // There is, so the left edge is set to the window edge
 						// Check if the right side is beyond the window's right side
-						if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
+						if (nwdX + nwd.Width < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
 						{
-							wdth = nwd.GetButton(i).Width - (nwd.xLocation - nwd.GetButton(i).xLocation) - ((nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwd.xLocation + nwd.Width));
+							wdth = nwd.GetButton(i).Width - (nwdX - nwd.GetButton(i).xLocation) - ((nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwdX + nwd.Width));
 							cliprht = true;
 						}
 						else
-							wdth = nwd.GetButton(i).Width - (nwd.xLocation - (nwd.xLocation + nwd.GetButton(i).xLocation));
+							wdth = nwd.GetButton(i).Width - (nwdX - (nwdX + nwd.GetButton(i).xLocation));
 						cliplft = true;
 					}
 					else
@@ -1063,11 +1101,11 @@ class zsys
 				// Button is within the window
 				else
 				{
-					clipx = nwd.xLocation + nwd.GetButton(i).xLocation;
+					clipx = nwdX + nwd.GetButton(i).xLocation;
 					// Check if the right side is beyond the window's right side
-					if (nwd.xLocation + nwd.Width < nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
+					if (nwdX + nwd.Width < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
 					{
-						wdth = nwd.GetButton(i).Width - ((nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwd.xLocation + nwd.Width));
+						wdth = nwd.GetButton(i).Width - ((nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwdX + nwd.Width));
 						cliprht = true;
 					}
 					else
@@ -1075,23 +1113,23 @@ class zsys
 				}
 				
 				// Check if button is beyond bottom edge
-				if (nwd.yLocation + nwd.GetButton(i).yLocation > nwd.yLocation + nwd.Height)
+				if (nwdY + nwd.GetButton(i).yLocation > nwdY + nwd.Height)
 					break; // Button can't be seen, skip it
 				// Check if button is beyond top edge
-				else if (nwd.yLocation + nwd.GetButton(i).yLocation < nwd.yLocation)
+				else if (nwdY + nwd.GetButton(i).yLocation < nwdY)
 				{
 					// Is anything visable?
-					if (nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height > nwd.yLocation)
+					if (nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height > nwdY)
 					{
-						clipy = nwd.yLocation;
+						clipy = nwdY;
 						// Check if the bottom is beyond the windows bottom edge
-						if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
+						if (nwdY + nwd.Height < nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
 						{
-							hght = nwd.GetButton(i).Height - (nwd.GetButton(i).yLocation - nwd.yLocation) - ((nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwd.yLocation + nwd.Height));
+							hght = nwd.GetButton(i).Height - (nwd.GetButton(i).yLocation - nwdY) - ((nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwdY + nwd.Height));
 							clipbot = true;
 						}
 						else
-							hght = nwd.GetButton(i).Height - (nwd.yLocation - (nwd.yLocation + nwd.GetButton(i).yLocation));
+							hght = nwd.GetButton(i).Height - (nwdY - (nwdY + nwd.GetButton(i).yLocation));
 						cliptop = true;
 					}
 					else
@@ -1100,11 +1138,11 @@ class zsys
 				// Button is within the window
 				else
 				{
-					clipy = nwd.yLocation + nwd.GetButton(i).yLocation;
+					clipy = nwdY + nwd.GetButton(i).yLocation;
 					// Check if the bottom is beyond the windows bottom edge
-					if (nwd.yLocation + nwd.Height < nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
+					if (nwdY + nwd.Height < nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
 					{
-						hght = nwd.GetButton(i).Height - ((nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwd.yLocation + nwd.Height));
+						hght = nwd.GetButton(i).Height - ((nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwdY + nwd.Height));
 						clipbot = true;
 					}
 					else				
@@ -1119,8 +1157,8 @@ class zsys
 						if (nwd.GetButton(i).Stretch)
 							screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 											false, 
-											nwd.xLocation + nwd.GetButton(i).xLocation, 
-											nwd.yLocation + nwd.GetButton(i).yLocation,
+											nwdX + nwd.GetButton(i).xLocation, 
+											nwdY + nwd.GetButton(i).yLocation,
 											DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 											DTA_DestWidth, nwd.GetButton(i).Width,
 											DTA_DestHeight, nwd.GetButton(i).Height);
@@ -1137,8 +1175,8 @@ class zsys
 								{
 									Screen.DrawTexture (nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId, 
 										false,
-										nwd.xLocation + nwd.GetButton(i).xLocation + (tx * w),
-										nwd.yLocation + nwd.GetButton(i).yLocation + (ty * h),
+										nwdX + nwd.GetButton(i).xLocation + (tx * w),
+										nwdY + nwd.GetButton(i).yLocation + (ty * h),
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, tx,
 										DTA_DestHeight, ty);
@@ -1229,8 +1267,8 @@ class zsys
 						screen.SetClipRect(clipx, clipy, wdth, hght);
 						screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 										false, 
-										nwd.xLocation + nwd.GetButton(i).xLocation, 
-										nwd.yLocation + nwd.GetButton(i).yLocation,
+										nwdX + nwd.GetButton(i).xLocation, 
+										nwdY + nwd.GetButton(i).yLocation,
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, nwd.GetButton(i).Width,
 										DTA_DestHeight, nwd.GetButton(i).Height);
@@ -1272,8 +1310,8 @@ class zsys
 						ly = lxy.y;
 						screen.DrawTexture(leftSide,
 										false, 
-										nwd.xLocation + nwd.GetButton(i).xLocation, 
-										nwd.yLocation + nwd.GetButton(i).yLocation,
+										nwdX + nwd.GetButton(i).xLocation, 
+										nwdY + nwd.GetButton(i).yLocation,
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, lx,
 										DTA_DestHeight, ly);	
@@ -1282,8 +1320,8 @@ class zsys
 						ry = rxy.y;	
 						screen.DrawTexture(rightSide,
 										false, 
-										nwd.xLocation + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width - rx, 
-										nwd.yLocation + nwd.GetButton(i).yLocation,
+										nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width - rx, 
+										nwdY + nwd.GetButton(i).yLocation,
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 										DTA_DestWidth, rx,
 										DTA_DestHeight, ry);										
@@ -1291,9 +1329,9 @@ class zsys
 							
 						int midclipx, midwdth;
 						// The button clipping boundary is beyond the button location
-						if (clipx > nwd.xLocation + nwd.GetButton(i).xLocation)
+						if (clipx > nwdX + nwd.GetButton(i).xLocation)
 						{
-							midclipx = (clipx - (nwd.xLocation + nwd.GetButton(i).xLocation)) + lx;
+							midclipx = (clipx - (nwdX + nwd.GetButton(i).xLocation)) + lx;
 							// The middle clip x is greater than the button clipx, subtract the left and right dimensions from the width to get the middle width
 							if (midclipx > clipx)
 								midwdth = nwd.GetButton(i).Width - lx - rx;
@@ -1304,7 +1342,7 @@ class zsys
 						// The button is within the window, so left edge is edge of the left texture
 						else
 						{
-							midclipx = nwd.xLocation + nwd.GetButton(i).xLocation + lx;
+							midclipx = nwdX + nwd.GetButton(i).xLocation + lx;
 							midwdth = nwd.GetButton(i).Width - lx - rx;
 						}
 						
@@ -1319,8 +1357,8 @@ class zsys
 						{
 							Screen.DrawTexture (middle, 
 								false,
-								nwd.xLocation + nwd.GetButton(i).xLocation + lx + (mx * w),
-								nwd.yLocation + nwd.GetButton(i).yLocation,
+								nwdX + nwd.GetButton(i).xLocation + lx + (mx * w),
+								nwdY + nwd.GetButton(i).yLocation,
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 								DTA_DestWidth, mx,
 								DTA_DestHeight, my);
@@ -1344,8 +1382,8 @@ class zsys
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetButton(i).Text.font,
 										nwd.GetButton(i).Text.CRColor,
-										nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
-										nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
+										nwd.GetButton(i).Text.GetAlignment(nwdX + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
+										nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
 										blText.StringAt(j),
 										DTA_Alpha, (nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Text.Enabled ? nwd.GetButton(i).Text.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha));
 						break;
@@ -1354,16 +1392,16 @@ class zsys
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetButton(i).Text.font,
 										nwd.GetButton(i).Text.CRColor,
-										nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
-										nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
+										nwd.GetButton(i).Text.GetAlignment(nwdX + nwd.GetButton(i).xLocation, wrapWidth, blText.StringAt(j)),
+										nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation + (j * nwd.GetButton(i).Text.font.GetHeight()),
 										blText.StringAt(j),
 										DTA_Alpha, (nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Text.Enabled ? nwd.GetButton(i).Text.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha));
 						break;
 					default:
 						Screen.DrawText(nwd.GetButton(i).Text.font, 
 									nwd.GetButton(i).Text.CRColor, 
-									nwd.GetButton(i).Text.GetAlignment(nwd.xLocation + nwd.GetButton(i).xLocation, nwd.Width, nwd.GetButton(i).Text.Text), 
-									nwd.yLocation + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation, 
+									nwd.GetButton(i).Text.GetAlignment(nwdX + nwd.GetButton(i).xLocation, nwd.Width, nwd.GetButton(i).Text.Text), 
+									nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation, 
 									nwd.GetButton(i).Text.Text, 
 									DTA_Alpha, (nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Text.Enabled ? nwd.GetButton(i).Text.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha));
 						break;

@@ -1,7 +1,11 @@
+/*
+	ZSWin_Handler.zs
+	
+	ZScript Windows Event Handler
 
+*/
 class ZSWin_Handler : EventHandler
 {
-	const TIC = 35;
 	const ZVERSION = "0.1";
 	
 	enum CRSRSTATE
@@ -330,6 +334,22 @@ class ZSWin_Handler : EventHandler
 		}
 	}
 	
+	/*
+		I am seriously not a fan of this method of ZWindow creation.
+		I feel that this is a hack and that is NOT what ZScript was
+		created for but was meant to combat.
+		
+		I understand users might want to execute a line special and
+		create a window, but that doesn't mean I have to like it.
+		
+		So, to make this as safe as possible, I have implemented the
+		following precautions:
+		
+		The class name must have a valid value.
+		It must result in a working class when calling "new"
+		It must be a ZSWin_Base in order to call Init.
+	
+	*/
 	override void WorldLineActivated(WorldEvent e)
 	{
 		if (e.ActivatedLine)
@@ -345,15 +365,28 @@ class ZSWin_Handler : EventHandler
 			uiTog = e.ActivatedLine.GetUDMFInt("user_uitoggle");
 			playerNum = e.ActivatedLine.GetUDMFInt("user_consoleplayer");
 			
+			// Only the class name is really something that can be checked
+			// to see if there's something to try.
+			// The bools just result in false if they aren't there,
+			// and 0 is a valid player number.
+			// Also an empty window name has protection in the stack methods.
 			if (windowClass != "")
 			{
-				let zwin = ZSWin_Base(new(windowclass));
-				if (zwin)
-					zwin.Init(globEnabled, globShow, windowName, playerNum, uiTog);
+				// Try and create something with the name
+				let zwin = new(windowclass);
+				if (zwin && zwin is "ZSWin_Base")
+					ZSWin_Base(zwin).Init(globEnabled, globShow, windowName, playerNum, uiTog);
 			}
 		}
 	}
 	
+	/*
+		Takes a window name - the unique identifier
+		and sets it to be deleted
+		
+		Optionally can send the toggle cursor event
+	
+	*/
 	void SetWindowForPurge(string name, bool uiToggle)
 	{
 		if (uiToggle)
@@ -365,15 +398,24 @@ class ZSWin_Handler : EventHandler
 		}		
 	}
 	
+	/*
+		Sends the toggle cursor event, if UI processing
+		isn't already on.
+	
+	*/
 	void SendUIToggleEvent()
 	{
 		if (!self.IsUiProcessor)
 			SendNetworkEvent("zswin_UI_cursorToggle");
 	}
 
-	// This is the primary draw caller
+	/*
+		Primary Draw Caller
+	
+	*/
 	override void RenderOverlay(RenderEvent e)
 	{
+		// Iterate through window stack, in order.
 		for (int i = 0; i < winStack.Size(); i++)
 		{
 			// Check that this window can be drawn for the given player.
@@ -395,19 +437,27 @@ class ZSWin_Handler : EventHandler
 		}
 	}
 	
-	//
-	// One of the only public ui draw methods,
-	// this will either set the clipping rectangle to the window dimensions,
-	// or clear the clipping rectangle.
-	//
+	/*
+		Sets (or clears) the clipping rectange to
+		the location and size of the window.
+	
+	*/
 	ui void WindowClip(ZSWindow nwd = null, bool set = true)
 	{
 		if (set)
-			Screen.SetClipRect(nwd.xLocation, nwd.yLocation, nwd.Width, nwd.Height);		
+		{
+			float nwdX, nwdY;
+			[nwdX, nwdY] = zsys.realWindowLocation(nwd);
+			Screen.SetClipRect(nwdX, nwdY, nwd.Width, nwd.Height);		
+		}
 		else
 			Screen.ClearClipRect();
 	}
 	
+	/*
+		Updater - runs at world speed
+	
+	*/
 	override void WorldTick()
 	{
 		//
@@ -417,8 +467,7 @@ class ZSWin_Handler : EventHandler
 		// If there is a console window and debugging is off, tell it to destroy itself
 		if (ncon && !bDebug)
 			ZSWin_Base(ncon).bDestroyed = true;
-		// There is no console window and there should be, so call up old croney ACS to get a console window.
-		// Seems hacky but its the legit method here - windows are actors!
+		// There is no console window and there should be, so make a console window
 		else if (!ncon && bDebug)
 		{
 			let zconsole = new("ZSWin_Console");
@@ -546,8 +595,7 @@ class ZSWin_Handler : EventHandler
 	
 	/*
 		This method is pretty simple, it figures out which window was interacted with.
-		It runs the window stack in reverse, since the last window has highest priority,
-		
+		It runs the window stack in reverse, since the last window has highest priority,		
 		
 		Returns -1 if no window is found
 	

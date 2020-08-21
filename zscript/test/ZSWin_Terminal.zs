@@ -39,7 +39,7 @@ class ZSWin_Terminal : ZSWindow
 								Font.CR_Gold, 
 								ZText.wrap,
 								0,	// if 0, the text is wrapped to the window width
-								ZText.center, 
+								ZText.left, 
 								"bigfont", 
 								0);
 								
@@ -75,7 +75,8 @@ class ZSWin_Terminal : ZSWindow
 		// - All other args are defaulted so you can use named arguments to set what you need.
 		// - Here I skipped the Enabled argument to jump to the button type
 		Buttons.Push(new("TerminalButton").Init("testButton", "Close", Type:ZButton.zbtn, btn_xLocation:15, btn_yLocation:300, txt_yLocation:10));
-		
+		Buttons.Push(new("ZSWin_MoveButton").Init("moveButton", "", Width:25, btn_xLocation:(self.Width - 25), Stretch:true,
+						"BMOVEIS", "BMOVEHS", "BMOVEAS", borderType:ZControl_Base.noshape));
 		//self.GlobalEnabled = false;
 		//self.GlobalShow = false;
 

@@ -1,8 +1,30 @@
 class ZSWindow : ZSWin_Base abstract
 {
 	//
-	// PRIVATE MEMBERS
+	// Movement
 	//
+	private int lockedCursorX, lockedCursorY;
+	void LockMoveOrigin() 
+	{ 
+		lockedCursorX = zHandler.CursorX; 
+		lockedCursorY = zHandler.CursorY; 
+	}
+	void MoveAccumulate()
+	{
+		int diffx, diffy;
+		[diffx, diffy] = MoveDifference();
+		moveAccumulateX += diffx;
+		moveAccumulateY += diffy;
+		lockedCursorX = lockedCursorY = 0;
+	}
+	int moveAccumulateX, moveAccumulateY;
+	clearscope int, int MoveDifference()
+	{
+		if (lockedCursorX > 0 && lockedCursorY > 0)
+			return zHandler.CursorX - lockedCursorX, zHandler.CursorY - lockedCursorY;
+		else
+			return 0, 0;
+	}
 	
 	//
 	// INTERNAL BUT PUBLIC MEMBERS
@@ -163,6 +185,9 @@ class ZSWindow : ZSWin_Base abstract
 		// Get the location of the cursor
 		int CursorX = zHandler.CursorX, 
 			CursorY = zHandler.CursorY;
+		// The the real window location
+		float nwdX, nwdY;
+		[nwdX, nwdY] = zsys.realWindowLocation(self);	
 		// Get the stats of every window of higher priority
 		Array<WindowStats> higherStats;
 		for (int i = zHandler.GetStackIndex(self) + 1; i < zHandler.GetStackSize(); i++)
@@ -173,8 +198,8 @@ class ZSWindow : ZSWin_Base abstract
 			if (_GetButton(i).Enabled)
 			{
 				// Check if the mouse is over a button - do this first to skip the next part
-				if (self.xLocation + _GetButton(i).xLocation < CursorX && CursorX < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
-					self.yLocation + _GetButton(i).yLocation < CursorY && CursorY < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+				if (nwdX + _GetButton(i).xLocation < CursorX && CursorX < nwdX + _GetButton(i).xLocation + _GetButton(i).Width &&
+					nwdY + _GetButton(i).yLocation < CursorY && CursorY < nwdY + _GetButton(i).yLocation + _GetButton(i).Height)
 				{
 					bool mouseOver = false;
 					// Check if the button is under any of the windows in higherStats
@@ -188,77 +213,77 @@ class ZSWindow : ZSWin_Base abstract
 								splitWidth = 0, splitHeight = 0;
 							bool splitDims = false;
 							// Button is covered so skip it
-							if (higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation &&
-								higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
-								higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation &&
-								higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+							if (higherStats[j].xLocation < nwdX + _GetButton(i).xLocation &&
+								higherStats[j].xLocation + higherStats[j].Width > nwdX + _GetButton(i).xLocation + _GetButton(i).Width &&
+								higherStats[j].yLocation < nwdY + _GetButton(i).yLocation &&
+								higherStats[j].yLocation + higherStats[j].Height > nwdY + _GetButton(i).yLocation + _GetButton(i).Height)
 								break;
 							// Check if any part of the button is covered up
 							// left side is covered up
-							if (higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation && 
-								higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation &&
-								higherStats[j].xLocation + higherStats[j].Width < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+							if (higherStats[j].xLocation < nwdX + _GetButton(i).xLocation && 
+								higherStats[j].xLocation + higherStats[j].Width > nwdX + _GetButton(i).xLocation &&
+								higherStats[j].xLocation + higherStats[j].Width < nwdX + _GetButton(i).xLocation + _GetButton(i).Width)
 							{
 								availX = higherStats[j].xLocation + higherStats[j].Width;
-								availWidth = (self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width) - (higherStats[j].xLocation + higherStats[j].Width);
+								availWidth = (nwdX + _GetButton(i).xLocation + _GetButton(i).Width) - (higherStats[j].xLocation + higherStats[j].Width);
 							}
 							// right side is covered up
-							else if (higherStats[j].xLocation > self.xLocation + _GetButton(i).xLocation &&
-									higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
-									higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+							else if (higherStats[j].xLocation > nwdX + _GetButton(i).xLocation &&
+									higherStats[j].xLocation < nwdX + _GetButton(i).xLocation + _GetButton(i).Width &&
+									higherStats[j].xLocation + higherStats[j].Width > nwdX + _GetButton(i).xLocation + _GetButton(i).Width)
 							{
-								availX = self.xLocation + _GetButton(i).xLocation;
-								availWidth = higherStats[j].xLocation - (self.xLocation + _GetButton(i).xLocation);
+								availX = nwdX + _GetButton(i).xLocation;
+								availWidth = higherStats[j].xLocation - (nwdX + _GetButton(i).xLocation);
 							}
 							// the window is literally between the button!
-							else if (higherStats[j].xLocation > self.xLocation + _GetButton(i).xLocation &&
-									higherStats[j].xLocation < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width &&
-									higherStats[j].xLocation + higherStats[j].Width > self.xLocation + _GetButton(i).xLocation &&
-									higherStats[j].xLocation + higherStats[j].Width < self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width)
+							else if (higherStats[j].xLocation > nwdX + _GetButton(i).xLocation &&
+									higherStats[j].xLocation < nwdX + _GetButton(i).xLocation + _GetButton(i).Width &&
+									higherStats[j].xLocation + higherStats[j].Width > nwdX + _GetButton(i).xLocation &&
+									higherStats[j].xLocation + higherStats[j].Width < nwdX + _GetButton(i).xLocation + _GetButton(i).Width)
 							{	// honestly a buttons's width may allow another window to fit between it - true evil will be the y values
 								splitDims = true;
-								availX = self.xLocation + _GetButton(i).xLocation;
-								availWidth = higherStats[j].xLocation - (self.xLocation + _GetButton(i).xLocation);
+								availX = nwdX + _GetButton(i).xLocation;
+								availWidth = higherStats[j].xLocation - (nwdX + _GetButton(i).xLocation);
 								splitX = higherStats[j].xLocation + higherStats[j].Width;
-								splitWidth = (self.xLocation + _GetButton(i).xLocation + _GetButton(i).Width) - higherStats[j].xLocation + higherStats[j].Width;
+								splitWidth = (nwdX + _GetButton(i).xLocation + _GetButton(i).Width) - higherStats[j].xLocation + higherStats[j].Width;
 							}
 							else
 							{
-								availX = self.xLocation + _GetButton(i).xLocation;
+								availX = nwdX + _GetButton(i).xLocation;
 								availWidth = _GetButton(i).Width;
 							}
 							
 							// top is covered up
-							if (higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation && 
-								higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation &&
-								higherStats[j].yLocation + higherStats[j].Height < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+							if (higherStats[j].yLocation < nwdY + _GetButton(i).yLocation && 
+								higherStats[j].yLocation + higherStats[j].Height > nwdY + _GetButton(i).yLocation &&
+								higherStats[j].yLocation + higherStats[j].Height < nwdY + _GetButton(i).yLocation + _GetButton(i).Height)
 							{
 								availY = higherStats[j].yLocation + higherStats[j].Height;
-								availHeight = (self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height) - (higherStats[j].yLocation + higherStats[j].Height);
+								availHeight = (nwdY + _GetButton(i).yLocation + _GetButton(i).Height) - (higherStats[j].yLocation + higherStats[j].Height);
 							}
 							// bottom is covered up
-							else if (higherStats[j].yLocation > self.yLocation + _GetButton(i).yLocation &&
-									higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height &&
-									higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+							else if (higherStats[j].yLocation > nwdY + _GetButton(i).yLocation &&
+									higherStats[j].yLocation < nwdY + _GetButton(i).yLocation + _GetButton(i).Height &&
+									higherStats[j].yLocation + higherStats[j].Height > nwdY + _GetButton(i).yLocation + _GetButton(i).Height)
 							{
-								availY = self.yLocation + _GetButton(i).yLocation;
-								availHeight = higherStats[j].yLocation - (self.yLocation + _GetButton(i).yLocation);
+								availY = nwdY + _GetButton(i).yLocation;
+								availHeight = higherStats[j].yLocation - (nwdY + _GetButton(i).yLocation);
 							}
 							// the window is literally between the button!
-							else if (higherStats[j].yLocation > self.yLocation + _GetButton(i).yLocation &&
-									higherStats[j].yLocation < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height &&
-									higherStats[j].yLocation + higherStats[j].Height > self.yLocation + _GetButton(i).yLocation &&
-									higherStats[j].yLocation + higherStats[j].Height < self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height)
+							else if (higherStats[j].yLocation > nwdY + _GetButton(i).yLocation &&
+									higherStats[j].yLocation < nwdY + _GetButton(i).yLocation + _GetButton(i).Height &&
+									higherStats[j].yLocation + higherStats[j].Height > nwdY + _GetButton(i).yLocation &&
+									higherStats[j].yLocation + higherStats[j].Height < nwdY + _GetButton(i).yLocation + _GetButton(i).Height)
 							{	// this is true evil - is the button really that tall or is the window really that short???!!!!
 								splitDims = true;
-								availY = self.yLocation + _GetButton(i).yLocation;
-								availHeight = higherStats[j].yLocation - (self.yLocation + _GetButton(i).yLocation);
+								availY = nwdY + _GetButton(i).yLocation;
+								availHeight = higherStats[j].yLocation - (nwdY + _GetButton(i).yLocation);
 								splitY = higherStats[j].yLocation + higherStats[j].Height;
-								splitHeight = (self.yLocation + _GetButton(i).yLocation + _GetButton(i).Height) - higherStats[j].yLocation + higherStats[j].Height;
+								splitHeight = (nwdY + _GetButton(i).yLocation + _GetButton(i).Height) - higherStats[j].yLocation + higherStats[j].Height;
 							}
 							else
 							{
-								availY = self.yLocation + _GetButton(i).yLocation;
+								availY = nwdY + _GetButton(i).yLocation;
 								availHeight = _GetButton(i).Height;
 							}
 
@@ -349,12 +374,20 @@ class ZSWindow : ZSWin_Base abstract
 		}
 	}
 	
-	// This methos sets everything to a safe default value
+	/*
+		This method defaults everything to safe values.
+		
+		Don't ever trust any programming language to do it for you,
+		even if it says it does.
+	
+	*/
 	void TrueZero()
 	{
 		ConsoleUpdater = false;
 		Width = Height = 0;
 		xLocation = yLocation = 0.0;
+		lockedCursorX = lockedCursorY = 0;
+		moveAccumulateX = moveAccumulateY = 0;
 		
 		BackgroundType = noBackground;
 		BackgroundAlpha = 1.0;
@@ -367,6 +400,10 @@ class ZSWindow : ZSWin_Base abstract
 		BorderAlpha = 1.0;
 	}
 	
+	/*
+		Class constructor
+	
+	*/
 	override ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("WindowInitMsg", "Window abstract initialized.", Font.CR_Yellow);		
@@ -380,9 +417,12 @@ class ZSWindow : ZSWin_Base abstract
 		
 		return self;
 	}
+	
+	/*
+		Sets up internal background options
+		Custom backgrounds need to handle this manually
 		
-	// Sets up internal background options
-	// Custom backgrounds need to handle this manually
+	*/
 	private void backgroundInit()
 	{
 		if (BackgroundType == ZWin_Default)
@@ -453,7 +493,10 @@ class ZSWindow : ZSWin_Base abstract
 		}		
 	}
 	
-	// Initializes the "Classic Z-Windows" Border
+	/*
+		Initializes the "Classic Z-Windows" Border
+		
+	*/
 	private void borderInit()
 	{
 		let newBorder = new("ZBorder");
@@ -484,21 +527,40 @@ class ZSWindow : ZSWin_Base abstract
 		}
 	}
 	
+	/*
+		Takes the width and heigh of the window and returns
+		an X/Y location that will center the window on the screen.
+	
+	*/
 	float, float WindowLocation_ScreenCenter(int width, int height)
 	{
 		return float((Screen.GetWidth() - width) / 2), float((Screen.GetHeight() - height) / 2);
 	}
 	
+	/*
+		Returns the default X/Y locations
+	
+	*/
 	float, float WindowLocation_Default()
 	{
 		return DEFLOC_X, DEFLOC_Y;
 	}
 	
+	/*
+		Takes the width (or height) of a control and returns
+		an X (or Y) location that will center the control in
+		the window.
+	
+	*/
 	float WindowControlLocation_Center(float controlWidth)
 	{
 		return (Width / 2) - (controlWidth / 2);
 	}
 	
+	/*
+		Clears all window control arrays
+	
+	*/
 	void ControlClear()
 	{
 		Text.Clear();
