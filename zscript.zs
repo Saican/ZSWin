@@ -26,6 +26,8 @@ version "4.2.1"
 #include "zscript/zswin/ZSWindow.zs"
 
 // Demonstration/Testing files
+#include "zscript/test/ZSWin_BFGButton.zs"
+#include "zscript/test/ZSWin_BFGTerminal.zs"
 #include "zscript/test/ZSWin_Console.zs"
 #include "zscript/test/ZSWin_Terminal.zs"
 #include "zscript/test/ZSWin_TerminalButton.zs"

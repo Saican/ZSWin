@@ -77,7 +77,6 @@ class ZSWin_Handler : EventHandler
 		{
 			winStack.Push(win); 
 			DebugOut("WinStkMsg", string.Format("ZSWin Handler - Window, %s, for player %d added to processing stack", win.name, win.player), Font.CR_Gold);
-			//DebugOut("WinStkMsg", string.format("ZSWin Handler - Window, %s, for player #%d, with TID, %d added to processing stack.", win.name, win.player, win.tid), Font.CR_Gold);
 		}
 		else if (win != null)
 		{
@@ -347,7 +346,11 @@ class ZSWin_Handler : EventHandler
 			playerNum = e.ActivatedLine.GetUDMFInt("user_consoleplayer");
 			
 			if (windowClass != "")
-				let zwin = ZSWin_Base(new(windowclass)).Init(globEnabled, globShow, windowName, playerNum, uiTog);
+			{
+				let zwin = ZSWin_Base(new(windowclass));
+				if (zwin)
+					zwin.Init(globEnabled, globShow, windowName, playerNum, uiTog);
+			}
 		}
 	}
 	

@@ -494,6 +494,11 @@ class ZSWindow : ZSWin_Base abstract
 		return DEFLOC_X, DEFLOC_Y;
 	}
 	
+	float WindowControlLocation_Center(float controlWidth)
+	{
+		return (Width / 2) - (controlWidth / 2);
+	}
+	
 	void ControlClear()
 	{
 		Text.Clear();
