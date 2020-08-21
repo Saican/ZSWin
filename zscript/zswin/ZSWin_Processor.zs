@@ -197,7 +197,12 @@ class zsys
 					h++;
 				} while (((h - 1) * nwd.gfxBorder.BorderHeight) + nwd.gfxBorder.BorderHeight <= nwd.Height);
 				nwd.zHandler.WindowClip(set:false);
-				break;
+			break;
+
+			default:
+				console.printf("Z Windows: window "..nwd.WindowName.." have wrong BorderType");
+			break;
+
 		}	
 	}
 	
