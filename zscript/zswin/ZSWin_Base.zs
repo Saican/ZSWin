@@ -9,6 +9,7 @@ class ZSWin_Base : thinker abstract
 	string WindowName;
 
 	int player, Priority;
+	//pointer to the event which draw all stufff of this window on player screen
 	ZSWin_Handler zHandler;
 	void DebugOut(string name, string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
 	{ 
@@ -21,6 +22,7 @@ class ZSWin_Base : thinker abstract
 	
 	bool IsPlayerIgnored() { return (consoleplayer != player); }
 	
+	//init window virtual
 	virtual ZSWin_Base Init(bool GlobalEnabled, bool GlobalShow, string name, int player, bool uiToggle)
 	{
 		DebugOut("baseInitMsg", "Window base initialized", Font.CR_Green);
@@ -33,8 +35,9 @@ class ZSWin_Base : thinker abstract
 			GlobalAlpha = 0.5;
 		self.WindowName = name;
 		self.player = player;
+		//search for controlling event
 		zHandler = ZSWin_Handler(EventHandler.Find("ZSWin_Handler"));
-		
+		//if something goes wrong, print message into console what goes wrong
 		if (!zHandler)
 		{
 			console.printf(string.format("ZScript Windows ERROR! - Window Construction of window, %s, has failed to find the central event handler!  Construction aborted and window destroyed.", name));
