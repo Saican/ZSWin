@@ -91,13 +91,16 @@ class zsys
 			break;
 			
 			case nwd.ThickLine:
+				int pos_delta, pos_delta_1;
+				pos_delta_1 = nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness;
+				pos_delta = nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness;
 				// Top
 				Screen.DrawThickLine
 				(
 					nwdX - nwd.BorderThickness, 
-					nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+					nwdY - pos_delta_1, 
 					nwdX + nwd.Width + nwd.BorderThickness, 
-					nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+					nwdY - pos_delta_1, 
 					nwd.BorderThickness, 
 					nwd.BorderColor, 
 					int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha))
@@ -106,9 +109,9 @@ class zsys
 				Screen.DrawThickLine
 				(
 					nwdX - nwd.BorderThickness, 
-					nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+					nwdY + nwd.Height + pos_delta, 
 					nwdX + nwd.Width + nwd.BorderThickness, 
-					nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+					nwdY + nwd.Height + pos_delta, 
 					nwd.BorderThickness, 
 					nwd.BorderColor, 
 					int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha))
@@ -116,9 +119,9 @@ class zsys
 				// Left
 				Screen.DrawThickLine
 				(
-					nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+					nwdX - pos_delta, 
 					nwdY, 
-					nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+					nwdX - pos_delta, 
 					nwdY + nwd.Height, 
 					nwd.BorderThickness, 
 					nwd.BorderColor, 
@@ -127,9 +130,9 @@ class zsys
 				// Right
 				Screen.DrawThickLine
 				(
-					nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+					nwdX + nwd.Width + pos_delta_1, 
 					nwdY, 
-					nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+					nwdX + nwd.Width + pos_delta_1, 
 					nwdY + nwd.Height, 
 					nwd.BorderThickness, 
 					nwd.BorderColor, 
@@ -189,18 +192,26 @@ class zsys
 				int width = 0;
 				do
 				{
-					Screen.DrawTexture(nwd.gfxBorder.Side_Top, false,
-									nwdX + (nwd.gfxBorder.BorderWidth * width),
-									nwdY - nwd.gfxBorder.BorderHeight,
-									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
-									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
-									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
-					Screen.DrawTexture(nwd.gfxBorder.Side_Bottom, false,
-									nwdX + (nwd.gfxBorder.BorderWidth * width),
-									nwdY + nwd.Height,
-									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
-									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
-									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
+					Screen.DrawTexture
+					(
+						nwd.gfxBorder.Side_Top,
+						false,
+						nwdX + (nwd.gfxBorder.BorderWidth * width),
+						nwdY - nwd.gfxBorder.BorderHeight,
+						DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
+						DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+						DTA_DestHeight, nwd.gfxBorder.BorderHeight
+					);
+					Screen.DrawTexture
+					(
+						nwd.gfxBorder.Side_Bottom,
+						false,
+						nwdX + (nwd.gfxBorder.BorderWidth * width),
+						nwdY + nwd.Height,
+						DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
+						DTA_DestWidth, nwd.gfxBorder.BorderWidth,
+						DTA_DestHeight, nwd.gfxBorder.BorderHeight
+					);
 					width++;
 				} while (((width - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= nwd.Width);
 				nwd.zHandler.WindowClip(set:false);
@@ -275,30 +286,39 @@ class zsys
 				case ZText.wrap:
 					blText = nwd.Title.font.BreakLines(nwd.Title.Text, wrapWidth);
 					for (int i = 0; i < blText.Count(); i++)
-						Screen.DrawText(nwd.Title.font,
-									nwd.Title.CRColor,
-									nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
-									nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
-									blText.StringAt(i),
-									DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
+						Screen.DrawText
+						(
+							nwd.Title.font,
+							nwd.Title.CRColor,
+							nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+							nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+							blText.StringAt(i),
+							DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha
+						);
 					break;
 				case ZText.dynwrap:
 					blText = nwd.Title.font.BreakLines(nwd.Title.Text, wrapWidth /* + resize handlers*/);
 					for (int i = 0; i < blText.Count(); i++)
-						Screen.DrawText(nwd.Title.font,
-									nwd.Title.CRColor,
-									nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
-									nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
-									blText.StringAt(i),
-									DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
+						Screen.DrawText
+						(
+							nwd.Title.font,
+							nwd.Title.CRColor,
+							nwd.Title.GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+							nwdY + nwd.Title.yLocation + (i * nwd.Title.font.GetHeight()),
+							blText.StringAt(i),
+							DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha
+						);
 					break;
 				default:
-					Screen.DrawText(nwd.Title.font, 
-								nwd.Title.CRColor, 
-								nwd.Title.GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
-								nwdY + nwd.Title.yLocation, 
-								nwd.Title.Text, 
-								DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
+					Screen.DrawText
+					(
+						nwd.Title.font, 
+						nwd.Title.CRColor, 
+						nwd.Title.GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
+						nwdY + nwd.Title.yLocation, 
+						nwd.Title.Text, 
+						DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha
+					);
 					break;
 			}
 		}
@@ -320,7 +340,7 @@ class zsys
 					// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
 					// - There is another line in the ZHandler RenderOverlay method which causes the same issue.
 					else
-						EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).ControlName, nwd.GetText(i).ShapeWidth)));
+						EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:txtProcess:%s", "ERROR! - ZText, "..nwd.GetText(i).ControlName..", references an unknown ZShape, "..nwd.GetText(i).ShapeWidth.."!"));
 				}
 				else
 					wrapWidth = nwd.Width - nwd.GetText(i).xLocation;
@@ -329,12 +349,15 @@ class zsys
 					case ZText.wrap:
 						blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, wrapWidth);
 						for (int j = 0; j < blText.Count(); j++)
-							Screen.DrawText(nwd.GetText(i).font,
-										nwd.GetText(i).CRColor,
-										nwd.GetText(i).GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
-										nwdY + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
-										blText.StringAt(j),
-										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
+							Screen.DrawText
+							(
+								nwd.GetText(i).font,
+								nwd.GetText(i).CRColor,
+								nwd.GetText(i).GetAlignment(nwdX, wrapWidth, blText.StringAt(i)),
+								nwdY + nwd.GetText(i).yLocation + (j * nwd.Title.font.GetHeight()),
+								blText.StringAt(j),
+								DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha
+							);
 						break;
 					case ZText.dynwrap:
 						blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, wrapWidth /* + resize handlers*/);
