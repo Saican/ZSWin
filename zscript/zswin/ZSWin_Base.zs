@@ -5,7 +5,9 @@ class ZSWin_Base : thinker abstract
 		GlobalShow,
 		bDestroyed;
 	float GlobalAlpha;
-	string name;
+	//name of the window
+	string WindowName;
+
 	int player, Priority;
 	ZSWin_Handler zHandler;
 	void DebugOut(string name, string msg, int color = Font.CR_Red, uint tics = 175, bool append = false) 
@@ -29,7 +31,7 @@ class ZSWin_Base : thinker abstract
 			GlobalAlpha = 1.0;
 		else
 			GlobalAlpha = 0.5;
-		self.name = name;
+		self.WindowName = name;
 		self.player = player;
 		zHandler = ZSWin_Handler(EventHandler.Find("ZSWin_Handler"));
 		
@@ -56,7 +58,7 @@ class ZSWin_Base : thinker abstract
 			// Self Destruction
 			if (bDestroyed)
 			{
-				DebugOut("WindowDestroyMsg", string.format("Object named, %s, marked for destruction.  Goodbye!", name == "" ? "NO NAME" : name));
+				DebugOut("WindowDestroyMsg", string.format("Object named, %s, marked for destruction.  Goodbye!", WindowName == "" ? "NO NAME" : WindowName));
 				self.Destroy();
 			}
 			

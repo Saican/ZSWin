@@ -30,7 +30,7 @@ class ZSWindow : ZSWin_Base abstract
 	// INTERNAL BUT PUBLIC MEMBERS
 	//
 	bool bStackPurged;
-	void Close(bool UIToggle = true) { zHandler.SetWindowForPurge(self.name, UIToggle); }
+	void Close(bool UIToggle = true) { zHandler.SetWindowForPurge(self.WindowName, UIToggle); }
 	
 	//
 	// PUBLIC MEMBERS

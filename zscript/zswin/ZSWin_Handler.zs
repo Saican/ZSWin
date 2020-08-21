@@ -77,10 +77,10 @@ class ZSWin_Handler : EventHandler
 	private Array<ZSWin_Base> winStack;
 	void AddWindow(ZSWin_Base win) 
 	{ 
-		if (win != null ? (win.name != "" ? true : false) : false) 
+		if (win != null ? (win.WindowName != "" ? true : false) : false) 
 		{
 			winStack.Push(win); 
-			DebugOut("WinStkMsg", string.Format("ZSWin Handler - Window, %s, for player %d added to processing stack", win.name, win.player), Font.CR_Gold);
+			DebugOut("WinStkMsg", string.Format("ZSWin Handler - Window, %s, for player %d added to processing stack", win.WindowName, win.player), Font.CR_Gold);
 		}
 		else if (win != null)
 		{
@@ -100,7 +100,7 @@ class ZSWin_Handler : EventHandler
 		{
 			for (int i = 0; i < winStack.Size(); i++)
 			{
-				if (winStack[i].name == name)
+				if (winStack[i].WindowName == name)
 					return new("WindowStats").Init(winStack[i].Priority, ZSWindow(winStack[i]).Width, ZSWindow(winStack[i]).Height, ZSWindow(winStack[i]).xLocation, ZSWindow(winStack[i]).yLocation);
 			}
 		}
@@ -320,7 +320,7 @@ class ZSWin_Handler : EventHandler
 					{
 						for (int i = 0; i < winStack.Size(); i++)
 						{
-							if (winStack[i].name == cmdc[1])
+							if (winStack[i].WindowName == cmdc[1])
 								ZSWindow(winStack[i]).bStackPurged = true;
 						}
 					}
@@ -393,7 +393,7 @@ class ZSWin_Handler : EventHandler
 			SendNetworkEvent("zswin_UI_cursorToggle");
 		for (int i = 0; i < winStack.Size(); i++)
 		{
-			if (winStack[i].name == name)
+			if (winStack[i].WindowName == name)
 				ZSWindow(winStack[i]).bStackPurged = true;
 		}		
 	}
@@ -433,7 +433,7 @@ class ZSWin_Handler : EventHandler
 			// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
 			// - There is another line in the WindowProcess_Text method which causes the same issue.
 			else if (winStack[i])
-				SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
+				SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].WindowName, consoleplayer)));
 		}
 	}
 	

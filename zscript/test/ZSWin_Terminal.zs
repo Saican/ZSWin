@@ -92,6 +92,6 @@ class ZSWin_Terminal : ZSWindow
 	override void Tick()
 	{
 		super.Tick();
-		DebugOut("PriorityName", string.Format("Window: %s, priority is: %d, stack index: %d", self.Name, self.Priority, zHandler.GetStackIndex(self)));
+		DebugOut("PriorityName", string.Format("Window: %s, priority is: %d, stack index: %d", self.WindowName, self.Priority, zHandler.GetStackIndex(self)));
 	}
 }
