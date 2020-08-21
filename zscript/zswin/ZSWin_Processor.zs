@@ -276,7 +276,7 @@ class zsys
 					// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
 					// - There is another line in the ZHandler RenderOverlay method which causes the same issue.
 					else
-						EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
+						EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).ControlName, nwd.GetText(i).ShapeWidth)));
 				}
 				else
 					wrapWidth = nwd.Width - nwd.GetText(i).xLocation;

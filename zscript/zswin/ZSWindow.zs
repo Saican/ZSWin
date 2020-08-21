@@ -95,7 +95,7 @@ class ZSWindow : ZSWin_Base abstract
 	{ 
 		for (int i = 0; i < GetTextSize(); i++) 
 		{ 
-			if (GetText(i).Name ~== Name) 
+			if (GetText(i).ControlName ~== Name) 
 				return GetText(i); 
 		} 
 		return null; 
@@ -113,7 +113,7 @@ class ZSWindow : ZSWin_Base abstract
 	{ 
 		for (int i = 0; i < GetShapeSize(); i++) 
 		{ 
-			if (GetShape(i).Name ~== Name) 
+			if (GetShape(i).ControlName ~== Name) 
 				return GetShape(i); 
 		} 
 		return null; 
@@ -131,7 +131,7 @@ class ZSWindow : ZSWin_Base abstract
 	{
 		for (int i = 0; i < GetButtonSize(); i++)
 		{
-			if (GetButton(i).Name ~== Name)
+			if (GetButton(i).ControlName ~== Name)
 				return GetButton(i);
 		}
 		return null;

@@ -35,7 +35,7 @@ class ZText : ZControl_Base
 	
 	ZText Init (string Name, bool Enabled, bool Show, string Text, int CRColor, TXTWRAP TextWrap, int WrapWidth, TEXTALIGN Alignment, name fontName, float xLocation, float yLocation = 0.0, float Alpha = 1.0, string ShapeWidth = "", uint Tics = 0, bool TicAppend = false)
 	{
-		self.Name = Name;
+		self.ControlName = Name;
 		self.Enabled = Enabled;
 		self.Show = Show;
 		self.Text = Text;
@@ -59,7 +59,7 @@ class ZText : ZControl_Base
 	
 	ZText DebugInit(string Name, string Text, int CRColor, uint Tics, bool TicAppend)
 	{
-		self.Name = Name;
+		self.ControlName = Name;
 		self.Enabled = true;
 		self.Text = Text;
 		self.CRColor = CRColor;

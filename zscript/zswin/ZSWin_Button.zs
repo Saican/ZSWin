@@ -47,7 +47,7 @@ class ZButton : ZControl_Base
 				// Text
 				int CRColor = Font.CR_White, TEXTALIGN Alignment = center, name fontName = 'newsmallfont', float txt_xLocation = 0, float txt_yLocation = 0, float txt_Alpha = 1)
 	{
-		self.Name = Name;
+		self.ControlName = Name;
 		self.Enabled = Enabled;
 		self.Show = Show;
 		self.Type = Type;
@@ -60,8 +60,8 @@ class ZButton : ZControl_Base
 		self.Stretch = Stretch;
 		self.State = idle;
 		backgroundInit(idleTextureName, highlightTextureName, activeTextureName);
-		Border = new("ZShape").Init(string.Format("%s%s", self.Name, "_border"), self.Enabled, self.Show, borderType == box || borderType == thickbox || borderType == noshape ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
-		Text = new("ZText").Init(string.Format("%s%s", self.Name, "_txt"), self.Enabled, self.Show, btnText, CRColor, ZText.wrap, Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);
+		Border = new("ZShape").Init(string.Format("%s%s", self.ControlName, "_border"), self.Enabled, self.Show, borderType == box || borderType == thickbox || borderType == noshape ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
+		Text = new("ZText").Init(string.Format("%s%s", self.ControlName, "_txt"), self.Enabled, self.Show, btnText, CRColor, ZText.wrap, Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);
 		return self;
 	}
 	
@@ -228,7 +228,7 @@ class ZButton : ZControl_Base
 				break;
 
 			default:
-				console.printf("Z Windows: button "..name.." have faulty background texture flag");
+				console.printf("Z Windows: button "..ControlName.." have faulty background texture flag");
 			break;
 		}
 	}

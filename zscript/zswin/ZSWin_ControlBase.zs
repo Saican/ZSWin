@@ -7,7 +7,8 @@
 
 class ZControl_Base play abstract
 {
-	string Name;
+	//name of the control
+	string ControlName;
 	private bool wasEnabled;
 	void ShowCheck()
 	{

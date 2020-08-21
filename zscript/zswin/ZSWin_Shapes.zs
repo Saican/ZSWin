@@ -29,7 +29,7 @@ class ZShape : ZControl_Base
 	
 	ZShape Init (string Name, bool Enabled, bool Show, SHAPETYPE Type, color Color, int x_Start, int y_Start, int x_End, int y_End, float Alpha = 1.0, float Thickness = 1.0, SCALETYP ScaleType = noscale, int Radius = 0, int Vertices = 0, ZText GroupTitle = null)
 	{
-		self.Name = Name;
+		self.ControlName = Name;
 		self.Enabled = Enabled;
 		self.Show = Show;
 		self.Type = Type;

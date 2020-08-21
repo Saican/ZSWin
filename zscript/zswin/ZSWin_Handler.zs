@@ -483,7 +483,7 @@ class ZSWin_Handler : EventHandler
 			if (ZText(dar_DebugMsgs[i]).tics > 0)
 			{
 				ZText(dar_DebugMsgs[i]).tics--;
-				newMsgs.Push(new("ZText").DebugInit(ZText(dar_DebugMsgs[i]).Name, 
+				newMsgs.Push(new("ZText").DebugInit(ZText(dar_DebugMsgs[i]).ControlName, 
 											ZText(dar_DebugMsgs[i]).Text, 
 											ZText(dar_DebugMsgs[i]).CRColor, 
 											ZText(dar_DebugMsgs[i]).Tics, 
@@ -505,7 +505,7 @@ class ZSWin_Handler : EventHandler
 			// Ok obviously this loop pushes the new messages to the console window :P
 			for (int i = 0; i < dar_DebugMsgs.Size(); i++)
 			{
-				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).Name,
+				ncon.Text.Push(new("ZText").Init(ZText(dar_DebugMsgs[i]).ControlName,
 												ZText(dar_DebugMsgs[i]).Enabled,
 												true,
 												ZText(dar_DebugMsgs[i]).TicAppend ? 
