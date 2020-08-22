@@ -11,7 +11,7 @@ version "4.2.1"
 // Abstract base class for anything considered a "control or interface"
 #include "zscript/zswin/ZSWin_ControlBase.zs"
 // Wrapper for UI methods that draw window contents
-#include "zscript/zswin/ZSWin_Processor.zs"
+#include "zscript/zswin/ZSWin_Drawer.zs"
 // Point of entry, event handler that draws window contents and and processes UI events
 #include "zscript/zswin/ZSWin_Handler.zs"
 // Lines and (Group)box control
