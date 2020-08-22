@@ -50,6 +50,7 @@ class ZText : ZControl_Base
 		self.ShapeWidth = ShapeWidth;
 		self.Tics = Tics;
 		self.TicAppend = TicAppend;
+		self.ScaleType = noscale;
 
 		if (font)
 			return self;
@@ -71,6 +72,7 @@ class ZText : ZControl_Base
 		self.ShapeWidth = "";
 		self.Tics = Tics;
 		self.TicAppend = TicAppend;
+		self.ScaleType = noscale;
 		return self;  // no font check, debugging handles the font.
 	}
 	

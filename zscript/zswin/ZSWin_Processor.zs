@@ -1,5 +1,5 @@
 /*
-	ZSWin_Processor.txt
+	ZSWin_Drawer.zs
 	
 	- Nothing for users here, this class
 	  contains the methods for drawing
@@ -7,13 +7,13 @@
 
 */
 
-class zsys
+class ZDrawer
 {
 	/*
 		Calculates and returns the real window location;
 	
 	*/
-	clearscope static float, float realWindowLocation(ZSWindow nwd)
+	clearscope float, float realWindowLocation(ZSWindow nwd)
 	{
 		int diffx, diffy;
 		[diffx, diffy] = nwd.MoveDifference();
@@ -22,10 +22,39 @@ class zsys
 	}
 	
 	/*
+		Calculates and returns the real width/height of the window
+	
+	*/
+	clearscope int, int realWindowScale(ZSWindow nwd)
+	{
+		int diffx, diffy;
+		[diffx, diffy] = nwd.ScaleDifference();
+		return nwd.Width + nwd.scaleAccumulateX + diffx,
+			nwd.Height + nwd.scaleAccumulateY + diffy;
+	}
+	
+	/*
+		Calculates and returns the control's scaled location
+		
+		You add this to a control's location - if the control reacts to scaling
+	
+	*/
+	clearscope float, float realControlScaledLocation(ZSWindow nwd)
+	{
+		float scalediffx, scalediffy,
+			movediffx, movediffy;
+		[scalediffx, scalediffy] = nwd.ScaleDifference();
+		[movediffx, movediffy] = nwd.MoveDifference();
+		return nwd.xLocation + nwd.moveAccumulateX + movediffx + nwd.scaleAccumulateX + scalediffx,
+			nwd.yLocation + nwd.moveAccumulateY + movediffy + nwd.scaleAccumulateY + scalediffy;
+	}
+	
+	
+	/*
 		Draws the window background
 	
 	*/
-	ui static void WindowProcess_Background(ZSWindow nwd)
+	ui void WindowProcess_Background(ZSWindow nwd)
 	{
 		// Check that the textures is valid
 		if (nwd.BackgroundTexture.IsValid())
@@ -33,16 +62,20 @@ class zsys
 			float nwdX, nwdY;
 			[nwdX, nwdY] = realWindowLocation(nwd);
 			
+			int realWidth, realHeight;
+			[realWidth, realHeight] = realWindowScale(nwd);
+			
 			// Stretch texture
 			if (nwd.Stretch)
 				Screen.DrawTexture(nwd.BackgroundTexture, false,
 					nwdX, nwdY,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BackgroundAlpha : nwd.GlobalAlpha,
-					DTA_DestWidth, nwd.Width,
-					DTA_DestHeight, nwd.Height);
+					DTA_DestWidth, realWidth,
+					DTA_DestHeight, realHeight);
 			// Tile texture
 			else
 			{
+				// Set the clipping boundary to the window
 				nwd.zHandler.WindowClip(nwd);
 				int tx, ty, w = 0;
 				Vector2 txy = TexMan.GetScaledSize(nwd.BackgroundTexture);
@@ -60,9 +93,9 @@ class zsys
 							DTA_DestWidth, tx,
 							DTA_DestHeight, ty);
 						h++;
-					} while ((((h - 1) * ty) + ty)  < nwd.Height);
+					} while ((((h - 1) * ty) + ty)  < realHeight);
 					w++;
-				} while ((((w -1) * tx) + tx) <= nwd.Width);
+				} while ((((w -1) * tx) + tx) <= realWidth);
 				nwd.zHandler.WindowClip(set:false);
 			}
 		}
@@ -72,36 +105,39 @@ class zsys
 		Window Border Drawer
 	
 	*/
-	ui static void WindowProcess_Border(ZSWindow nwd)
+	ui void WindowProcess_Border(ZSWindow nwd)
 	{
 		float nwdX, nwdY;
 		[nwdX, nwdY] = realWindowLocation(nwd);
 		
+		int realWidth, realHeight;
+		[realWidth, realHeight] = realWindowScale(nwd);
+		
 		switch (nwd.BorderType)
 		{
 			case nwd.Game:
-				Screen.DrawFrame(nwdX, nwdY, nwd.Width, nwd.Height);
+				Screen.DrawFrame(nwdX, nwdY, realWidth, realHeight);
 				break;
 			case nwd.Line:
-				Screen.DrawLine(nwdX, nwdY, nwdX + nwd.Width, nwdY, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwdX, nwdY + nwd.Height, nwdX + nwd.Width, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwdX, nwdY, nwdX, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
-				Screen.DrawLine(nwdX + nwd.Width, nwdY, nwdX + nwd.Width, nwdY + nwd.Height, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY, nwdX + realWidth, nwdY, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY + realHeight, nwdX + realWidth, nwdY + realHeight, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX, nwdY, nwdX, nwdY + realHeight, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
+				Screen.DrawLine(nwdX + realWidth, nwdY, nwdX + realWidth, nwdY + realHeight, nwd.BorderColor, int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				break;
 			case nwd.ThickLine:
 				// Top
 				Screen.DrawThickLine(nwdX - nwd.BorderThickness, 
 									nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
-									nwdX + nwd.Width + nwd.BorderThickness, 
+									nwdX + realWidth + nwd.BorderThickness, 
 									nwdY - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				// Bottom
 				Screen.DrawThickLine(nwdX - nwd.BorderThickness, 
-									nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
-									nwdX + nwd.Width + nwd.BorderThickness, 
-									nwdY + nwd.Height + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwdY + realHeight + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
+									nwdX + realWidth + nwd.BorderThickness, 
+									nwdY + realHeight + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
@@ -109,15 +145,15 @@ class zsys
 				Screen.DrawThickLine(nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
 									nwdY, 
 									nwdX - (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : (nwd.BorderThickness - 1) / 2) : nwd.BorderThickness), 
-									nwdY + nwd.Height, 
+									nwdY + realHeight, 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
 				// Right
-				Screen.DrawThickLine(nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+				Screen.DrawThickLine(nwdX + realWidth + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
 									nwdY, 
-									nwdX + nwd.Width + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
-									nwdY + nwd.Height, 
+									nwdX + realWidth + (nwd.BorderThickness > 1 ? (nwd.BorderThickness % 2 == 0 ? nwd.BorderThickness / 2 : ((nwd.BorderThickness - 1) / 2) + 1) : nwd.BorderThickness), 
+									nwdY + realHeight, 
 									nwd.BorderThickness, 
 									nwd.BorderColor, 
 									int(255 * (nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha)));
@@ -132,7 +168,7 @@ class zsys
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				// Top Right Corner	
 				Screen.DrawTexture(nwd.gfxBorder.Corner_TopRight, false,
-					nwdX + nwd.Width, 
+					nwdX + realWidth, 
 					nwdY - nwd.gfxBorder.BorderHeight,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
@@ -140,22 +176,22 @@ class zsys
 				// Bottom Left Corner
 				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomLeft, false,
 					nwdX - nwd.gfxBorder.BorderWidth, 
-					nwdY + nwd.Height,
+					nwdY + realHeight,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				// Bottom Right Corner	
 				Screen.DrawTexture(nwd.gfxBorder.Corner_BottomRight, false,
-					nwdX + nwd.Width, 
-					nwdY + nwd.Height,
+					nwdX + realWidth, 
+					nwdY + realHeight,
 					DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 					DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 					DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 				
 				Screen.SetClipRect(nwdX,
 								nwdY - nwd.gfxBorder.BorderHeight,
-								nwd.Width,
-								nwd.Height + (nwd.gfxBorder.BorderHeight * 2));				
+								realWidth,
+								realHeight + (nwd.gfxBorder.BorderHeight * 2));				
 				int w = 0;
 				do
 				{
@@ -167,18 +203,18 @@ class zsys
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					Screen.DrawTexture(nwd.gfxBorder.Side_Bottom, false,
 									nwdX + (nwd.gfxBorder.BorderWidth * w),
-									nwdY + nwd.Height,
+									nwdY + realHeight,
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					w++;
-				} while (((w - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= nwd.Width);
+				} while (((w - 1) * nwd.gfxBorder.BorderWidth) + nwd.gfxBorder.BorderWidth <= realWidth);
 				nwd.zHandler.WindowClip(set:false);
 				
 				Screen.SetClipRect(nwdX - nwd.gfxBorder.BorderWidth,
 								nwdY,
-								nwd.Width + (nwd.gfxBorder.BorderWidth * 2),
-								nwd.Height);
+								realWidth + (nwd.gfxBorder.BorderWidth * 2),
+								realHeight);
 				int h = 0;
 				do
 				{
@@ -189,14 +225,19 @@ class zsys
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					Screen.DrawTexture(nwd.gfxBorder.Side_Right, false,
-									nwdX + nwd.Width,
+									nwdX + realWidth,
 									nwdY + (nwd.gfxBorder.BorderHeight * h),
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.BorderAlpha : nwd.GlobalAlpha,
 									DTA_DestWidth, nwd.gfxBorder.BorderWidth,
 									DTA_DestHeight, nwd.gfxBorder.BorderHeight);
 					h++;
-				} while (((h - 1) * nwd.gfxBorder.BorderHeight) + nwd.gfxBorder.BorderHeight <= nwd.Height);
+				} while (((h - 1) * nwd.gfxBorder.BorderHeight) + nwd.gfxBorder.BorderHeight <= realHeight);
 				nwd.zHandler.WindowClip(set:false);
+				break;
+			default:
+				EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "badBorderProcess", string.Format("ERROR! - Window, %s, uses invalid border type, %d.  Valid type range: %d - %d", nwd.name, nwd.BorderType, nwd.Game, nwd.noBorder)));
+				// intentional fall-through here
+			case nwd.noBorder:
 				break;
 		}	
 	}
@@ -205,16 +246,39 @@ class zsys
 		Text Drawer
 	
 	*/
-	ui static void WindowProcess_Text(ZSWindow nwd)
+	ui void WindowProcess_Text(ZSWindow nwd)
 	{
 		nwd.zHandler.WindowClip(nwd);
 		BrokenLines blText;
-		float nwdX, nwdY;
+		
+		float nwdX, nwdY, xdis, ydis;
 		[nwdX, nwdY] = realWindowLocation(nwd);
+		
+		int realWidth, realHeight;
+		[realWidth, realHeight] = realWindowScale(nwd);
+		
 		// Title
 		int wrapWidth = 0;
 		if (nwd.Title.Show)
-		{
+		{			
+			/*switch(nwd.Title.ScaleType)
+			{
+				case ZControl_Base.scalex:
+					[nwdX, ydis] = realControlScaledLocation(nwd);
+					[xdis, nwdY] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaley:
+					[xdis, nwdY] = realControlScaledLocation(nwd);
+					[nwdX, ydis] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaleboth:
+					[nwdX, nwdY] = realControlScaledLocation(nwd);
+					break;
+				default:
+					[nwdX, nwdY] = realWindowLocation(nwd);
+					break;
+			}*/
+	
 			if (nwd.Title.WrapWidth > 0)
 				wrapWidth = nwd.Title.WrapWidth;
 			else if (nwd.Title.ShapeWidth != "") // be nice to have a string.empty equivalent in zscript
@@ -223,12 +287,12 @@ class zsys
 				if (shpref)
 					wrapWidth = shpref.x_End - shpref.x_Start;
 			}
-			else
-				wrapWidth = nwd.Width - nwd.Title.xLocation;
 			
 			switch (nwd.Title.TextWrap)
 			{
 				case ZText.wrap:
+					if (wrapWidth == 0)
+						wrapWidth = nwd.Width - nwd.Title.xLocation;
 					blText = nwd.Title.font.BreakLines(nwd.Title.Text, wrapWidth);
 					for (int i = 0; i < blText.Count(); i++)
 						Screen.DrawText(nwd.Title.font,
@@ -239,6 +303,8 @@ class zsys
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
 					break;
 				case ZText.dynwrap:
+					if (wrapWidth == 0)
+						wrapWidth = realWidth - nwd.Title.xLocation;
 					blText = nwd.Title.font.BreakLines(nwd.Title.Text, wrapWidth /* + resize handlers*/);
 					for (int i = 0; i < blText.Count(); i++)
 						Screen.DrawText(nwd.Title.font,
@@ -251,7 +317,7 @@ class zsys
 				default:
 					Screen.DrawText(nwd.Title.font, 
 								nwd.Title.CRColor, 
-								nwd.Title.GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
+								nwd.Title.GetAlignment(nwdX, realWidth, nwd.Title.Text), 
 								nwdY + nwd.Title.yLocation, 
 								nwd.Title.Text, 
 								DTA_Alpha, nwd.GlobalEnabled ? nwd.Title.Enabled ? nwd.Title.Alpha : 0.5 : nwd.GlobalAlpha);
@@ -262,6 +328,24 @@ class zsys
 		// Window Text Array
 		for (int i = 0; i < nwd.GetTextSize(); i++)
 		{
+			switch(nwd.GetText(i).ScaleType)
+			{
+				case ZControl_Base.scalex:
+					[nwdX, ydis] = realControlScaledLocation(nwd);
+					[xdis, nwdY] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaley:
+					[xdis, nwdY] = realControlScaledLocation(nwd);
+					[nwdX, ydis] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaleboth:
+					[nwdX, nwdY] = realControlScaledLocation(nwd);
+					break;
+				default:
+					[nwdX, nwdY] = realWindowLocation(nwd);
+					break;
+			}
+			
 			if (nwd.GetText(i).Show)
 			{
 				wrapWidth = 0;
@@ -278,11 +362,12 @@ class zsys
 					else
 						EventHandler.SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "txtProcess", string.Format("ERROR! - ZText, %s, references an unknown ZShape, %s!", nwd.GetText(i).Name, nwd.GetText(i).ShapeWidth)));
 				}
-				else
-					wrapWidth = nwd.Width - nwd.GetText(i).xLocation;
+					
 				switch (nwd.GetText(i).TextWrap)
 				{
 					case ZText.wrap:
+						if (wrapWidth == 0)
+							wrapWidth = nwd.Width - nwd.GetText(i).xLocation;
 						blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, wrapWidth);
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetText(i).font,
@@ -293,6 +378,8 @@ class zsys
 										DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
 						break;
 					case ZText.dynwrap:
+						if (wrapWidth == 0)
+							wrapWidth = realWidth - nwd.GetText(i).xLocation;
 						blText = nwd.GetText(i).font.BreakLines(nwd.GetText(i).Text, wrapWidth /* + resize handlers*/);
 						for (int j = 0; j < blText.Count(); j++)
 							Screen.DrawText(nwd.GetText(i).font,
@@ -305,7 +392,7 @@ class zsys
 					default:
 						Screen.DrawText(nwd.GetText(i).font, 
 									nwd.GetText(i).CRColor, 
-									nwd.GetText(i).GetAlignment(nwdX, nwd.Width, nwd.Title.Text), 
+									nwd.GetText(i).GetAlignment(nwdX, realWidth, nwd.Title.Text), 
 									nwdY + nwd.GetText(i).yLocation, 
 									nwd.GetText(i).Text, 
 									DTA_Alpha, nwd.GlobalEnabled ? nwd.GetText(i).Enabled ? nwd.GetText(i).Alpha : 0.5 : nwd.GlobalAlpha);
@@ -320,17 +407,38 @@ class zsys
 		This method draws the contents of ZShape classes
 	
 	*/
-	ui static void WindowProcess_Shapes(ZSWindow nwd)
+	ui void WindowProcess_Shapes(ZSWindow nwd)
 	{
 		int originx, originy,
 			cxstart, cystart, 
 			cxend, cyend, 
 			ang;
-		float nwdX, nwdY;
-		[nwdX, nwdY] = realWindowLocation(nwd);		
+			
+		float nwdX, nwdY, xdis, ydis;	
+		[nwdX, nwdY] = realWindowLocation(nwd);
+		
+		// This is pointless since lines aren't effected by SetClipRect - hopefully someday they will
 		nwd.zHandler.WindowClip(nwd);
 		for (int i = 0; i < nwd.GetShapeSize(); i++)
 		{	
+			switch(nwd.GetShape(i).ScaleType)
+			{
+				case ZControl_Base.scalex:
+					[nwdX, ydis] = realControlScaledLocation(nwd);
+					[xdis, nwdY] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaley:
+					[xdis, nwdY] = realControlScaledLocation(nwd);
+					[nwdX, ydis] = realWindowLocation(nwd);
+					break;
+				case ZControl_Base.scaleboth:
+					[nwdX, nwdY] = realControlScaledLocation(nwd);
+					break;
+				default:
+					[nwdX, nwdY] = realWindowLocation(nwd);
+					break;
+			}
+	
 			if (nwd.GetShape(i).Show)
 			{
 				switch (nwd.GetShape(i).Type)
@@ -1056,105 +1164,103 @@ class zsys
 		nwd.zHandler.WindowClip(set:false);
 	}
 	
-	ui static void WindowProcess_Buttons(ZSWindow nwd)
+	/*
+		Draws the window's buttons.
+		
+		! Known bugs - ZButton middle textures do not clip property at the momement.
+	
+	*/
+	ui void WindowProcess_Buttons(ZSWindow nwd)
 	{
-		float nwdX, nwdY;
-		[nwdX, nwdY] = realWindowLocation(nwd);	
+		// This does a lot of the math for locating the control
+		// based on its ScaleType
+		float nwdX, nwdY, xdis, ydis;
+		int realWidth, realHeight;
+		// What is the real width and height of the window?
+		// Any usage of the window's width/height needs the real width/height
+		[realWidth, realHeight] = realWindowScale(nwd);		
+		
 		for (int i = 0; i < nwd.Buttons.Size(); i++)
-		{		
+		{
 			if (nwd.GetButton(i).Show)
 			{
-				int clipx = 0, 
-					clipy = 0, 
-					wdth = 0, 
-					hght = 0;
-				// This is the crap I have to do to clip lines
-				// Fix your code ZDoom Devs!
+				switch(nwd.GetButton(i).ScaleType)
+				{
+					case ZControl_Base.scalex:
+						// X Location is scaled
+						[nwdX, ydis] = realControlScaledLocation(nwd);
+						// Y Location just moves
+						[xdis, nwdY] = realWindowLocation(nwd);
+						break;
+					case ZControl_Base.scaley:
+						// Y Location is scaled
+						[xdis, nwdY] = realControlScaledLocation(nwd);
+						// X Location just moves
+						[nwdX, ydis] = realWindowLocation(nwd);
+						break;
+					case ZControl_Base.scaleboth:
+						// This control can move and be scaled on both axis
+						[nwdX, nwdY] = realControlScaledLocation(nwd);
+						break;
+					default:
+						// This control just moves - they can always move.
+						[nwdX, nwdY] = realWindowLocation(nwd);
+						break;
+				}
+				
+				int clipx, clipy, 
+					wdth, hght;
 				bool cliplft = false, 
 					cliprht = false, 
 					cliptop = false, 
 					clipbot = false;
-
-				// Check if button is beyond right edge
-				if (nwdX + nwd.GetButton(i).xLocation > nwdX + nwd.Width)
-					break; // This button cannot be seen so don't bother drawing it
-				// Check if button is beyond left edge
-				else if (nwdX + nwd.GetButton(i).xLocation < nwdX)
+					
+				float rlx, rly;
+				[rlx, rly] = realWindowLocation(nwd);
+				if (rlx > nwdX + nwd.GetButton(i).xLocation)
 				{
-					// Now check if there's anything of the button to draw
-					if (nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width > nwdX)
-					{
-						clipx = nwdX; // There is, so the left edge is set to the window edge
-						// Check if the right side is beyond the window's right side
-						if (nwdX + nwd.Width < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
-						{
-							wdth = nwd.GetButton(i).Width - (nwdX - nwd.GetButton(i).xLocation) - ((nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwdX + nwd.Width));
-							cliprht = true;
-						}
-						else
-							wdth = nwd.GetButton(i).Width - (nwdX - (nwdX + nwd.GetButton(i).xLocation));
-						cliplft = true;
-					}
-					else
-						break; // This button cannot be seen so don't bother drawing it
+					clipx = rlx;
+					cliplft = true;
 				}
-				// Button is within the window
 				else
-				{
 					clipx = nwdX + nwd.GetButton(i).xLocation;
-					// Check if the right side is beyond the window's right side
-					if (nwdX + nwd.Width < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
-					{
-						wdth = nwd.GetButton(i).Width - ((nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (nwdX + nwd.Width));
-						cliprht = true;
-					}
-					else
-						wdth = nwd.GetButton(i).Width;
-				}
 				
-				// Check if button is beyond bottom edge
-				if (nwdY + nwd.GetButton(i).yLocation > nwdY + nwd.Height)
-					break; // Button can't be seen, skip it
-				// Check if button is beyond top edge
-				else if (nwdY + nwd.GetButton(i).yLocation < nwdY)
+				if (rly > nwdY + nwd.GetButton(i).yLocation)
 				{
-					// Is anything visable?
-					if (nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height > nwdY)
-					{
-						clipy = nwdY;
-						// Check if the bottom is beyond the windows bottom edge
-						if (nwdY + nwd.Height < nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
-						{
-							hght = nwd.GetButton(i).Height - (nwd.GetButton(i).yLocation - nwdY) - ((nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwdY + nwd.Height));
-							clipbot = true;
-						}
-						else
-							hght = nwd.GetButton(i).Height - (nwdY - (nwdY + nwd.GetButton(i).yLocation));
-						cliptop = true;
-					}
-					else
-						break;  // Button can't be seen, skip it
+					clipy = rly;
+					cliptop = true;
 				}
-				// Button is within the window
 				else
-				{
 					clipy = nwdY + nwd.GetButton(i).yLocation;
-					// Check if the bottom is beyond the windows bottom edge
-					if (nwdY + nwd.Height < nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
-					{
-						hght = nwd.GetButton(i).Height - ((nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height) - (nwdY + nwd.Height));
-						clipbot = true;
-					}
-					else				
-						hght = nwd.GetButton(i).Height;
+				
+				if (rlx + realWidth < nwdX + nwd.GetButton(i).xLocation)
+					wdth = 0;
+				else if (rlx + realWidth < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width)
+				{
+					wdth = (rlx + realWidth) - (nwdX + nwd.GetButton(i).xLocation);
+					cliprht = true;
 				}
+				else
+					wdth = nwd.GetButton(i).Width;
+				
+				if (rly + realHeight < nwdY + nwd.GetButton(i).yLocation)
+					hght = 0;
+				else if (rly + realHeight < nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Height)
+				{
+					hght = (rly + realHeight) - (nwdY + nwd.GetButton(i).yLocation);
+					clipbot = true;
+				}
+				else
+					hght = nwd.GetButton(i).Height;
 
 				switch (nwd.GetButton(i).Type)
 				{
 					case ZButton.standard:
 						// Background
-						screen.SetClipRect(clipx, clipy, wdth, hght);
 						if (nwd.GetButton(i).Stretch)
+						{
+							// WindowClip takes into account both moving and scaling of the window
+							nwd.zHandler.WindowClip(nwd);
 							screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 											false, 
 											nwdX + nwd.GetButton(i).xLocation, 
@@ -1162,12 +1268,16 @@ class zsys
 											DTA_Alpha, nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Alpha : 0.5 : nwd.GlobalAlpha,
 											DTA_DestWidth, nwd.GetButton(i).Width,
 											DTA_DestHeight, nwd.GetButton(i).Height);
+							// Clear the clipping boundary
+							nwd.zHandler.WindowClip(set:false);
+						}
 						else
-						{
+						{							
 							int tx, ty, w = 0;
 							Vector2 txy = TexMan.GetScaledSize(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId);
 							tx = txy.x;
 							ty = txy.y;
+							Screen.SetClipRect(clipx, clipy, wdth, hght);
 							do
 							{
 								int h = 0;
@@ -1184,19 +1294,13 @@ class zsys
 								} while ((((h - 1) * ty) + ty) < nwd.GetButton(i).Height);
 								w++;
 							} while ((((w - 1) * tx) + tx) <= nwd.GetButton(i).Width);
+							nwd.zHandler.WindowClip(set:false);
 						}
-						nwd.zHandler.WindowClip(set:false);
 						// Border
 						// Code enforces box and thickbox types
 						switch (nwd.GetButton(i).Border.Type)
 						{
 							case ZShape.box:
-								/*
-									Ok, since Screen.SetClipRect does not clip lines, I'll have to do it manually.
-									Jesus fucking christ...*face to keyboard.
-									
-									If this works, I guess that's not too bad.
-								*/
 								if (!cliptop)
 									Screen.DrawLine(clipx - 1, 
 													clipy - 1, 
@@ -1260,10 +1364,15 @@ class zsys
 														nwd.GetButton(i).Border.Color,
 														int(255 * (nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Border.Enabled ? nwd.GetButton(i).Border.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha)));
 								break;
+							default:
+								// need a debug message here - invalid border type for button
+							case ZShape.noshape:
+								break;
 						}
 						break;
 					case ZButton.radio:
 					case ZButton.check:
+						nwd.zHandler.WindowClip(nwd);
 						screen.SetClipRect(clipx, clipy, wdth, hght);
 						screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
 										false, 
@@ -1328,29 +1437,23 @@ class zsys
 						nwd.zHandler.WindowClip(set:false);
 							
 						int midclipx, midwdth;
-						// The button clipping boundary is beyond the button location
-						if (clipx > nwdX + nwd.GetButton(i).xLocation)
-						{
-							midclipx = (clipx - (nwdX + nwd.GetButton(i).xLocation)) + lx;
-							// The middle clip x is greater than the button clipx, subtract the left and right dimensions from the width to get the middle width
-							if (midclipx > clipx)
-								midwdth = nwd.GetButton(i).Width - lx - rx;
-							// Other way around, do the same thing, but now subtract the different between the clipping edges
-							else
-								midwdth = (nwd.GetButton(i).Width - lx - rx) - (clipx - midclipx);
-						}
-						// The button is within the window, so left edge is edge of the left texture
+						if (clipx > nwdX + nwd.GetButton(i).xLocation + lx)
+							midclipx = clipx;
 						else
-						{
 							midclipx = nwdX + nwd.GetButton(i).xLocation + lx;
+						
+						if (clipx + wdth < nwdX + nwd.GetButton(i).xLocation + lx)
+							midwdth = 0;
+						else if (clipx + wdth < nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width - rx)
+							midwdth = nwd.GetButton(i).Width - lx - ((nwdX + nwd.GetButton(i).xLocation + nwd.GetButton(i).Width) - (clipx + wdth));
+						else
 							midwdth = nwd.GetButton(i).Width - lx - rx;
-						}
 						
 						int mx, my;
 						Vector2 mxy = TexMan.GetScaledSize(middle);
 						mx = mxy.x;
 						my = mxy.y;
-						screen.SetClipRect(midclipx, clipy, midwdth, my);
+						screen.SetClipRect(midclipx, clipy, midwdth, hght);
 						int w = 0;
 						// No height loop because the height is the height of the textures
 						do
@@ -1374,7 +1477,7 @@ class zsys
 					wrapWidth = nwd.GetButton(i).Text.WrapWidth;
 				else
 					wrapWidth = nwd.GetButton(i).Width - nwd.GetButton(i).Text.xLocation;
-				
+				screen.SetClipRect(clipx, clipy, wdth, hght);
 				switch (nwd.GetButton(i).Text.TextWrap)
 				{
 					case ZText.wrap:
@@ -1400,17 +1503,18 @@ class zsys
 					default:
 						Screen.DrawText(nwd.GetButton(i).Text.font, 
 									nwd.GetButton(i).Text.CRColor, 
-									nwd.GetButton(i).Text.GetAlignment(nwdX + nwd.GetButton(i).xLocation, nwd.Width, nwd.GetButton(i).Text.Text), 
+									nwd.GetButton(i).Text.GetAlignment(nwdX + nwd.GetButton(i).xLocation, realWidth, nwd.GetButton(i).Text.Text), 
 									nwdY + nwd.GetButton(i).yLocation + nwd.GetButton(i).Text.yLocation, 
 									nwd.GetButton(i).Text.Text, 
 									DTA_Alpha, (nwd.GlobalEnabled ? nwd.GetButton(i).Enabled ? nwd.GetButton(i).Text.Enabled ? nwd.GetButton(i).Text.Alpha : 0.5 : 0.5 : nwd.GlobalAlpha));
 						break;
 				}
+				nwd.zHandler.WindowClip(set:false);
 			}
 		}
 	}
 	
-	ui static void WindowProcess_Graphics(ZSWindow nwd)
+	ui void WindowProcess_Graphics(ZSWindow nwd)
 	{
 		nwd.zHandler.WindowClip(nwd);
 		nwd.zHandler.WindowClip(set:false);

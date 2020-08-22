@@ -38,7 +38,7 @@ class ZButton : ZControl_Base
 	// Constructor defaults to a standard button, which defaults to a thin border - only name and text are required
 	ZButton Init (string Name, string btnText,
 				// Button Internals
-				bool Enabled = true, bool Show = true, BTNTYPE Type = standard, int Width = 100, int Height = 25, float btn_xLocation = 0, float btn_yLocation = 0, float btn_Alpha = 1,
+				bool Enabled = true, bool Show = true, BTNTYPE Type = standard, int Width = 100, int Height = 25, float btn_xLocation = 0, float btn_yLocation = 0, float btn_Alpha = 1, SCALETYP scaleType = noscale,
 				// Background and border - width and height are used to set border dimensions
 				bool Stretch = false, string idleTextureName = "", string highlightTextureName = "", string activeTextureName = "",
 				SHAPETYPE borderType = box, color borderColor = 0xffffff, float borderAlpha = 1, float borderThickness = 1,
@@ -57,6 +57,7 @@ class ZButton : ZControl_Base
 		self.Alpha = btn_Alpha;
 		self.Stretch = Stretch;
 		self.State = idle;
+		self.ScaleType = scaleType;
 		backgroundInit(idleTextureName, highlightTextureName, activeTextureName);
 		Border = new("ZShape").Init(string.Format("%s%s", self.Name, "_border"), self.Enabled, self.Show, borderType == box || borderType == thickbox || borderType == noshape ? borderType : box, borderColor, self.xLocation, self.yLocation, self.Width, self.Height, borderAlpha, borderThickness);
 		Text = new("ZText").Init(string.Format("%s%s", self.Name, "_txt"), self.Enabled, self.Show, btnText, CRColor, ZText.wrap, Width, Alignment, fontName, txt_xLocation, txt_yLocation, txt_Alpha);

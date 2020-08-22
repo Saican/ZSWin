@@ -52,7 +52,10 @@ class ZControl_Base play abstract
 		thinroundgroupbox,
 		thickroundgroupbox,
 		noshape,
-	};
+	}; 
+	
+	virtual void WhileMouseIdle(ZSWindow nwd) {}
+	virtual void OnMouseMove(ZSWindow nwd) {}
 	
 	virtual void OnLeftMouseDown(ZSWindow nwd) {}
 	virtual void OnLeftMouseUp(ZSWindow nwd) {}

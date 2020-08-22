@@ -11,7 +11,8 @@ class ZSWin_Handler : EventHandler
 	enum CRSRSTATE
 	{
 		idle,
-		leftmousedown = 7,
+		mousemove = 6,
+		leftmousedown,
 		leftmouseup,
 		leftmouseclick,
 		middlemousedown,
@@ -26,7 +27,7 @@ class ZSWin_Handler : EventHandler
 	// Enums are just ints so this method really just checks for a valid range
 	CRSRSTATE intToCursorState(int i)
 	{
-		if (leftmousedown <= i && i <= wheelmousedown)
+		if (mousemove <= i && i <= wheelmousedown)
 			return i;
 		else
 			return 0;
@@ -107,6 +108,8 @@ class ZSWin_Handler : EventHandler
 		
 		return null;
 	}
+	
+	ZDrawer zdraw;
 
 	override void OnRegister()
 	{
@@ -114,6 +117,7 @@ class ZSWin_Handler : EventHandler
 		bDebug = bDebugIsUpdating = false;
 		CVar.GetCVar('ZSWINVAR_DEBUG').SetBool(bDebug);
 		CursorX = CursorY = 0;
+		zdraw = new("ZDrawer");
 	}
 	
 	override bool UiProcess(UiEvent e)
@@ -121,17 +125,24 @@ class ZSWin_Handler : EventHandler
 		// Log the cursor location
 		SendNetworkEvent(string.Format("zswin_cursorLocationLog:%d:%d", e.MouseX, e.MouseY));
 		SendNetworkEvent("zswin_cursorActionLog", e.Type);
+		SendNetworkEvent("zswin_ActiveGibZone", e.Type);
 		
 		switch (e.Type)
 		{
+			case UiEvent.Type_None:			
+				break;
 			case UiEvent.Type_KeyDown:
 				// This results in a NetworkProcess_String call where the QuikClose check is processed
 				SendNetworkEvent(string.format("zswin_quikCloseCheck:%s", e.KeyString));
+				break;
+			case UiEvent.Type_KeyRepeat:
 				break;
 			case UiEvent.Type_KeyUp:
 				if (KeyBindings.NameKeys(Bindings.GetKeysForCommand("zswin_cmd_cursorToggle"), 0) ~== e.KeyString)
 					SendNetworkEvent("zswin_UI_cursorToggle");
 				break;
+			case UiEvent.Type_Char:
+			case UiEvent.Type_MouseMove:
 			case UiEvent.Type_LButtonDown:
 			case UiEvent.Type_LButtonUp:
 			case UiEvent.Type_LButtonClick:
@@ -144,6 +155,7 @@ class ZSWin_Handler : EventHandler
 			case UiEvent.Type_WheelUp:
 			case UiEvent.Type_WheelDown:
 			default:
+				// No error here - just got First/Last Mouse Event - what even are those?
 				break;
 		}
 		return false;
@@ -186,6 +198,8 @@ class ZSWin_Handler : EventHandler
 			bStringProcessed = false;
 			CursorState = intToCursorState(e.Args[0]);
 		}
+		if (e.Name ~== "zswin_ActiveGibZone")
+			ActiveGibZoning(e.Args[0]);
 		// Debugging Check
 		if (e.Name ~== "zswin_debugToggle")
 		{
@@ -380,6 +394,77 @@ class ZSWin_Handler : EventHandler
 		}
 	}
 	
+	private void ActiveGibZoning(CRSRSTATE state)
+	{
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			for (int j = 0; j < ZSWindow(winStack[i])._GetTextSize(); j++)
+			{
+				ZSWindow(winStack[i])._GetText(j).ShowCheck();
+				if (ZSWindow(winStack[i])._GetText(j).Enabled)
+					ActiveGibZoning_EventCaller(ZControl_Base(ZSWindow(winStack[i])._GetText(j)), ZSWindow(winStack[i]), state);
+			}
+			for (int j = 0; j < ZSWindow(winStack[i])._GetShapeSize(); j++)
+			{
+				ZSWindow(winStack[i])._GetShape(j).ShowCheck();
+				if (ZSWindow(winStack[i])._GetShape(j).Enabled)
+					ActiveGibZoning_EventCaller(ZControl_Base(ZSWindow(winStack[i])._GetShape(j)), ZSWindow(winStack[i]), state);
+			}
+			for (int j = 0; j < ZSWindow(winStack[i])._GetButtonSize(); j++)
+			{
+				ZSWindow(winStack[i])._GetButton(j).ShowCheck();
+				if (ZSWindow(winStack[i])._GetButton(j).Enabled)
+					ActiveGibZoning_EventCaller(ZControl_Base(ZSWindow(winStack[i])._GetButton(j)), ZSWindow(winStack[i]), state);
+			}
+		}
+	}
+	
+	private void ActiveGibZoning_EventCaller(ZControl_Base control, ZSWindow nwd, CRSRSTATE state)
+	{
+		switch (state)
+		{
+			case idle:
+				control.WhileMouseIdle(nwd);
+				break;
+			case mousemove:
+				control.OnMouseMove(nwd);
+				break;
+			case leftmousedown:
+				control.OnLeftMouseDown(nwd);
+				break;
+			case leftmouseup:
+				control.OnLeftMouseUp(nwd);
+				break;
+			case leftmouseclick:
+				control.OnLeftMouseClick(nwd);
+				break;
+			case middlemousedown:
+				control.OnMiddleMouseDown(nwd);
+				break;
+			case middlemouseup:
+				control.OnMiddleMouseUp(nwd);
+				break;
+			case middlemouseclick:
+				control.OnMiddleMouseClick(nwd);
+				break;
+			case rightmousedown:
+				control.OnRightMouseDown(nwd);
+				break;
+			case rightmouseup:
+				control.OnRightMouseUp(nwd);
+				break;
+			case rightmouseclick:
+				control.OnRightMouseClick(nwd);
+				break;
+			case wheelmouseup:
+				control.OnWheelMouseDown(nwd);
+				break;
+			case wheelmousedown:
+				control.OnWheelMouseUp(nwd);
+				break;
+		}
+	}
+	
 	/*
 		Takes a window name - the unique identifier
 		and sets it to be deleted
@@ -415,26 +500,35 @@ class ZSWin_Handler : EventHandler
 	*/
 	override void RenderOverlay(RenderEvent e)
 	{
-		// Iterate through window stack, in order.
-		for (int i = 0; i < winStack.Size(); i++)
+		if (zdraw)
 		{
-			// Check that this window can be drawn for the given player.
-			if (winStack[i] ? (consoleplayer == ZSWin_Base(winStack[i]).player && ZSWin_Base(winStack[i]).GlobalShow) : false)
+			// Iterate through window stack, in order.
+			for (int i = 0; i < winStack.Size(); i++)
 			{
-				let nwd = ZSWindow(winStack[i]);
-				zsys.WindowProcess_Background(nwd);
-				zsys.WindowProcess_Border(nwd);
-				zsys.WindowProcess_Text(nwd);
-				zsys.WindowProcess_Shapes(nwd);
-				zsys.WindowProcess_Buttons(nwd);
-				zsys.WindowProcess_Graphics(nwd);
+				// Check that this window can be drawn for the given player.
+				if (winStack[i] ? (consoleplayer == ZSWin_Base(winStack[i]).player && ZSWin_Base(winStack[i]).GlobalShow) : false)
+				{
+					let nwd = ZSWindow(winStack[i]);
+					zdraw.WindowProcess_Background(nwd);
+					zdraw.WindowProcess_Border(nwd);
+					zdraw.WindowProcess_Text(nwd);
+					zdraw.WindowProcess_Shapes(nwd);
+					zdraw.WindowProcess_Buttons(nwd);
+					zdraw.WindowProcess_Graphics(nwd);
+				}
+				// This EventHandler call appears to be causing the ZScript VSCode Extension to choke.
+				// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
+				// - There is another line in the WindowProcess_Text method which causes the same issue.
+				else if (winStack[i])
+					SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
 			}
-			// This EventHandler call appears to be causing the ZScript VSCode Extension to choke.
-			// Since this is just debugging code it's perfectly safe to comment it out if working in VSCode with the ZScript Extension
-			// - There is another line in the WindowProcess_Text method which causes the same issue.
-			else if (winStack[i])
-				SendNetworkEvent(string.Format("zswin_debugOut:%s:%s", "renderProcess", string.Format("Window %s not valid for player %d", winStack[i].name, consoleplayer)));
 		}
+		else
+			console.printf("ZSCRIPT WINDOWS FATAL ERROR! NO ZDRAWER FOUND!");
+		
+		// We do not crash the game - We do not ever crash the game - We stop ZScript Windows from harming the game
+		// Any usage of ThrowAbortException will be met with extreme hostility.
+		// NO EXCEPTIONS! EVER!
 	}
 	
 	/*
@@ -447,8 +541,10 @@ class ZSWin_Handler : EventHandler
 		if (set)
 		{
 			float nwdX, nwdY;
-			[nwdX, nwdY] = zsys.realWindowLocation(nwd);
-			Screen.SetClipRect(nwdX, nwdY, nwd.Width, nwd.Height);		
+			[nwdX, nwdY] = zdraw.realWindowLocation(nwd);
+			int realWidth, realHeight;
+			[realWidth, realHeight] = zdraw.realWindowScale(nwd);
+			Screen.SetClipRect(nwdX, nwdY, realWidth, realHeight);		
 		}
 		else
 			Screen.ClearClipRect();
@@ -459,7 +555,7 @@ class ZSWin_Handler : EventHandler
 	
 	*/
 	override void WorldTick()
-	{
+	{		
 		//
 		// - Debug messages
 		//
@@ -585,10 +681,7 @@ class ZSWin_Handler : EventHandler
 		Array<ZSWin_Base> priorityStack;
 		priorityStack.Reserve(winStack.Size());
 		for (int i = 0; i < winStack.Size(); i++)
-		{
-			console.printf(string.format("winstack size: %d, priority stack size: %d, i: %d, priority: %d", winStack.Size(), priorityStack.Size(), i, winStack[i].Priority));
 			priorityStack[(priorityStack.Size() - 1) - winStack[i].Priority] = winStack[i];
-		}
 		winStack.Clear();
 		winStack.Move(priorityStack);
 	}

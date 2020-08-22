@@ -10,10 +10,10 @@ version "4.2.1"
 #include "zscript/zswin/ZSWin_Button.zs"
 // Abstract base class for anything considered a "control or interface"
 #include "zscript/zswin/ZSWin_ControlBase.zs"
-// Point of entry, event handler that draws window contents and and processes UI events
-#include "zscript/zswin/ZSWin_Handler.zs"
 // Wrapper for UI methods that draw window contents
 #include "zscript/zswin/ZSWin_Processor.zs"
+// Point of entry, event handler that draws window contents and and processes UI events
+#include "zscript/zswin/ZSWin_Handler.zs"
 // Lines and (Group)box control
 #include "zscript/zswin/ZSWin_Shapes.zs"
 // String control
@@ -30,6 +30,7 @@ version "4.2.1"
 #include "zscript/test/ZSWin_BFGTerminal.zs"
 #include "zscript/test/ZSWin_Console.zs"
 #include "zscript/test/ZSWin_MoveButton.zs"
+#include "zscript/test/ZSWin_ScaleButton.zs"
 #include "zscript/test/ZSWin_Terminal.zs"
 #include "zscript/test/ZSWin_TerminalButton.zs"
 #include "zscript/test/ZSWin_TalkImp.zs"

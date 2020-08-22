@@ -1,13 +1,14 @@
 class ZSWindow : ZSWin_Base abstract
-{
+{	
 	//
 	// Movement
 	//
-	private int lockedCursorX, lockedCursorY;
-	void LockMoveOrigin() 
+	private int lockedMoveCursorX, lockedMoveCursorY;
+	bool IsMoveLocked() { return (lockedMoveCursorX > -1 && lockedMoveCursorY > -1); }
+	void LockMoveCursorOrigin() 
 	{ 
-		lockedCursorX = zHandler.CursorX; 
-		lockedCursorY = zHandler.CursorY; 
+		lockedMoveCursorX = zHandler.CursorX; 
+		lockedMoveCursorY = zHandler.CursorY; 
 	}
 	void MoveAccumulate()
 	{
@@ -15,13 +16,40 @@ class ZSWindow : ZSWin_Base abstract
 		[diffx, diffy] = MoveDifference();
 		moveAccumulateX += diffx;
 		moveAccumulateY += diffy;
-		lockedCursorX = lockedCursorY = 0;
+		lockedMoveCursorX = lockedMoveCursorY = -1;
 	}
 	int moveAccumulateX, moveAccumulateY;
 	clearscope int, int MoveDifference()
 	{
-		if (lockedCursorX > 0 && lockedCursorY > 0)
-			return zHandler.CursorX - lockedCursorX, zHandler.CursorY - lockedCursorY;
+		if (lockedMoveCursorX > -1 && lockedMoveCursorY > -1)
+			return zHandler.CursorX - lockedMoveCursorX, zHandler.CursorY - lockedMoveCursorY;
+		else
+			return 0, 0;
+	}
+	
+	//
+	// Scaling
+	//
+	private int lockedScaleCursorX, lockedScaleCursorY;
+	bool IsScaleLocked() { return (lockedScaleCursorX > -1 && lockedScaleCursorY > -1); }
+	void LockScaleCursorOrigin() 
+	{ 
+		lockedScaleCursorX = zHandler.CursorX; 
+		lockedScaleCursorY = zHandler.CursorY; 
+	}
+	void ScaleAccumulate()
+	{
+		int diffx, diffy;
+		[diffx, diffy] = ScaleDifference();
+		scaleAccumulateX += diffx;
+		scaleAccumulateY += diffy;
+		lockedScaleCursorX = lockedScaleCursorY = -1;
+	}
+	int scaleAccumulateX, scaleAccumulateY;
+	clearscope int, int ScaleDifference()
+	{
+		if (lockedScaleCursorX > -1 && lockedScaleCursorY > -1)
+			return zHandler.CursorX - lockedScaleCursorX, zHandler.CursorY - lockedScaleCursorY;
 		else
 			return 0, 0;
 	}
@@ -88,9 +116,9 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZText> Text;
 	private Array<ZText> CopyText;
 	ui int GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
-	private int _GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
+	int _GetTextSize() { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText.Size() : Text.Size(); }
 	ui ZText GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
-	private ZText _GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
+	ZText _GetText(int i) { return (ConsoleUpdater || SysUpdate_Text) && zHandler.bDebugIsUpdating ? CopyText[i] : Text[i]; }
 	ui ZText FindText(string Name) 
 	{ 
 		for (int i = 0; i < GetTextSize(); i++) 
@@ -106,9 +134,9 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZShape> Shapes;
 	private Array<ZShape> CopyShapes;
 	ui int GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
-	private int _GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
+	int _GetShapeSize() { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes.Size() : Shapes.Size(); }
 	ui ZShape GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
-	private ZShape _GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
+	ZShape _GetShape(int i) { return SysUpdate_Shapes && zHandler.bDebugIsUpdating ? CopyShapes[i] : Shapes[i]; }
 	ui ZShape FindShape(string Name) 
 	{ 
 		for (int i = 0; i < GetShapeSize(); i++) 
@@ -124,9 +152,9 @@ class ZSWindow : ZSWin_Base abstract
 	Array<ZButton> Buttons;
 	private Array<ZButton> CopyButtons;
 	ui int GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
-	private int _GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
+	int _GetButtonSize() {return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons.Size() : Buttons.Size(); }
 	ui ZButton GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
-	private ZButton _GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
+	ZButton _GetButton(int i) { return SysUpdate_Buttons && zHandler.bDebugIsUpdating ? CopyButtons[i] : Buttons[i]; }
 	ui ZButton FindButton(string Name)
 	{
 		for (int i = 0; i < GetButtonSize(); i++)
@@ -169,7 +197,7 @@ class ZSWindow : ZSWin_Base abstract
 		if (GlobalEnabled /*&& zHandler.CursorState != zHandler.idle*/)
 		{
 			PassiveGibZoning();
-			ActiveGibZoning();
+			//ActiveGibZoning();
 		}
 	}
 	
@@ -186,8 +214,7 @@ class ZSWindow : ZSWin_Base abstract
 		int CursorX = zHandler.CursorX, 
 			CursorY = zHandler.CursorY;
 		// The the real window location
-		float nwdX, nwdY;
-		[nwdX, nwdY] = zsys.realWindowLocation(self);	
+		float nwdX, nwdY, xdis, ydis;	
 		// Get the stats of every window of higher priority
 		Array<WindowStats> higherStats;
 		for (int i = zHandler.GetStackIndex(self) + 1; i < zHandler.GetStackSize(); i++)
@@ -195,6 +222,24 @@ class ZSWindow : ZSWin_Base abstract
 		
 		for (int i = 0; i < Buttons.Size(); i++)
 		{
+			switch(_GetButton(i).ScaleType)
+			{
+				case ZControl_Base.scalex:
+					[nwdX, ydis] = zHandler.zdraw.realControlScaledLocation(self);
+					[xdis, nwdY] = zHandler.zdraw.realWindowLocation(self);
+					break;
+				case ZControl_Base.scaley:
+					[xdis, nwdY] = zHandler.zdraw.realControlScaledLocation(self);
+					[nwdX, ydis] = zHandler.zdraw.realWindowLocation(self);
+					break;
+				case ZControl_Base.scaleboth:
+					[nwdX, nwdY] = zHandler.zdraw.realControlScaledLocation(self);
+					break;
+				default:
+					[nwdX, nwdY] = zHandler.zdraw.realWindowLocation(self);
+					break;
+			}
+			
 			if (_GetButton(i).Enabled)
 			{
 				// Check if the mouse is over a button - do this first to skip the next part
@@ -312,68 +357,6 @@ class ZSWindow : ZSWin_Base abstract
 		}
 	}
 	
-	private void ActiveGibZoning()
-	{
-		for (int i = 0; i < _GetTextSize(); i++)
-		{
-			_GetText(i).ShowCheck();
-			if (_GetText(i).Enabled)
-				ActiveGibZoning_EventCaller(ZControl_Base(_GetText(i)));
-		}
-		for (int i = 0; i < _GetShapeSize(); i++)
-		{
-			_GetShape(i).ShowCheck();
-			if (_GetShape(i).Enabled)
-				ActiveGibZoning_EventCaller(ZControl_Base(_GetShape(i)));
-		}
-		for (int i = 0; i < _GetButtonSize(); i++)
-		{
-			_GetButton(i).ShowCheck();
-			if (_GetButton(i).Enabled)
-				ActiveGibZoning_EventCaller(ZControl_Base(_GetButton(i)));
-		}
-	}
-	
-	private void ActiveGibZoning_EventCaller(ZControl_Base control)
-	{
-		switch (zHandler.CursorState)
-		{
-			case zHandler.leftmousedown:
-				control.OnLeftMouseDown(self);
-				break;
-			case zHandler.leftmouseup:
-				control.OnLeftMouseUp(self);
-				break;
-			case zHandler.leftmouseclick:
-				control.OnLeftMouseClick(self);
-				break;
-			case zHandler.middlemousedown:
-				control.OnMiddleMouseDown(self);
-				break;
-			case zHandler.middlemouseup:
-				control.OnMiddleMouseUp(self);
-				break;
-			case zHandler.middlemouseclick:
-				control.OnMiddleMouseClick(self);
-				break;
-			case zHandler.rightmousedown:
-				control.OnRightMouseDown(self);
-				break;
-			case zHandler.rightmouseup:
-				control.OnRightMouseUp(self);
-				break;
-			case zHandler.rightmouseclick:
-				control.OnRightMouseClick(self);
-				break;
-			case zHandler.wheelmouseup:
-				control.OnWheelMouseDown(self);
-				break;
-			case zHandler.wheelmousedown:
-				control.OnWheelMouseUp(self);
-				break;
-		}
-	}
-	
 	/*
 		This method defaults everything to safe values.
 		
@@ -386,8 +369,10 @@ class ZSWindow : ZSWin_Base abstract
 		ConsoleUpdater = false;
 		Width = Height = 0;
 		xLocation = yLocation = 0.0;
-		lockedCursorX = lockedCursorY = 0;
+		lockedMoveCursorX = lockedMoveCursorY = -1;
 		moveAccumulateX = moveAccumulateY = 0;
+		lockedScaleCursorX = lockedScaleCursorX = -1;
+		scaleAccumulateX = scaleAccumulateY = 0;
 		
 		BackgroundType = noBackground;
 		BackgroundAlpha = 1.0;
