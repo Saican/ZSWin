@@ -1261,7 +1261,7 @@ class ZDrawer
 						{
 							// WindowClip takes into account both moving and scaling of the window
 							nwd.zHandler.WindowClip(nwd);
-							screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
+							screen.DrawTexture(nwd.GetButton(i).ButtonTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[nwd.GetButton(i).State] : nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[0],
 											false, 
 											nwdX + nwd.GetButton(i).xLocation, 
 											nwdY + nwd.GetButton(i).yLocation,
@@ -1274,7 +1274,7 @@ class ZDrawer
 						else
 						{							
 							int tx, ty, w = 0;
-							Vector2 txy = TexMan.GetScaledSize(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId);
+							Vector2 txy = TexMan.GetScaledSize(nwd.GetButton(i).ButtonTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[nwd.GetButton(i).State] : nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[0]);
 							tx = txy.x;
 							ty = txy.y;
 							Screen.SetClipRect(clipx, clipy, wdth, hght);
@@ -1283,7 +1283,7 @@ class ZDrawer
 								int h = 0;
 								do
 								{
-									Screen.DrawTexture (nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId, 
+									Screen.DrawTexture (nwd.GetButton(i).ButtonTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[nwd.GetButton(i).State] : nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[0], 
 										false,
 										nwdX + nwd.GetButton(i).xLocation + (tx * w),
 										nwdY + nwd.GetButton(i).yLocation + (ty * h),
@@ -1374,7 +1374,7 @@ class ZDrawer
 					case ZButton.check:
 						nwd.zHandler.WindowClip(nwd);
 						screen.SetClipRect(clipx, clipy, wdth, hght);
-						screen.DrawTexture(nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).btnTextures[0].dar_TextureSet[nwd.GetButton(i).State].txtId : nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId,
+						screen.DrawTexture(nwd.GetButton(i).ButtonTextures[0].dar_TextureSet.Size() > 1 ? nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[nwd.GetButton(i).State] : nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[0],
 										false, 
 										nwdX + nwd.GetButton(i).xLocation, 
 										nwdY + nwd.GetButton(i).yLocation,
@@ -1386,23 +1386,23 @@ class ZDrawer
 					case ZButton.zbtn:
 						TextureId leftSide, middle, rightSide;
 						// Do we have more at least one TextureSet?
-						if (nwd.GetButton(i).btnTextures.Size() > 0)
+						if (nwd.GetButton(i).ButtonTextures.Size() > 0)
 						{
 							// We do, so check if there's 3 sets with exactly 3 textures each
-							if (nwd.GetButton(i).btnTextures.Size() == 3 &&
-								nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet.Size() == 3)
+							if (nwd.GetButton(i).ButtonTextures.Size() == 3 &&
+								nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet.Size() == 3)
 							{
-								leftSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[0].txtId;
-								middle = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[1].txtId;
-								rightSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[2].txtId;
+								leftSide = nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet[0];
+								middle = nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet[1];
+								rightSide = nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet[2];
 							}
 							// There's not, so check if there's 3 sets with at least one texure each
-							else if (nwd.GetButton(i).btnTextures.Size() == 3 &&
-									nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet.Size() > 0)
-								leftSide = middle = rightSide = nwd.GetButton(i).btnTextures[nwd.GetButton(i).State].dar_TextureSet[0].txtId;
+							else if (nwd.GetButton(i).ButtonTextures.Size() == 3 &&
+									nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet.Size() > 0)
+								leftSide = middle = rightSide = nwd.GetButton(i).ButtonTextures[nwd.GetButton(i).State].dar_TextureSet[0];
 							// Ok, theres at least one texture set, so check it has something in it and use it!
-							else if (nwd.GetButton(i).btnTextures[0].dar_TextureSet.Size() > 0)
-								leftSide = middle = rightSide = nwd.GetButton(i).btnTextures[0].dar_TextureSet[0].txtId;
+							else if (nwd.GetButton(i).ButtonTextures[0].dar_TextureSet.Size() > 0)
+								leftSide = middle = rightSide = nwd.GetButton(i).ButtonTextures[0].dar_TextureSet[0];
 							// Something is really wrong, just stop.
 							else
 								break;
