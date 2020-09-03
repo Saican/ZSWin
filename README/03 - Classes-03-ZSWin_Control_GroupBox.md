@@ -20,7 +20,7 @@
 ------------
 
 
-[Back to Class Detail Links](https://github.com/Saican/ZSWin/blob/master/README/05%20-%20Classes.md)
+[Back to Class Detail Links](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes.md)
 
 ------------
 
