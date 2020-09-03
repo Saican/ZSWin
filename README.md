@@ -33,11 +33,13 @@ This isn't necessarily the required load order, but should ensure there are no p
  
 
 **Documentation**
+ - Please note that documentation of ZScript Windows is as much a work in progress as the project itself.  If you have question, please feel free to ask them on the forum.
  - [Introduction](https://github.com/Saican/ZSWin/blob/master/README/01%20-%20ZScript%20Windows.md)
- - [Creating a ZWindow](https://github.com/Saican/ZSWin/blob/master/README/02%20-%20Creating%20a%20ZWindow.md)
- - [Receiving Mouse Events](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Receiving%20Mouse%20Events.md)
- - [GibZoning](https://github.com/Saican/ZSWin/blob/master/README/04%20-%20GibZoning.md)
- - [Class Detail Links](https://github.com/Saican/ZSWin/blob/master/README/05%20-%20Classes.md)
+ - [Code Conventions](https://github.com/Saican/ZSWin/blob/master/README/02%20-%20Conventions.md)
+ - [Class Detail Links](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes.md)
+ - [Packets](https://github.com/Saican/ZSWin/blob/master/README/04%20-%20Packets.md)
+ - [Creating a ZWindow](https://github.com/Saican/ZSWin/blob/master/README/05%20-%20Creating%20a%20ZWindow.md)
+ - [Receiving Mouse Events](https://github.com/Saican/ZSWin/blob/master/README/06%20-%20Receiving%20Mouse%20Events.md)
  
  
  ##### Disclaimer
