@@ -1,4 +1,4 @@
-# ZScript Windows v0.1
+# ZScript Windows v0.3
 
 ![](https://github.com/Saican/ZSWin/blob/master/README/ZSWin_Logo.png)
 
