@@ -1,4 +1,0 @@
-gameinfo
-{
-	AddEventHandlers = "ZSWin_Handler"
-}
