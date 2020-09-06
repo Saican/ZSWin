@@ -6,7 +6,7 @@
  #### Notice On Project Language
  - Github doesn't know what it's talking about, this project is written in ZScript, not "ZenScript".
  
- ## Notice On Updates
+ #### Notice On Updates
  - To avoid problems, there will be only one commit to the master branch per day at 12AM - CST, unless otherwise specified, **and so long as there are changes to commit**.
  - This will be done silently, commit or no commit. I do not use social media besides the ZDoom forum and I will not be spamming them with update messages.
  
