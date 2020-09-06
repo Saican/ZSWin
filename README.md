@@ -1,17 +1,14 @@
-# ZScript Windows
+# ZScript Windows v0.3
 ![](https://github.com/Saican/ZSWin/blob/master/README/ZSWin_Logo.png)
-
-## Notice Regarding Current Project Status
- - While I've been silent since the initial flurry of activity, I have not been idle.  As it is said, "even the best laid plans seldom survive first contact with the enemy."  Version 0.1 of ZScript Windows is a resounding dud, due to several fundamental design flaws.  The next release will be v0.3, the intermediate version was scrapped as well, and will be released when it is ready.  No timeframe, given, I don't do this for a living, so I will release when I get it done; v0.3 is not feature-complete, it reconstructs the functionality of v0.1 with significan pre-planning in place for further features.  Finally v0.1 and v0.3 are completely and utterly incompatible - similar but incompatible.
-
-## Notice On Updates
- - To avoid problems, there will be only one commit to the master branch per day at 12AM - CST, unless otherwise specified, **and so long as there are changes to commit**.
- - This will be done silently, commit or no commit. I do not use social media besides the ZDoom forum and I will not be spamming them with update messages.
 
 ### Z-Windows is reborn!  ZScript Windows is a full rewrite of the GDCC-based GUI API in ZScript!
  
  #### Notice On Project Language
- - ZScript Windows is written in the (G)ZDoom scripting language called ZScript.  Github is saying the project is written in "ZenScript", which is wrong.  ZScript is a lot like C++.
+ - Github doesn't know what it's talking about, this project is written in ZScript, not "ZenScript".
+ 
+ ## Notice On Updates
+ - To avoid problems, there will be only one commit to the master branch per day at 12AM - CST, unless otherwise specified, **and so long as there are changes to commit**.
+ - This will be done silently, commit or no commit. I do not use social media besides the ZDoom forum and I will not be spamming them with update messages.
  
  #### Requirements
  - Version of [(G)ZDoom](https://zdoom.org/downloads) that supports ZScript version 4.2.1 or higher
