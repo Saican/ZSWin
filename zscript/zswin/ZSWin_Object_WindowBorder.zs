@@ -43,4 +43,5 @@ class ZBorder
 		Side_Left, Side_Right;
 		
 	int BorderWidth, BorderHeight;
+	bool Animate;
 }

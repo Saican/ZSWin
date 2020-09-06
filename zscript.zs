@@ -1,36 +1,42 @@
 version "4.2.1"
 
-// Files are included alphabetically
+//
+// REQUIRED FILES
+//
 
-// Abstract class for all windows
-#include "zscript/zswin/ZSWin_Base.zs"
-// Window border definition
-#include "zscript/zswin/ZSWin_Border.zs"
-// Button control
-#include "zscript/zswin/ZSWin_Button.zs"
-// Abstract base class for anything considered a "control or interface"
-#include "zscript/zswin/ZSWin_ControlBase.zs"
-// Wrapper for UI methods that draw window contents
-#include "zscript/zswin/ZSWin_Drawer.zs"
-// Point of entry, event handler that draws window contents and and processes UI events
-#include "zscript/zswin/ZSWin_Handler.zs"
-// Lines and (Group)box control
-#include "zscript/zswin/ZSWin_Shapes.zs"
-// String control
-#include "zscript/zswin/ZSWin_Text.zs"
-// Texture related shenanigans - utitlity for passing TextureIds around
+// SP-AVL Tree
+#include "zscript/ZABST/ZABST.zs"
+
+// ZScript Windows Internals
+#include "zscript/zswin/ZSWin_EventSystem.zs"
+#include "zscript/zswin/ZSWin_HandlerUtil.zs"
+#include "zscript/zswin/ZSWin_CursorPacket.zs"
+#include "zscript/zswin/ZSWin_EventPacket.zs"
+#include "zscript/zswin/ZSWin_WindowPacket.zs"
 #include "zscript/zswin/ZSWin_TextureUtil.zs"
-// Specific window storage utlity class
-#include "zscript/zswin/ZSWin_WindowUtil.zs"
-// Full window base class
-#include "zscript/zswin/ZSWindow.zs"
+
+// ZScript Windows Controls
+#include "zscript/zswin/ZSWin_Object_Base.zs"
+#include "zscript/zswin/ZSWin_Control_Base.zs"
+#include "zscript/zswin/ZSWin_Control_Button.zs"
+//#include "zscript/zswin/ZSWin_Object_GroupBox.zs"
+#include "zscript/zswin/ZSWin_Control_Text.zs"
+#include "zscript/zswin/ZSWin_Object_Window.zs"
+#include "zscript/zswin/ZSWin_Object_WindowBorder.zs"
+
+//
+// OPTIONAL FILES
+//
+
+// Internal ZSWindows objects
+//#include "zscript/zswin/internal/ZSWin_Console.zs"
+#include "zscript/zswin/internal/ZSWin_CloseButton.zs"
+#include "zscript/zswin/internal/ZSWin_MoveButton.zs"
+#include "zscript/zswin/internal/ZSWin_ScaleButton.zs"
 
 // Demonstration/Testing files
-#include "zscript/test/ZSWin_BFGButton.zs"
-#include "zscript/test/ZSWin_BFGTerminal.zs"
-#include "zscript/test/ZSWin_Console.zs"
-#include "zscript/test/ZSWin_MoveButton.zs"
-#include "zscript/test/ZSWin_ScaleButton.zs"
-#include "zscript/test/ZSWin_Terminal.zs"
-#include "zscript/test/ZSWin_TerminalButton.zs"
-#include "zscript/test/ZSWin_TalkImp.zs"
+#include "zscript/zswin/demo/ZSWin_BFGButton.zs"
+#include "zscript/zswin/demo/ZSWin_BFGWindow.zs"
+//#include "zscript/zswin/demo/ZSWin_ImpFollowButton.zs"
+#include "zscript/zswin/demo/ZSWin_ImpWindow.zs"
+#include "zscript/zswin/demo/ZSWin_TalkImp.zs"
