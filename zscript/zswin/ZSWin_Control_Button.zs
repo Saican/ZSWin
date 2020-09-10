@@ -629,7 +629,6 @@ class ZButton : ZControl abstract
 				int cw, ch;
 				if (control is "ZControl")
 				{
-					console.printf("checking control");
 					cw = control.Width;
 					ch = control.Height;
 					
@@ -656,14 +655,11 @@ class ZButton : ZControl abstract
 				}
 				else
 					return false;
-				console.printf("checking control %s dimensions x: %f, y: %f, w: %d, h: %d", control.Name, cx, cy, cw, ch);
+				
 				if (control && 
 					cx < crsrx && crsrx < cx + cw &&
 					cy < crsry && crsry < cy + ch)
-					{
-						console.printf("button is under other control");
 					return false;
-					}
 			}
 		}
 		
@@ -684,11 +680,9 @@ class ZButton : ZControl abstract
 				break;
 			// no need for default
 		}
-		console.printf("checking control %s dimensions x: %f, y: %f, w: %d, h: %d", self.Name, tx, ty, self.Width, self.Height);
 		if (tx < crsrx && crsrx < tx + self.Width &&
 			ty < crsry && crsry < ty + self.Height)
 			return super.ValidateCursorLocation();
-		console.printf("cursor is not on button");
 		return false;
 	}
 	

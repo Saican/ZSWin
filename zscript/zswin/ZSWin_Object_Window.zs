@@ -106,6 +106,47 @@ class ZSWindow : ZObjectBase abstract
 	// Controls
 	//
 	private array<ZObjectBase> windowControls;
+	
+	private int focusStackIndex;
+	private bool ignorePostDuplicate;
+	void PostFocusIndex(int FocusIndex, bool Ignore = false) 
+	{
+		if (!ignorePostDuplicate)
+		{
+			focusStackIndex = FocusIndex; 
+			windowControls[FocusIndex].EventInvalidate();
+			ignorePostDuplicate = Ignore;
+		}
+	}
+	/* 
+		This method breaks with naming conventions because it needs to be public
+		but should never be called by the user.
+	*/
+	void controlPrioritySwitch()
+	{
+		if (windowControls[focusStackIndex].Priority > 0)
+		{
+			array<int> plist;
+			for (int i = 0; i < windowControls.Size(); i++)
+			{
+				if (i == focusStackIndex)
+					plist.Push(0);
+				else if (windowControls[i].Priority < windowControls.Size() - 1)
+					plist.Push(windowControls[i].Priority + 1);
+				else
+					plist.Push(windowControls[i].Priority);
+			}
+			
+			if (plist.Size() == windowControls.Size())
+			{
+				for (int i = 0; i < plist.Size(); i++)
+					windowControls[i].Priority = plist[i];
+			}
+		}
+		
+		focusStackIndex = -1;
+	}
+	
 	clearscope int GetControlSize() { return windowControls.Size(); }
 	clearscope uint GetControlIndex(ZObjectBase zobj) { return windowControls.Find(zobj); }
 	clearscope ZObjectBase GetControlByIndex(int i) { return windowControls[i]; }
@@ -219,6 +260,7 @@ class ZSWindow : ZObjectBase abstract
 	ZSWindow Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1)
 	{
+		focusStackIndex = -1;
 		lockedMoveCursorX = lockedMoveCursorY = -1;
 		moveAccumulateX = moveAccumulateY = 0;
 		lockedScaleCursorX = lockedScaleCursorX = -1;
@@ -242,6 +284,32 @@ class ZSWindow : ZObjectBase abstract
 			
 			super.Tick();
 		}
+	}
+	
+	override bool ZObj_UiTick()
+	{
+		// Control focusing
+		if (focusStackIndex > -1)
+			zEvent.SendNetworkEvent("zswin_WindowControlsToSetFocus", zEvent.GetStackIndex(self));
+		
+		// Control UiTicking
+		for (int i = 0; i < windowControls.Size(); i++)
+		{
+			if (windowControls[i].ZObj_UiTick())
+				return true;
+		}
+		
+		return super.ZObj_UiTick();
+	}
+	
+	override bool ZObj_NetProcess(ZEventPacket e)
+	{
+		for (int i = 0; i < windowControls.Size(); i++)
+		{
+			if (windowControls[i].ZObj_NetProcess(e))
+				return true;
+		}
+		return super.ZObj_NetProcess(e);
 	}
 	
 	/*

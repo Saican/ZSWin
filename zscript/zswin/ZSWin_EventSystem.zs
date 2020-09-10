@@ -264,7 +264,8 @@ class ZEventSystem : ZSHandlerUtil
 				break;
 			case UiEvent.Type_KeyDown:
 				// This results in a NetworkProcess_String call where the QuikClose check is processed
-				SendNetworkEvent(string.format("zswin_QuikCloseCheck:%s", e.KeyString));
+				// KeyString is used to check various binds, KeyChar is used to check specific keys (Esc and tilde)
+				SendNetworkEvent(string.format("zswin_QuikCloseCheck:%s", e.KeyString), e.KeyChar);
 				break;
 			case UiEvent.Type_KeyRepeat:
 				break;
@@ -334,6 +335,10 @@ class ZEventSystem : ZSHandlerUtil
 				SendNetworkEvent(incomingEvents[i].EventName, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
 			SendNetworkEvent("zswin_ClearIncomingUIEvents");
 		}
+		
+		// Call the window UiTick - this is done last, all other things should be done so
+		// this should be a safe place for windows to do their thing.
+		zobjUiTick();
 	}
 	
 	/*
@@ -368,12 +373,15 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_AddPacketsToIncoming,
 		ZNCMD_AddObjectToGlobalObjects,
 		ZNCMD_ControlUpdate,
+		ZNCMD_WindowControlFocus,
+		
 		ZNCMD_ManualStackSizeOut,
 		ZNCMD_ManualStackPriorityOut,
 		ZNCMD_ManualGlobalZObjectCount,
 		ZNCMD_ManualEventGlobalCount,
 		ZNCMD_ManualGlobalNamePrint,
 		ZNCMD_ManualGetTreeBalance,
+		
 		ZNCMD_TryString,
 	};
 	
@@ -382,6 +390,7 @@ class ZEventSystem : ZSHandlerUtil
 	*/
 	private ZNETCMD stringToZNetworkCommand(string e)
 	{
+		// Internal commands - in no particular order other than when they got added in
 		if (e ~== "zswin_AddIncomingToStack")
 			return ZNCMD_AddIncoming;
 		if (e ~== "zswin_PrioritySwitch")
@@ -412,6 +421,10 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_AddObjectToGlobalObjects;
 		if (e ~== "zswin_ControlUpdate")
 			return ZNCMD_ControlUpdate;
+		if (e ~== "zswin_WindowControlsToSetFocus")
+			return ZNCMD_WindowControlFocus;
+		
+		// Manual Commands
 		if (e ~== "zswin_stacksizeout")
 			return ZNCMD_ManualStackSizeOut;
 		if (e ~== "zswin_stackpriorityout")
@@ -424,6 +437,7 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_ManualGlobalNamePrint;
 		if (e ~== "zswin_gettreebalance")
 			return ZNCMD_ManualGetTreeBalance;
+		// All else fails, try to string process the command
 		else
 			return ZNCMD_TryString;
 	}
@@ -470,6 +484,8 @@ class ZEventSystem : ZSHandlerUtil
 				case ZNCMD_AddObjectToGlobalObjects:
 					passIncomingToGlobalObjects();
 					break;
+				case ZNCMD_WindowControlFocus:
+					windowControlFocus(e.Args[0]);
 				// String Processing
 				default:
 					NetworkProcess_String(e);
@@ -500,6 +516,8 @@ class ZEventSystem : ZSHandlerUtil
 					break;
 			}
 		}
+		
+		NetworkProcess_NetCommands(new("ZEventPacket").Init(e.Name, e.Args[0], e.Args[1], e.Args[2], e.Player, e.IsManual));
 	}
 	
 	/*
@@ -521,7 +539,7 @@ class ZEventSystem : ZSHandlerUtil
 					AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
 					break;
 				case ZNCMD_QuickCloseCheck:
-					quickCloseCheck(cmdc[1]);
+					quickCloseCheck(cmdc[1], e.Args[0]);
 					break;
 			}
 		}
@@ -539,6 +557,15 @@ class ZEventSystem : ZSHandlerUtil
 						break; 
 				}
 			}
+		}
+	}
+	
+	private void NetworkProcess_NetCommands(ZEventPacket e)
+	{
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if (winStack[i].ZObj_NetProcess(e))
+				break;
 		}
 	}
 	
@@ -710,6 +737,32 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	void LetAllPost() { ignorePostDuplicate = false; }
+	
+	/*
+		Window controls also have a priority value.
+		Unlike windows, the priority of a control does not
+		necessarily change by just clicking on it.
+		Controls generally change their priority through
+		focus events in order to receive input.
+		
+		Regardless, windows require a UITicker equivalent.
+		This method calls that UITicker.
+		
+		The only difference is that it behaves like UiProcess,
+		the method is boolean and returning true causes the
+		method to terminate.
+	
+	*/
+	ui private void zobjUiTick()
+	{
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if(winStack[i].ZObj_UiTick())
+				break;
+		}
+	}
+	
+	private void windowControlFocus(int StackIndex) { ZSWindow(winstack[StackIndex]).controlPrioritySwitch(); }
 	
 	private void windowShowCheckEnabled(int wsi, bool t)
 	{
@@ -949,11 +1002,15 @@ class ZEventSystem : ZSHandlerUtil
 		Checks if the given key is any of the supportted keys for QuikClose.
 		
 		Future expansion should hopefully support Esc and tilde (~)
+		
+		Woohoo!  QuikClose now supports Esc and tilde!
 	*/
-	private void quickCloseCheck(string keyId)
+	private void quickCloseCheck(string keyId, int askey)
 	{
 		int key1, key2;
 		bool quikclose = false;
+		if (askey == 27 || askey == 96)
+			quikclose = true;
 		[key1, key2] = Bindings.GetKeysForCommand("+forward");
 		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
 			quikclose = true;

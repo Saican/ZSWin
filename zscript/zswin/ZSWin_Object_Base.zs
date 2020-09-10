@@ -83,6 +83,34 @@ class ZObjectBase : thinker abstract
 			self.Destroy();
 	}
 	
+	/*
+		This method is called by the Event System's UITick in order for
+		ZObject's to process UI information.
+		
+		This method works like UIProcess, returning true causes all further
+		calls to be aborted, thus eating everything for that tick.
+		
+		This method is public to users however it should be used with care.
+		If you override, you MUST call the super.  Simplest way is to just
+		return the super, which window and control bases will end up here.
+	
+	*/
+	ui virtual bool ZObj_UiTick() { return false; }
+	
+	/*
+		This method is called by the Event System's NetworkProcess,
+		which allows ZObjects to send and receive their own net commands.
+		
+		This method continues the trend and follows ZObj_UiTick in that
+		the method returns boolean, and true will result in further
+		NetProcess calls being aborted.  Same thing applies, just call the super.
+		
+		Unlike it's command parent, this method takes an Event Packet for
+		its event arguments.
+	
+	*/
+	virtual bool ZObj_NetProcess(ZEventPacket e) { return false; }
+	
 	bool GetZHandler() 
 	{
 		ZEvent = ZEventSystem(EventHandler.Find("ZEventSystem"));

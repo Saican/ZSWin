@@ -41,6 +41,18 @@ class ZText : ZControl
 		return null;
 	}
 	
+	override bool ZObj_UiTick()
+	{
+		// If this control dynamically wraps its text it needs to update its broken lines
+		// prior to the next draw.  This is done from sending an AddToUITicker event.
+		// This event is actually sending 2 events, AddToUITicker and ControlUpdate.
+		// AddToUITicker will put ControlUpdate and everything else into an event packet
+		// for processing by the UITicker.
+		if (TextWrap == TXTWRAP_Dynamic)
+			ZEvent.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", self.Name));
+		return super.ZObj_UiTick();
+	}
+	
 	override void ObjectUpdate()
 	{
 		BrokenLines newLines;
@@ -103,13 +115,6 @@ class ZText : ZControl
 	override void ObjectDraw(ZObjectBase parent)
 	{
 		ObjectDraw_Text(parent, self);
-		// If this control dynamically wraps its text it needs to update its broken lines
-		// prior to the next draw.  This is done from sending an AddToUITicker event.
-		// This event is actually sending 2 events, AddToUITicker and ControlUpdate.
-		// AddToUITicker will put ControlUpdate and everything else into an event packet
-		// for processing by the UITicker.
-		if (TextWrap == TXTWRAP_Dynamic)
-			ZEvent.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", self.Name));
 	}
 	
 	clearscope static float GetAlignment (ZText txt, float xLocation, float Width, string line)

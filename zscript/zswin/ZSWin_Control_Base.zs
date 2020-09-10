@@ -37,6 +37,17 @@ class ZControl : ZObjectBase abstract
 	}
 	
 	/*
+		.NET themed method.  This is a control's equivalent of zEvent.PostPriorityIndex.
+		
+		This tells a window that the control wants to be priority 0.
+	
+	*/
+	void SetFocus()
+	{
+		GetParentWindow(self.ControlParent).PostFocusIndex(GetParentWindow(self.ControlParent).GetControlIndex(self));
+	}
+	
+	/*
 		Recursively searches for the first encountered window and returns it.
 		
 		Set searchToFirstWindow to false to seach all the way to the end of the ControlParent chain
