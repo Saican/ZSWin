@@ -15,7 +15,7 @@ class ZText : ZControl
 	
 	int WrapWidth, TextColor;
 	
-	Font TextFont;
+	name TextFont;
 	
 	ZText Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, string Text, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_Parent, SCALETYP ScaleType = SCALE_NONE, TEXTALIGN TextAlignment = TEXTALIGN_Left,
@@ -25,7 +25,7 @@ class ZText : ZControl
 		self.Text = Text;
 		self.TextWrap = TextWrap;
 		self.WrapWidth = WrapWidth;
-		self.TextFont = Font.GetFont(TextFont);
+		self.TextFont = TextFont;
 		self.TextColor = TextColor;
 		self.xLocation = ControlParent.xLocation + xLocation;
 		self.yLocation = ControlParent.yLocation + yLocation;
@@ -56,13 +56,14 @@ class ZText : ZControl
 	override void ObjectUpdate()
 	{
 		BrokenLines newLines;
+		Font fnt = Font.GetFont(self.TextFont);
 		switch (TextWrap)
 		{
 			case TXTWRAP_Wrap:
 				if (WrapWidth > 0)
-					newLines = self.TextFont.BreakLines(self.Text, self.WrapWidth);
+					newLines = fnt.BreakLines(self.Text, self.WrapWidth);
 				else
-					newLines = self.TextFont.BreakLines(self.Text, self.ControlParent.Width);
+					newLines = fnt.BreakLines(self.Text, self.ControlParent.Width);
 				break;
 			case TXTWRAP_Dynamic:
 				int cw, ch;
@@ -105,7 +106,7 @@ class ZText : ZControl
 						cw = screen.GetWidth();
 						break;
 				}
-				newLines = self.TextFont.BreakLines(self.Text, cw);
+				newLines = fnt.BreakLines(self.Text, cw);
 				break;
 		}
 		
@@ -119,15 +120,16 @@ class ZText : ZControl
 	
 	clearscope static float GetAlignment (ZText txt, float xLocation, float Width, string line)
 	{
+		Font fnt = Font.GetFont(txt.TextFont);
 		switch (txt.TextAlignment)
 		{
 			default:
 			case TEXTALIGN_Left: 
 				return xLocation;
 			case TEXTALIGN_Right: 
-				return (xLocation + Width) - txt.TextFont.StringWidth(line);
+				return (xLocation + Width) - fnt.StringWidth(line);
 			case TEXTALIGN_Center: 
-				return xLocation + ((Width - txt.TextFont.StringWidth(line)) / 2);
+				return xLocation + ((Width - fnt.StringWidth(line)) / 2);
 		}
 	}
 	
@@ -212,16 +214,16 @@ class ZText : ZControl
 					else
 					{
 						for (int i = 0; i < txt.WrappedText.Count(); i++)
-							Screen.DrawText(txt.TextFont,
+							Screen.DrawText(Font.GetFont(txt.TextFont),
 											txt.TextColor,
 											GetAlignment(txt, sxloc, pclipWdth, txt.WrappedText.StringAt(i)),
-											syloc + (i * txt.TextFont.GetHeight()),
+											syloc + (i * Font.GetFont(txt.TextFont).GetHeight()),
 											txt.WrappedText.StringAt(i),
 											DTA_Alpha, txt.Alpha);
 					}
 					break;
 				default:
-					Screen.DrawText(txt.TextFont,
+					Screen.DrawText(Font.GetFont(txt.TextFont),
 									txt.TextColor,
 									GetAlignment(txt, sxloc, pclipWdth, txt.Text),
 									syloc,
