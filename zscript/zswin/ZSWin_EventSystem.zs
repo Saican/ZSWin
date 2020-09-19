@@ -126,11 +126,7 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		Cursor packet - contains the cursor data
 	*/
-	private ZCRSRPKT cursor;
-	private ZCRSRPKT incomingCursor;
-	clearscope ZCRSRPKT GetCursorData() { return cursor; }
-	clearscope int, int GetCursorLocation() { return cursor.CursorX, cursor.CursorY; }
-	clearscope int GetCursorEvent() { return cursor.CursorEvent; }
+	private ZUIEventPacket cursor;
 	
 	/*
 		Event packets - this is for events that need executed by UITick
@@ -163,6 +159,7 @@ class ZEventSystem : ZSHandlerUtil
 		priorityStackIndex = -1;
 		ignorePostDuplicate = false;
 		allZObjects = new("ZABST").Init();
+		cursor = new("ZUIEventPacket").Init(0, "", 0, 0, 0, false, false, false);
 	}
 	
 	/*
@@ -227,6 +224,7 @@ class ZEventSystem : ZSHandlerUtil
 		// If you can't tell, I HATE this WorldLineActivated thing.  I mean - seriously - it has to be protected like this,
 		// it can get called from any old line that get activated with the damn UDMF variables - this restricts it to UDMF
 		// maps.  This method sucks, just plain sucks.  I don't like it.  And I hate supporting it.  Simple as that.
+		console.Printf("ZScript Windows would like to thank you for wasting processing time searching the AllClasses array for the class name, %s, which is an invalid class name.\nPlease fix your mod, or alert the mod author, to the problem - this is an unacceptable waste of processing time and this feature will be removed if it is abused.");
 		return false;
 	}
 	
@@ -253,10 +251,7 @@ class ZEventSystem : ZSHandlerUtil
 	
 	*/
 	override bool UiProcess(UiEvent e)
-	{
-		// Log the cursor location and event for playism use
-		SendNetworkEvent(string.Format("zswin_PrepareUpdateCursorData:%d:%d", e.MouseX, e.MouseY), e.Type);
-		
+	{		
 		// Handler Events - This is anything specific the handler needs to do based on an input.
 		switch (e.Type)
 		{
@@ -291,6 +286,15 @@ class ZEventSystem : ZSHandlerUtil
 				// No error here - just got First/Last Mouse Event - what even are those?
 				break;
 		}
+		
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
+				break;
+		}
+		
+		SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%s:%d:%d:%d", e.Type, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
+		
 		return false;
 	}
 	
@@ -303,11 +307,17 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		// This is here for startup - gotta have a valid cursor packet
 		// Obviously this one is empty
-		if (!cursor && !incomingCursor)
-			SendNetworkEvent(string.Format("zswin_PrepareUpdateCursorData:%d:%d", 0, 0), 0);
+		//if (!cursor && !incomingCursor)
+			//SendNetworkEvent(string.Format("zswin_PrepareUpdateCursorData:%d:%d", 0, 0), 0);
 		// This is what will normally be called - this gets the cursor data from the last UiProcess execution
-		else
-			SendNetworkEvent("zswin_UpdateCursorData");
+		//else
+			//SendNetworkEvent("zswin_UpdateCursorData");
+		
+		// Input
+		//if (!keyInput && !incomingKeyInput)
+			//SendNetworkEvent(string.Format("zswin_PrepareUpdateInputData", "a"), false, false, false);
+		//else
+			//SendNetworkEvent("zswin_UpdateInputData");
 				
 		// Call Window Events
 		SendNetworkEvent("zswin_CallWindowEvents");
@@ -360,7 +370,6 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		ZNCMD_AddIncoming,
 		ZNCMD_PrioritySwitch,
-		ZNCMD_PrepareUpdateCursorData,
 		ZNCMD_UpdateCursorData,
 		ZNCMD_AddToUITicker,
 		ZNCMD_ClearUIIncoming,
@@ -373,7 +382,6 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_AddPacketsToIncoming,
 		ZNCMD_AddObjectToGlobalObjects,
 		ZNCMD_ControlUpdate,
-		ZNCMD_WindowControlFocus,
 		
 		ZNCMD_ManualStackSizeOut,
 		ZNCMD_ManualStackPriorityOut,
@@ -395,8 +403,6 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_AddIncoming;
 		if (e ~== "zswin_PrioritySwitch")
 			return ZNCMD_PrioritySwitch;
-		if (e ~== "zswin_PrepareUpdateCursorData")
-			return ZNCMD_PrepareUpdateCursorData;
 		if (e ~== "zswin_UpdateCursorData")
 			return ZNCMD_UpdateCursorData;
 		if (e ~== "zswin_AddToUITicker")
@@ -421,8 +427,6 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_AddObjectToGlobalObjects;
 		if (e ~== "zswin_ControlUpdate")
 			return ZNCMD_ControlUpdate;
-		if (e ~== "zswin_WindowControlsToSetFocus")
-			return ZNCMD_WindowControlFocus;
 		
 		// Manual Commands
 		if (e ~== "zswin_stacksizeout")
@@ -457,9 +461,6 @@ class ZEventSystem : ZSHandlerUtil
 				case ZNCMD_PrioritySwitch:
 					windowPrioritySwitch();
 					break;
-				case ZNCMD_UpdateCursorData:
-					updateCursorData();
-					break;
 				case ZNCMD_ClearUIIncoming:
 					clearUIEvents();
 					break;
@@ -484,8 +485,6 @@ class ZEventSystem : ZSHandlerUtil
 				case ZNCMD_AddObjectToGlobalObjects:
 					passIncomingToGlobalObjects();
 					break;
-				case ZNCMD_WindowControlFocus:
-					windowControlFocus(e.Args[0]);
 				// String Processing
 				default:
 					NetworkProcess_String(e);
@@ -532,8 +531,8 @@ class ZEventSystem : ZSHandlerUtil
 		{
 			switch(stringToZNetworkCommand(cmdc[0]))
 			{
-				case ZNCMD_PrepareUpdateCursorData:
-					prepareUpdateCursorData(cmdc[1], cmdc[2], e.Args[0]);
+				case ZNCMD_UpdateCursorData:
+					updateCursorData(cmdc[1].ToInt(), cmdc[2], cmdc[3].ToInt(), cmdc[4].ToInt(), cmdc[5].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
 					break;
 				case ZNCMD_AddToUITicker:
 					AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
@@ -762,8 +761,6 @@ class ZEventSystem : ZSHandlerUtil
 		}
 	}
 	
-	private void windowControlFocus(int StackIndex) { ZSWindow(winstack[StackIndex]).controlPrioritySwitch(); }
-	
 	private void windowShowCheckEnabled(int wsi, bool t)
 	{
 		if (t)
@@ -806,46 +803,47 @@ class ZEventSystem : ZSHandlerUtil
 			// Window must be for the current player, window must be shown, and window must be enabled to be interacted with
 			if (winStack[i].PlayerClient == consoleplayer && winStack[i].Show && winStack[i].Enabled)
 			{
-				switch (cursor.CursorEvent)
+				switch (cursor.EventType)
 				{
-					case ZCRSRPKT.CRSR_Idle:
-						winStack[i].WhileMouseIdle();
+					case ZUIEventPacket.EventType_MouseMove:
+						winStack[i].OnMouseMove(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_MouseMove:
-						winStack[i].OnMouseMove();
+					case ZUIEventPacket.EventType_LButtonDown:
+						winStack[i].OnLeftMouseDown(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_LeftMouseDown:
-						winStack[i].OnLeftMouseDown();
+					case ZUIEventPacket.EventType_LButtonUp:
+						winStack[i].OnLeftMouseUp(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_LeftMouseUp:
-						winStack[i].OnLeftMouseUp();
+					case ZUIEventPacket.EventType_LButtonClick:
+						winStack[i].OnLeftMouseClick(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_LeftMouseClick:
-						winStack[i].OnLeftMouseClick();
+					case ZUIEventPacket.EventType_MButtonDown:
+						winStack[i].OnMiddleMouseDown(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_MiddleMouseDown:
-						winStack[i].OnMiddleMouseDown();
+					case ZUIEventPacket.EventType_MButtonUp:
+						winStack[i].OnMiddleMouseUp(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_MiddleMouseUp:
-						winStack[i].OnMiddleMouseUp();
+					case ZUIEventPacket.EventType_MButtonClick:
+						winStack[i].OnMiddleMouseClick(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_MiddleMouseClick:
-						winStack[i].OnMiddleMouseClick();
+					case ZUIEventPacket.EventType_RButtonDown:
+						winStack[i].OnRightMouseDown(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_RightMouseDown:
-						winStack[i].OnRightMouseDown();
+					case ZUIEventPacket.EventType_RButtonUp:
+						winStack[i].OnRightMouseUp(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_RightMouseUp:
-						winStack[i].OnRightMouseUp();
+					case ZUIEventPacket.EventType_RButtonClick:
+						winStack[i].OnRightMouseClick(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_RightMouseClick:
-						winStack[i].OnRightMouseClick();
+					case ZUIEventPacket.EventType_WheelUp:
+						winStack[i].OnWheelMouseDown(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_WheelMouseUp:
-						winStack[i].OnWheelMouseDown();
+					case ZUIEventPacket.EventType_WheelDown:
+						winStack[i].OnWheelMouseUp(cursor.EventType);
 						break;
-					case ZCRSRPKT.CRSR_WheelMouseDown:
-						winStack[i].OnWheelMouseUp();
+					default:
+					case ZUIEventPacket.EventType_None:
+						winStack[i].WhileMouseIdle(cursor.EventType);
 						break;
 				}
 			}
@@ -1047,19 +1045,18 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
-		Creates a new cursor packet from the UIProcess data
-	*/
-	private void prepareUpdateCursorData(string scx, string scy, int t)
-	{
-		incomingCursor = new("ZCRSRPKT").Init(scx.ToInt(), scy.ToInt(), t);
-	}
-	
-	/*
 		Gets the cursor packet from the last tick.
 	*/
-	private void updateCursorData()
+	private void updateCursorData(int type, string key, int kchar, int mx, int my, bool ishft, bool ialt, bool ictrl)
 	{
-		cursor = incomingCursor;
+		cursor.EventType = type;
+		cursor.KeyString = key;
+		cursor.KeyChar = kchar;
+		cursor.MouseX = mx;
+		cursor.MouseY = my;
+		cursor.IsShift = ishft;
+		cursor.IsAlt = ialt;
+		cursor.IsCtrl = ictrl;
 	}
 	
 	/* - END OF METHODS - */

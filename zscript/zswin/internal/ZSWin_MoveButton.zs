@@ -6,8 +6,9 @@
 class ZSWin_MoveButton : ZButton
 {		
 	// Use this for mouse-over
-	override void OnMouseMove()
+	override void OnMouseMove(int t)
 	{
+		console.printf("move button called mouse over");
 		if (self.State != BSTATE_Active)
 		{
 			if (ValidateCursorLocation())
@@ -18,7 +19,7 @@ class ZSWin_MoveButton : ZButton
 	}
 
 	// Use this to set the button state to active
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		// The button uses the OnMouseMove event, which sets the state to highlight,
 		// so it's safe to check the state here.
@@ -32,7 +33,7 @@ class ZSWin_MoveButton : ZButton
 	}
 	
 	// Use this to do the action
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		/* 
 			It's not 100% safe with either moving or scaling things to rely on

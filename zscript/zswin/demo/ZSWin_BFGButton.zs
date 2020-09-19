@@ -9,7 +9,7 @@
 class BFGButton : ZButton
 {
 	// Use this for mouse-over
-	override void OnMouseMove()
+	override void OnMouseMove(int t)
 	{
 		if (ValidateCursorLocation())
 			self.State = BSTATE_Highlight;
@@ -18,7 +18,7 @@ class BFGButton : ZButton
 	}
 
 	// Use this to set the button state to active
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		// The button uses the OnMouseMove event, which sets the state to highlight,
 		// so it's safe to check the state here.
@@ -29,7 +29,7 @@ class BFGButton : ZButton
 	}
 	
 	// Use this to do the action
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		if (self.State == BSTATE_Active)
 		{

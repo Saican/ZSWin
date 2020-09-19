@@ -71,11 +71,11 @@ class ZSWin_ImpWindow : ZSWindow
 		Just like OnMouseMove, this override sends itself as the other for the
 		control events.  Same reason, ValidateCursorLocation needs it.
 	*/
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
-		super.OnLeftMouseDown();
+		super.OnLeftMouseDown(t);
 	}
 	
 	/*
@@ -83,10 +83,10 @@ class ZSWin_ImpWindow : ZSWindow
 		There's a mechanism in place to lock the system when the event is received
 		so continued event reception does not cause crashy-ness.
 	*/
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();
-		super.OnLeftMouseUp();
+		super.OnLeftMouseUp(t);
 	}
 }
 
@@ -152,20 +152,20 @@ class ZSWin_ImpSubWindow : ZSWindow
 		sets the default bool Ignore to true.  This will cause the system to ignore duplicate
 		posts from the parent window(s).
 	*/
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			zEvent.PostPriorityIndex(zEvent.GetStackIndex(GetRootWindow()), true);
-		super.OnLeftMouseDown();
+		super.OnLeftMouseDown(t);
 	}
 	
 	/*
 		Same thing as any other window, gotta unlock the event system.
 	*/
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();
-		super.OnLeftMouseUp();
+		super.OnLeftMouseUp(t);
 	}
 }
 
@@ -219,11 +219,11 @@ class ZSWin_ImpWindow2 : ZSWindow
 	/*
 		This window doesn't do anything special, so this is the basic left-click evaluation.
 	*/
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
-		super.OnLeftMouseDown();
+		super.OnLeftMouseDown(t);
 	}
 	
 	/*
@@ -242,9 +242,9 @@ class ZSWin_ImpWindow2 : ZSWindow
 		to call their super, unless there is some specific purpose, like
 		a control contains other controls that receive events.
 	*/
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();
-		super.OnLeftMouseUp();
+		super.OnLeftMouseUp(t);
 	}	
 }

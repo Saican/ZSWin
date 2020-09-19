@@ -54,6 +54,10 @@ class ZSWin_BFGWindow : ZSWindow
 		AddControl(new("ZText").Init(self, Enabled, Show, "BFGWindowTitle", "Weapon Access Station", PlayerClient, UiToggle,
 			TextWrap:ZText.TXTWRAP_Dynamic,TextFont:'bigfont', TextColor:Font.CR_Gold));
 			
+		AddControl(new("ZTextBox").Init(self, Enabled, Show, "BFGPasswordBox", PlayerClient, UiToggle,
+			BorderColor:0xff0000, BorderAlpha:0.5,
+			box_xLocation:5, box_yLocation:(self.Height - 125), Width:(self.Width - 10), Text:"What's the password?"));
+			
 		AddControl(new("BFGButton").Init(self, Enabled, Show, "BFGAccessButton", PlayerClient, UiToggle,
 			Type:ZButton.BTN_ZButton, Width:(self.Width - 20), Btn_xLocation:((self.Width - (self.Width - 20)) / 2), Btn_yLocation:(self.Height - 75), 
 			ButtonScaleType:ZControl.SCALE_Vertical, Text:"Access BFG 9000", FontName:'newsmallfont', TextAlignment:ZControl.TEXTALIGN_Center, TextWrap:ZControl.TXTWRAP_Dynamic,
@@ -66,16 +70,16 @@ class ZSWin_BFGWindow : ZSWindow
 		return null; // won't get here because of HCF, but has to be here for code completion
 	}
 	
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
-		super.OnLeftMouseDown();
+		super.OnLeftMouseDown(t);
 	}
 	
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();
-		super.OnLeftMouseUp();
+		super.OnLeftMouseUp(t);
 	}
 }

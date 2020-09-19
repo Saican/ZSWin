@@ -1,6 +1,6 @@
 [enu default]
 
-OPTMNU_ZSWINHEADING = "ZScript Windows v0.1";
+OPTMNU_ZSWINHEADING = "ZScript Windows v0.3.1";
 OPTMNU_ZSWINMNUNAME = "ZScript Windows Options";
 
 SUBMNU_ZSWINHEADER_GENERAL = "- General -";

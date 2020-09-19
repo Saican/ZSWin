@@ -84,6 +84,13 @@ class ZObjectBase : thinker abstract
 	}
 	
 	/*
+		This method is called by the Event System's UiProcess method.
+		It works exactly the same, return false if you want further
+		calls to be executed.
+	*/
+	ui virtual bool ZObj_UiProcess(ZUIEventPacket e) { return false; }
+	
+	/*
 		This method is called by the Event System's UITick in order for
 		ZObject's to process UI information.
 		
@@ -144,21 +151,21 @@ class ZObjectBase : thinker abstract
 	*/
 	virtual void ObjectUpdate() {}
 	
-	virtual void WhileMouseIdle() {}
-	virtual void OnMouseMove() {}
+	virtual void WhileMouseIdle(int t) {}
+	virtual void OnMouseMove(int t) {}
 	
-	virtual void OnLeftMouseDown() {}
-	virtual void OnLeftMouseUp() {}
-	virtual void OnLeftMouseClick() {}
+	virtual void OnLeftMouseDown(int t) {}
+	virtual void OnLeftMouseUp(int t) {}
+	virtual void OnLeftMouseClick(int t) {}
 	
-	virtual void OnMiddleMouseDown() {}
-	virtual void OnMiddleMouseUp() {}
-	virtual void OnMiddleMouseClick() {}
+	virtual void OnMiddleMouseDown(int t) {}
+	virtual void OnMiddleMouseUp(int t) {}
+	virtual void OnMiddleMouseClick(int t) {}
 	
-	virtual void OnRightMouseDown() {}
-	virtual void OnRightMouseUp() {}
-	virtual void OnRightMouseClick() {}
+	virtual void OnRightMouseDown(int t) {}
+	virtual void OnRightMouseUp(int t) {}
+	virtual void OnRightMouseClick(int t) {}
 	
-	virtual void OnWheelMouseDown() {}
-	virtual void OnWheelMouseUp() {}
+	virtual void OnWheelMouseDown(int t) {}
+	virtual void OnWheelMouseUp(int t) {}
 }

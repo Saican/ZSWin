@@ -10,8 +10,8 @@ version "4.2.1"
 // ZScript Windows Internals
 #include "zscript/zswin/ZSWin_EventSystem.zs"
 #include "zscript/zswin/ZSWin_HandlerUtil.zs"
-#include "zscript/zswin/ZSWin_CursorPacket.zs"
 #include "zscript/zswin/ZSWin_EventPacket.zs"
+#include "zscript/zswin/ZSWin_UIEventPacket.zs"
 #include "zscript/zswin/ZSWin_WindowPacket.zs"
 #include "zscript/zswin/ZSWin_TextureUtil.zs"
 
@@ -21,6 +21,7 @@ version "4.2.1"
 #include "zscript/zswin/ZSWin_Control_Button.zs"
 //#include "zscript/zswin/ZSWin_Object_GroupBox.zs"
 #include "zscript/zswin/ZSWin_Control_Text.zs"
+#include "zscript/zswin/ZSWin_Control_TextBox.zs"
 #include "zscript/zswin/ZSWin_Object_Window.zs"
 #include "zscript/zswin/ZSWin_Object_WindowBorder.zs"
 

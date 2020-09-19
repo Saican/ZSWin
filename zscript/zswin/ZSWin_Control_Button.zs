@@ -29,6 +29,8 @@ class ZButton : ZControl abstract
 	bool StretchTexture, AnimateTexture;
 	Array<TextureSet> ButtonTextures;
 	
+	int CursorX, CursorY;
+	
 	ZButton Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		BTNTYPE Type = BTN_Standard, int Width = 100, int Height = 25, float Btn_xLocation = 0, float Btn_yLocation = 0, float Btn_Alpha = 1,
 		CLIPTYP ButtonClipType = CLIP_Parent, SCALETYP ButtonScaleType = SCALE_NONE, bool StretchTexture = false, bool AnimateTexture = false, 
@@ -37,6 +39,7 @@ class ZButton : ZControl abstract
 		CLIPTYP TxtClipType = CLIP_Parent, TEXTALIGN TextAlignment = TEXTALIGN_Left, TXTWRAP TextWrap = TXTWRAP_NONE,
 		float Txt_xLocation = 0, float Txt_yLocation = 0, float Txt_Alpha = 1)
 	{
+		self.CursorX = self.CursorY = 0;
 		self.Type = Type;
 		self.Width = Width;
 		self.Height = Height;
@@ -217,6 +220,23 @@ class ZButton : ZControl abstract
 				ButtonTextures.Push(newSet);
 				break;
 		}
+	}
+	
+	override bool ZObj_UiProcess(ZUIEventPacket e) 
+	{ 
+		if (e.MouseX != CursorX || e.MouseY != CursorY)
+			zEvent.SendNetworkEvent("zbtn_updateCursorLocation", e.MouseX, e.MouseY);
+		return super.ZObj_UiProcess(e); 
+	}
+	
+	override bool ZObj_NetProcess(ZEventPacket e) 
+	{ 
+		if (e.EventName ~== "zbtn_updateCursorLocation")
+		{
+			CursorX = e.FirstArg;
+			CursorY = e.SecondArg;
+		}
+		return super.ZObj_NetProcess(e); 
 	}
 	
 	override void ObjectDraw(ZObjectBase parent)
@@ -593,10 +613,8 @@ class ZButton : ZControl abstract
 		int sw, sh;
 		[sw, sh] = nwd.ScaleDifference();
 		
-		
-		int crsrx, crsry, searchPriority;
-		[crsrx, crsry] = zEvent.GetCursorLocation();
-		console.printf(string.format("Cursor location x: %d, y: %d", crsrx, crsry));
+		// Get the cursor location and the priority of the parent window
+		int searchPriority;
 		if (nwd.ControlParent)
 			searchPriority = GetParentWindow(self.ControlParent, false).Priority;
 		else
@@ -612,8 +630,8 @@ class ZButton : ZControl abstract
 				[enwdX, enwdY] = enwd.RealWindowLocation(enwd);
 				int enwdW, enwdH;
 				[enwdW, enwdH] = enwd.RealWindowScale(enwd);
-				if (enwdX < crsrx && crsrx < enwdX + enwdW &&
-					enwdY < crsry && crsry < enwdY + enwdH)
+				if (enwdX < CursorX && CursorX < enwdX + enwdW &&
+					enwdY < CursorY && CursorY < enwdY + enwdH)
 					return false;
 			}
 		}
@@ -657,8 +675,8 @@ class ZButton : ZControl abstract
 					return false;
 				
 				if (control && 
-					cx < crsrx && crsrx < cx + cw &&
-					cy < crsry && crsry < cy + ch)
+					cx < CursorX && CursorX < cx + cw &&
+					cy < CursorY && CursorY < cy + ch)
 					return false;
 			}
 		}
@@ -680,8 +698,8 @@ class ZButton : ZControl abstract
 				break;
 			// no need for default
 		}
-		if (tx < crsrx && crsrx < tx + self.Width &&
-			ty < crsry && crsry < ty + self.Height)
+		if (tx < CursorX && CursorX < tx + self.Width &&
+			ty < CursorY && CursorY < ty + self.Height)
 			return super.ValidateCursorLocation();
 		return false;
 	}

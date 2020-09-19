@@ -6,7 +6,7 @@
 class ZSWin_ScaleButton : ZButton
 {
 	// Use this for mouse-over
-	override void OnMouseMove()
+	override void OnMouseMove(int t)
 	{
 		if (self.State != BSTATE_Active)
 		{
@@ -18,7 +18,7 @@ class ZSWin_ScaleButton : ZButton
 	}
 
 	// Use this to set the button state to active
-	override void OnLeftMouseDown()
+	override void OnLeftMouseDown(int t)
 	{
 		// The button uses the OnMouseMove event, which sets the state to highlight,
 		// so it's safe to check the state here.
@@ -32,7 +32,7 @@ class ZSWin_ScaleButton : ZButton
 	}
 	
 	// Use this to do the action
-	override void OnLeftMouseUp()
+	override void OnLeftMouseUp(int t)
 	{
 		/* 
 			It's not 100% safe with either moving or scaling things to rely on

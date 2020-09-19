@@ -17,11 +17,20 @@ class ZSWindow : ZObjectBase abstract
 	const DISABLEDALPHA = 0.5;
 	
 	/*
+		Cursor
+	*/
+	int CursorX, CursorY;
+	
+	/*
 		Movement
 	*/
 	private int lockedMoveCursorX, lockedMoveCursorY;
 	bool IsMoveLocked() { return (lockedMoveCursorX > -1 && lockedMoveCursorY > -1); }
-	void LockMoveCursorOrigin() { [lockedMoveCursorX, lockedMoveCursorY] = zEvent.GetCursorLocation(); }
+	void LockMoveCursorOrigin() 
+	{
+		lockedMoveCursorX = CursorX;
+		lockedMoveCursorY = CursorY; 
+	}
 	void MoveAccumulate()
 	{
 		int diffx, diffy;
@@ -33,10 +42,8 @@ class ZSWindow : ZObjectBase abstract
 	int moveAccumulateX, moveAccumulateY;
 	clearscope int, int MoveDifference()
 	{
-		int cx, cy;
-		[cx, cy] = zEvent.GetCursorLocation();
 		if (lockedMoveCursorX > -1 && lockedMoveCursorY > -1)
-			return cx - lockedMoveCursorX, cy - lockedMoveCursorY;
+			return CursorX - lockedMoveCursorX, CursorY - lockedMoveCursorY;
 		else
 			return 0, 0;
 	}
@@ -46,7 +53,11 @@ class ZSWindow : ZObjectBase abstract
 	*/
 	private int lockedScaleCursorX, lockedScaleCursorY;
 	bool IsScaleLocked() { return (lockedScaleCursorX > -1 && lockedScaleCursorY > -1); }
-	void LockScaleCursorOrigin() { [lockedScaleCursorX, lockedScaleCursorY] = zEvent.GetCursorLocation(); }
+	void LockScaleCursorOrigin() 
+	{ 
+		lockedScaleCursorX = CursorX;
+		lockedScaleCursorY = CursorY; 
+	}
 	void ScaleAccumulate()
 	{
 		int diffx, diffy;
@@ -58,10 +69,8 @@ class ZSWindow : ZObjectBase abstract
 	int scaleAccumulateX, scaleAccumulateY;
 	clearscope int, int ScaleDifference()
 	{
-		int cx, cy;
-		[cx, cy] = zEvent.GetCursorLocation();
 		if (lockedScaleCursorX > -1 && lockedScaleCursorY > -1)
-			return cx - lockedScaleCursorX, cy - lockedScaleCursorY;
+			return CursorX - lockedScaleCursorX, CursorY - lockedScaleCursorY;
 		else
 			return 0, 0;
 	}
@@ -118,11 +127,7 @@ class ZSWindow : ZObjectBase abstract
 			ignorePostDuplicate = Ignore;
 		}
 	}
-	/* 
-		This method breaks with naming conventions because it needs to be public
-		but should never be called by the user.
-	*/
-	void controlPrioritySwitch()
+	private void controlPrioritySwitch()
 	{
 		if (windowControls[focusStackIndex].Priority > 0)
 		{
@@ -286,11 +291,25 @@ class ZSWindow : ZObjectBase abstract
 		}
 	}
 	
+	override bool ZObj_UiProcess(ZUIEventPacket e)
+	{
+		if (e.MouseX != CursorX || e.MouseY != CursorY)
+			zEvent.SendNetworkEvent("nwd_updateCursorLocation", e.MouseX, e.MouseY);
+		
+		for (int i = 0; i < windowControls.Size(); i++)
+		{
+			if (windowControls[i].ZObj_UiProcess(e))
+				return true;
+		}
+		
+		return super.ZObj_UiProcess(e);
+	}
+	
 	override bool ZObj_UiTick()
 	{
 		// Control focusing
 		if (focusStackIndex > -1)
-			zEvent.SendNetworkEvent("zswin_WindowControlsToSetFocus", zEvent.GetStackIndex(self));
+			zEvent.SendNetworkEvent("nwd_WindowControlsToSetFocus");
 		
 		// Control UiTicking
 		for (int i = 0; i < windowControls.Size(); i++)
@@ -302,8 +321,39 @@ class ZSWindow : ZObjectBase abstract
 		return super.ZObj_UiTick();
 	}
 	
+	enum ZWINNETCMD
+	{
+		ZWINCMD_WindowControlFocus,
+		ZWINCMD_UpdateCursor,
+		ZWINCMD_TryString,
+	};
+	
+	private ZWINNETCMD stringToWindowCommand(string e)
+	{
+		if (e ~== "nwd_WindowControlsToSetFocus")
+			return ZWINCMD_WindowControlFocus;
+		if (e ~== "nwd_updateCursorLocation")
+			return ZWINCMD_UpdateCursor;
+		else
+			return ZWINCMD_TryString;
+	}
+	
 	override bool ZObj_NetProcess(ZEventPacket e)
 	{
+		switch (stringToWindowCommand(e.EventName))
+		{
+			case ZWINCMD_WindowControlFocus:
+				controlPrioritySwitch();
+				break;
+			case ZWINCMD_UpdateCursor:
+				CursorX = e.FirstArg;
+				CursorY = e.SecondArg;
+				break;
+			default:
+			case ZWINCMD_TryString:
+				break;
+		}
+		
 		for (int i = 0; i < windowControls.Size(); i++)
 		{
 			if (windowControls[i].ZObj_NetProcess(e))
@@ -718,8 +768,7 @@ class ZSWindow : ZObjectBase abstract
 	*/
 	override bool ValidateCursorLocation()
 	{
-		int crsrx, crsry, searchPriority;
-		[crsrx, crsry] = zEvent.GetCursorLocation();
+		int searchPriority;
 		
 		// check if this window is a control of another window
 		ZObjectBase pwd = GetRootWindow();
@@ -741,8 +790,8 @@ class ZSWindow : ZObjectBase abstract
 					[enwdX, enwdY] = RealWindowLocation(enwd);
 					int enwdW, enwdH;
 					[enwdW, enwdH] = RealWindowScale(enwd);
-					if (enwdX < crsrx && crsrx < enwdX + enwdW &&
-						enwdY < crsry && crsry < enwdY + enwdH)
+					if (enwdX < CursorX && CursorX < enwdX + enwdW &&
+						enwdY < CursorY && CursorY < enwdY + enwdH)
 						return false;
 				}
 			}
@@ -752,11 +801,10 @@ class ZSWindow : ZObjectBase abstract
 			[sx, sy] = RealWindowLocation(self);
 			int sw, sh;
 			[sw, sh] = RealWindowScale(self);
-			if (sx < crsrx && crsrx < sx + sw &&
-				sy < crsry && crsry < sy + sh)
+			if (sx < CursorX && CursorX < sx + sw &&
+				sy < CursorY && CursorY < sy + sh)
 				return super.ValidateCursorLocation();
 		}
-
 
 		return false;
 	}
@@ -767,68 +815,69 @@ class ZSWindow : ZObjectBase abstract
 		except in specific circumstances.
 		
 	*/
-	override void WhileMouseIdle() { ControlEventCaller(); }
-	override void OnMouseMove() { ControlEventCaller(); }
+	override void WhileMouseIdle(int t) { ControlEventCaller(t); }
+	override void OnMouseMove(int t) { ControlEventCaller(t); }
 	
-	override void OnLeftMouseDown() { ControlEventCaller(); }	
-	override void OnLeftMouseUp() { ControlEventCaller(); }	
-	override void OnLeftMouseClick() { ControlEventCaller(); }
+	override void OnLeftMouseDown(int t) { ControlEventCaller(t); }	
+	override void OnLeftMouseUp(int t) { ControlEventCaller(t); }	
+	override void OnLeftMouseClick(int t) { ControlEventCaller(t); }
 	
-	override void OnMiddleMouseDown() { ControlEventCaller(); }
-	override void OnMiddleMouseUp() { ControlEventCaller(); }
-	override void OnMiddleMouseClick() { ControlEventCaller(); }
+	override void OnMiddleMouseDown(int t) { ControlEventCaller(t); }
+	override void OnMiddleMouseUp(int t) { ControlEventCaller(t); }
+	override void OnMiddleMouseClick(int t) { ControlEventCaller(t); }
 	
-	override void OnRightMouseDown() { ControlEventCaller(); }
-	override void OnRightMouseUp() { ControlEventCaller(); }
-	override void OnRightMouseClick() { ControlEventCaller(); }
+	override void OnRightMouseDown(int t) { ControlEventCaller(t); }
+	override void OnRightMouseUp(int t) { ControlEventCaller(t); }
+	override void OnRightMouseClick(int t) { ControlEventCaller(t); }
 	
-	override void OnWheelMouseDown() { ControlEventCaller(); }
-	override void OnWheelMouseUp() { ControlEventCaller(); }
+	override void OnWheelMouseDown(int t) { ControlEventCaller(t); }
+	override void OnWheelMouseUp(int t) { ControlEventCaller(t); }
 	
-	private void ControlEventCaller()
+	private void ControlEventCaller(int eventType)
 	{
 		for (int i = 0; i < windowControls.Size(); i++)
 		{
-			switch (ZEvent.GetCursorEvent())
+			switch (eventType)
 			{
-				case ZCRSRPKT.CRSR_Idle:
-					windowControls[i].WhileMouseIdle();
+				default:
+				case ZUIEventPacket.EventType_None:
+					windowControls[i].WhileMouseIdle(eventType);
 					break;
-				case ZCRSRPKT.CRSR_MouseMove:
-					windowControls[i].OnMouseMove();
+				case ZUIEventPacket.EventType_MouseMove:
+					windowControls[i].OnMouseMove(eventType);
 					break;
-				case ZCRSRPKT.CRSR_LeftMouseDown:
-					windowControls[i].OnLeftMouseDown();
+				case ZUIEventPacket.EventType_LButtonDown:
+					windowControls[i].OnLeftMouseDown(eventType);
 					break;
-				case ZCRSRPKT.CRSR_LeftMouseUp:
-					windowControls[i].OnLeftMouseUp();
+				case ZUIEventPacket.EventType_LButtonUp:
+					windowControls[i].OnLeftMouseUp(eventType);
 					break;
-				case ZCRSRPKT.CRSR_LeftMouseClick:
-					windowControls[i].OnLeftMouseClick();
+				case ZUIEventPacket.EventType_LButtonClick:
+					windowControls[i].OnLeftMouseClick(eventType);
 					break;
-				case ZCRSRPKT.CRSR_MiddleMouseDown:
-					windowControls[i].OnMiddleMouseDown();
+				case ZUIEventPacket.EventType_MButtonDown:
+					windowControls[i].OnMiddleMouseDown(eventType);
 					break;
-				case ZCRSRPKT.CRSR_MiddleMouseUp:
-					windowControls[i].OnMiddleMouseUp();
+				case ZUIEventPacket.EventType_MButtonUp:
+					windowControls[i].OnMiddleMouseUp(eventType);
 					break;
-				case ZCRSRPKT.CRSR_MiddleMouseClick:
-					windowControls[i].OnMiddleMouseClick();
+				case ZUIEventPacket.EventType_MButtonClick:
+					windowControls[i].OnMiddleMouseClick(eventType);
 					break;
-				case ZCRSRPKT.CRSR_RightMouseDown:
-					windowControls[i].OnRightMouseDown();
+				case ZUIEventPacket.EventType_RButtonDown:
+					windowControls[i].OnRightMouseDown(eventType);
 					break;
-				case ZCRSRPKT.CRSR_RightMouseUp:
-					windowControls[i].OnRightMouseUp();
+				case ZUIEventPacket.EventType_RButtonUp:
+					windowControls[i].OnRightMouseUp(eventType);
 					break;
-				case ZCRSRPKT.CRSR_RightMouseClick:
-					windowControls[i].OnRightMouseClick();
+				case ZUIEventPacket.EventType_RButtonClick:
+					windowControls[i].OnRightMouseClick(eventType);
 					break;
-				case ZCRSRPKT.CRSR_WheelMouseUp:
-					windowControls[i].OnWheelMouseDown();
+				case ZUIEventPacket.EventType_WheelUp:
+					windowControls[i].OnWheelMouseDown(eventType);
 					break;
-				case ZCRSRPKT.CRSR_WheelMouseDown:
-					windowControls[i].OnWheelMouseUp();
+				case ZUIEventPacket.EventType_WheelDown:
+					windowControls[i].OnWheelMouseUp(eventType);
 					break;
 			}
 		}		
