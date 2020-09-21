@@ -29,12 +29,13 @@ class ZUIEventPacket
 	};
 	EVENTTYP EventType;
 	string KeyString;
-	int KeyChar, MouseX, MouseY;
+	int PlayerClient, KeyChar, MouseX, MouseY;
 	bool IsShift, IsAlt, IsCtrl;
 	
-	ZUIEventPacket Init(int EventType, string KeyString, int KeyChar, int MouseX, int MouseY, bool IsShift, bool IsAlt, bool IsCtrl)
+	ZUIEventPacket Init(int EventType, int PlayerClient, string KeyString, int KeyChar, int MouseX, int MouseY, bool IsShift, bool IsAlt, bool IsCtrl)
 	{
 		self.EventType = EventType;
+		self.PlayerClient = PlayerClient;
 		self.KeyString = KeyString;
 		self.KeyChar = KeyChar;
 		self.MouseX = MouseX;

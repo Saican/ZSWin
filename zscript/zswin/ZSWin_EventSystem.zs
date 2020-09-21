@@ -159,7 +159,7 @@ class ZEventSystem : ZSHandlerUtil
 		priorityStackIndex = -1;
 		ignorePostDuplicate = false;
 		allZObjects = new("ZABST").Init();
-		cursor = new("ZUIEventPacket").Init(0, "", 0, 0, 0, false, false, false);
+		cursor = new("ZUIEventPacket").Init(0, 0, "", 0, 0, 0, false, false, false);
 	}
 	
 	/*
@@ -289,11 +289,11 @@ class ZEventSystem : ZSHandlerUtil
 		
 		for (int i = 0; i < winStack.Size(); i++)
 		{
-			if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
+			if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
 				break;
 		}
 		
-		SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%s:%d:%d:%d", e.Type, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
+		SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%d:%s:%d:%d:%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
 		
 		return false;
 	}
@@ -304,21 +304,7 @@ class ZEventSystem : ZSHandlerUtil
 	
 	*/
 	override void UiTick()
-	{
-		// This is here for startup - gotta have a valid cursor packet
-		// Obviously this one is empty
-		//if (!cursor && !incomingCursor)
-			//SendNetworkEvent(string.Format("zswin_PrepareUpdateCursorData:%d:%d", 0, 0), 0);
-		// This is what will normally be called - this gets the cursor data from the last UiProcess execution
-		//else
-			//SendNetworkEvent("zswin_UpdateCursorData");
-		
-		// Input
-		//if (!keyInput && !incomingKeyInput)
-			//SendNetworkEvent(string.Format("zswin_PrepareUpdateInputData", "a"), false, false, false);
-		//else
-			//SendNetworkEvent("zswin_UpdateInputData");
-				
+	{			
 		// Call Window Events
 		SendNetworkEvent("zswin_CallWindowEvents");
 		
@@ -348,7 +334,11 @@ class ZEventSystem : ZSHandlerUtil
 		
 		// Call the window UiTick - this is done last, all other things should be done so
 		// this should be a safe place for windows to do their thing.
-		zobjUiTick();
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if(winStack[i].ZObj_UiTick())
+				break;
+		}
 	}
 	
 	/*
@@ -532,7 +522,7 @@ class ZEventSystem : ZSHandlerUtil
 			switch(stringToZNetworkCommand(cmdc[0]))
 			{
 				case ZNCMD_UpdateCursorData:
-					updateCursorData(cmdc[1].ToInt(), cmdc[2], cmdc[3].ToInt(), cmdc[4].ToInt(), cmdc[5].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
+					updateCursorData(cmdc[1].ToInt(), cmdc[2].ToInt(), cmdc[3], cmdc[4].ToInt(), cmdc[5].ToInt(), cmdc[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
 					break;
 				case ZNCMD_AddToUITicker:
 					AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
@@ -736,30 +726,6 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	void LetAllPost() { ignorePostDuplicate = false; }
-	
-	/*
-		Window controls also have a priority value.
-		Unlike windows, the priority of a control does not
-		necessarily change by just clicking on it.
-		Controls generally change their priority through
-		focus events in order to receive input.
-		
-		Regardless, windows require a UITicker equivalent.
-		This method calls that UITicker.
-		
-		The only difference is that it behaves like UiProcess,
-		the method is boolean and returning true causes the
-		method to terminate.
-	
-	*/
-	ui private void zobjUiTick()
-	{
-		for (int i = 0; i < winStack.Size(); i++)
-		{
-			if(winStack[i].ZObj_UiTick())
-				break;
-		}
-	}
 	
 	private void windowShowCheckEnabled(int wsi, bool t)
 	{
@@ -1047,9 +1013,10 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		Gets the cursor packet from the last tick.
 	*/
-	private void updateCursorData(int type, string key, int kchar, int mx, int my, bool ishft, bool ialt, bool ictrl)
+	private void updateCursorData(int type, int player, string key, int kchar, int mx, int my, bool ishft, bool ialt, bool ictrl)
 	{
 		cursor.EventType = type;
+		cursor.PlayerClient = player;
 		cursor.KeyString = key;
 		cursor.KeyChar = kchar;
 		cursor.MouseX = mx;

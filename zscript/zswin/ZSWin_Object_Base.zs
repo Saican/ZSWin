@@ -151,6 +151,10 @@ class ZObjectBase : thinker abstract
 	*/
 	virtual void ObjectUpdate() {}
 	
+	/*
+		The int argument represents the UIProcess type - useful for switch/case 
+		checking of input events
+	*/
 	virtual void WhileMouseIdle(int t) {}
 	virtual void OnMouseMove(int t) {}
 	

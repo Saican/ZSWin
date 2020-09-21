@@ -8,7 +8,6 @@ class ZSWin_MoveButton : ZButton
 	// Use this for mouse-over
 	override void OnMouseMove(int t)
 	{
-		console.printf("move button called mouse over");
 		if (self.State != BSTATE_Active)
 		{
 			if (ValidateCursorLocation())
