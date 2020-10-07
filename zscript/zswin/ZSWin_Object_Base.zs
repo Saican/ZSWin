@@ -30,7 +30,6 @@ class ZObjectBase : thinker abstract
 	string Name;
 	int PlayerClient, Priority, Width, Height;
 	float xLocation, yLocation, Alpha;
-	ZEventSystem ZEvent;
 	
 	private bool wasEnabled, bIsEventInvalid;
 	void EnabledLog() { wasEnabled = Enabled; }
@@ -38,8 +37,15 @@ class ZObjectBase : thinker abstract
 	void EventValidate() 
 	{ 
 		bIsEventInvalid = true; 
-		zEvent.LetAllPost();
+		//zEvent.LetAllPost();
+		//EventHandler.SendNetworkEvent("zevent_LetAllPost", PlayerClient);
+		ZNetCommand("zobj_LetAllPost", PlayerClient);
 	}
+	
+	clearscope static void ZNetCommand(string cmd, int pc, int arg_a = 0, int arg_b = 0, int arg_c = 0)
+	{
+		EventHandler.SendNetworkEvent(string.Format("%s?%d", cmd, pc), arg_a, arg_b, arg_c);
+	}	
 	
 	bool IsPlayerIgnored() { return (consoleplayer != PlayerClient); }
 	
@@ -54,10 +60,26 @@ class ZObjectBase : thinker abstract
 	clearscope bool ShowCheck()
 	{
 		if (!Show)
-			ZEvent.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 0);
+			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient);
+			//EventHandler.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 0);
 		else if (wasEnabled && !Enabled)
-			ZEvent.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 1);		
+			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);
+			//EventHandler.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 1);		
 		return Show;
+	}
+	
+	private void showCheckEnabled(string n, bool t)
+	{
+		if (n ~== self.Name)
+		{
+			if (t)
+				self.Enabled = true;
+			else
+			{
+				self.EnabledLog();
+				self.Enabled = false;
+			}
+		}
 	}
 	
 	ZObjectBase Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle, CLIPTYP ClipType = CLIP_NONE)
@@ -73,8 +95,15 @@ class ZObjectBase : thinker abstract
 		
 		bSelfDestroy = false;
 		bIsEventInvalid = true;
-		ZEvent.AddObjectToGlobalObjects(self);
+		EventHandler.SendNetworkEvent(string.Format("zevsys_AlertHandlersToNewGlobal,%s", self.Name));
+		//ZEvent.AddObjectToGlobalObjects(self);
 		return self;
+	}
+	
+	ZObjectBase HCF(string msg)
+	{
+		ZSHandlerUtil.HaltAndCatchFire(msg);
+		return null;
 	}
 	
 	override void Tick()
@@ -116,15 +145,80 @@ class ZObjectBase : thinker abstract
 		its event arguments.
 	
 	*/
-	virtual bool ZObj_NetProcess(ZEventPacket e) { return false; }
+	enum ZOBJNETCMD
+	{
+		ZOBJCMD_ShowCheckEnabled,
+		
+		ZOBJCMD_TryString,
+	};
 	
-	bool GetZHandler() 
+	private ZOBJNETCMD stringToZObjNetCommand(string e)
+	{
+		if (e ~== "zobj_ShowCheckEnabled")
+			return ZOBJCMD_ShowCheckEnabled;
+		else
+			return ZOBJCMD_TryString;
+	}
+	
+	virtual bool ZObj_NetProcess(ZEventPacket e) 
+	{ 
+		Array<string> cmdc;
+		e.EventName.Split(cmdc, "?");
+		if (cmdc.Size() == 2 ? (cmdc[1].ToInt() == self.PlayerClient) : false)
+		{
+			if (!e.Manual)
+			{
+				switch (stringToZObjNetCommand(cmdc[0]))
+				{
+					default:
+						ZObj_NetProcess_String(e);
+						break;
+				}
+			}
+			else {}
+		}
+		return false; 
+	}
+	
+	private void ZObj_NetProcess_String(ZEventPacket e)
+	{
+		// Separate the command string from the player number
+		Array<string> cmdPlyr;
+		e.EventName.Split(cmdPlyr, "?");
+		// Check there's two halves and the second half is equal the this object's assigned player
+		if (cmdPlyr.Size() == 2 ? (cmdPlyr[1].ToInt() == self.PlayerClient) : false)
+		{
+			// Split the command string into a command list
+			Array<string> cmdc;
+			cmdPlyr[0].Split(cmdc, ":");
+			// Execute the command ist
+			for (int i = 0; i < cmdc.Size(); i++)
+			{
+				// Chop up each command into an argument list
+				Array<string> cmd;
+				cmdc[i].Split(cmd, ",");
+				// There's at least something, right? (no argument command)
+				if (cmd.Size() > 0)
+				{
+					// Index 0 of the command should be the command itself
+					switch (stringToZObjNetCommand(cmd[0]))
+					{
+						case ZOBJCMD_ShowCheckEnabled:
+							self.showCheckEnabled(cmd[1], e.FirstArg);
+							break;
+					}
+				}
+			}
+		}
+	}
+	
+	/*bool GetZHandler() 
 	{
 		ZEvent = ZEventSystem(EventHandler.Find("ZEventSystem"));
 		if (ZEvent)
 			return true;
 		return false; 
-	}
+	}*/
 	
 	virtual bool ValidateCursorLocation() { return bIsEventInvalid; }
 	

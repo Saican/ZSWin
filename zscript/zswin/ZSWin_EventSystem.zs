@@ -154,7 +154,7 @@ class ZEventSystem : ZSHandlerUtil
 		// Get the lowest unused order value
 		SetOrder(GetLowestPossibleOrder());
 		// Say hello the game world
-		console.printf(string.format("ZScript Windows v%s - Window Event System Registered with Order %d - Welcome!", ZSHandlerUtil.ZVERSION, self.Order));
+		console.printf(string.format("ZScript Windows v%s - Window Event System Registered with Order %d for Player #%d - Welcome!", ZSHandlerUtil.ZVERSION, self.Order, consoleplayer));
 		// If this isn't -1 stuff thinks there's stuff going on, 0 is a valid stack index
 		priorityStackIndex = -1;
 		ignorePostDuplicate = false;
@@ -231,9 +231,6 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		Window Drawer - Remember! This is called multiple times per tick
 		and always after UiTick!
-		
-		Right now this is just calling windows in order.  To do priority sorting,
-		it needs draw each window from highest to lowest priority.
 	
 	*/
 	override void RenderOverlay(RenderEvent e)
@@ -260,14 +257,16 @@ class ZEventSystem : ZSHandlerUtil
 			case UiEvent.Type_KeyDown:
 				// This results in a NetworkProcess_String call where the QuikClose check is processed
 				// KeyString is used to check various binds, KeyChar is used to check specific keys (Esc and tilde)
-				SendNetworkEvent(string.format("zswin_QuikCloseCheck:%s", e.KeyString), e.KeyChar);
+				zEventCommand(string.Format("zevsys_QuikCloseCheck,%s", e.KeyString), consoleplayer, e.KeyChar);
+				//SendNetworkEvent(string.format("zswin_QuikCloseCheck:%s", e.KeyString), e.KeyChar);
 				break;
 			case UiEvent.Type_KeyRepeat:
 				break;
 			case UiEvent.Type_KeyUp:
 				// Check if the key is the bind for the cursor toggle
 				if (KeyBindings.NameKeys(Bindings.GetKeysForCommand("zswin_cmd_cursorToggle"), 0) ~== e.KeyString)
-					SendNetworkEvent("zswin_UI_CursorToggle");
+					zEventCommand("zevsys_UI_CursorToggle", consoleplayer);
+					//SendNetworkEvent("zswin_UI_CursorToggle");
 				break;
 			case UiEvent.Type_Char:
 			case UiEvent.Type_MouseMove:
@@ -289,11 +288,15 @@ class ZEventSystem : ZSHandlerUtil
 		
 		for (int i = 0; i < winStack.Size(); i++)
 		{
-			if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
-				break;
+			if (winStack[i].PlayerClient == consoleplayer)
+			{
+				if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
+					break;
+			}
 		}
 		
-		SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%d:%s:%d:%d:%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
+		zEventCommand(string.Format("zevsys_UpdateCursorData,%d,%d,%s,%d,%d,%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
+		//SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%d:%s:%d:%d:%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
 		
 		return false;
 	}
@@ -306,38 +309,49 @@ class ZEventSystem : ZSHandlerUtil
 	override void UiTick()
 	{			
 		// Call Window Events
-		SendNetworkEvent("zswin_CallWindowEvents");
+		zEventCommand("zevsys_CallWindowEvents", consoleplayer);
+		//SendNetworkEvent("zswin_CallWindowEvents");
 		
 		// Deletion
 		if (outgoingWindows.Size() > 0)
-			SendNetworkEvent("zswin_DeleteOutgoingWindows");
+			zEventCommand("zevsys_DeleteOutgoingWindows", consoleplayer);
+			//SendNetworkEvent("zswin_DeleteOutgoingWindows");
 		// Priority
 		if (priorityStackIndex != -1 && incomingWindows.Size() == 0)
-			SendNetworkEvent("zswin_PrioritySwitch");
+			zEventCommand("zevsys_PrioritySwitch", consoleplayer);
+			//SendNetworkEvent("zswin_PrioritySwitch");
 		// Window Packets - they get added to incoming if valid
 		if (windowPackets.Size() > 0)
-			SendNetworkEvent("zswin_AddPacketsToIncoming");
+			zEventCommand("zevsys_AddPacketsToIncoming", consoleplayer);
+			//SendNetworkEvent("zswin_AddPacketsToIncoming");
 		// Incoming
 		if (incomingWindows.Size() > 0)
-			SendNetworkEvent("zswin_AddIncomingToStack");
+			zEventCommand("zevsys_AddIncomingToStack", consoleplayer);
+			//SendNetworkEvent("zswin_AddIncomingToStack");
 		// All objects get added to the global arrays
 		if (incomingZObjects.Size() > 0)
-			SendNetworkEvent("zswin_AddObjectToGlobalObjects");
+			zEventCommand("zevsys_AddObjectToGlobalObjects", consoleplayer);
+			//SendNetworkEvent("zswin_AddObjectToGlobalObjects");
 		
 		// Incoming events from the last tick - this would be events send from UI scoped methods
 		if (incomingEvents.Size() > 0)
 		{
 			for (int i = 0; i < incomingEvents.Size(); i++)
-				SendNetworkEvent(incomingEvents[i].EventName, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
-			SendNetworkEvent("zswin_ClearIncomingUIEvents");
+				zEventCommand(incomingEvents[i].EventName, consoleplayer, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
+				//SendNetworkEvent(incomingEvents[i].EventName, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
+			zEventCommand("zevsys_ClearIncomingUIEvents", consoleplayer);
+			//SendNetworkEvent("zswin_ClearIncomingUIEvents");
 		}
 		
 		// Call the window UiTick - this is done last, all other things should be done so
 		// this should be a safe place for windows to do their thing.
 		for (int i = 0; i < winStack.Size(); i++)
 		{
-			if(winStack[i].ZObj_UiTick())
-				break;
+			if (winStack[i].PlayerClient == consoleplayer)
+			{
+				if(winStack[i].ZObj_UiTick())
+					break;
+			}
 		}
 	}
 	
@@ -348,7 +362,8 @@ class ZEventSystem : ZSHandlerUtil
 	override bool InputProcess(InputEvent e)
 	{
 		if (e.Type == InputEvent.Type_KeyUp && keyIsCursorBind(e.KeyScan))
-			SendNetworkEvent("zswin_CursorToggle");
+			zEventCommand("zevsys_CursorToggle", consoleplayer);
+			//SendNetworkEvent("zswin_CursorToggle");
 		return false;
 	}
 	
@@ -361,17 +376,24 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_AddIncoming,
 		ZNCMD_PrioritySwitch,
 		ZNCMD_UpdateCursorData,
-		ZNCMD_AddToUITicker,
 		ZNCMD_ClearUIIncoming,
-		ZNCMD_ShowCheckEnabled,
 		ZNCMD_QuickCloseCheck,
 		ZNCMD_CursorToggle,
 		ZNCMD_CallWindowEvents,
-		ZNCMD_SetWindowForDestruction,
 		ZNCMD_DeleteOutgoingWindows,
 		ZNCMD_AddPacketsToIncoming,
 		ZNCMD_AddObjectToGlobalObjects,
+		
+		ZNCMD_HandlerIncomingGlobal,		
+		ZNCMD_AddToUITicker,
+		ZNCMD_SetWindowForDestruction,
+		ZNCMD_PostStackIndex,
+		ZNCMD_AddWindowToStack,
+		
+		//ZNCMD_ShowCheckEnabled,
+
 		ZNCMD_ControlUpdate,
+		ZNCMD_LetAllPost,
 		
 		ZNCMD_ManualStackSizeOut,
 		ZNCMD_ManualStackPriorityOut,
@@ -388,35 +410,47 @@ class ZEventSystem : ZSHandlerUtil
 	*/
 	private ZNETCMD stringToZNetworkCommand(string e)
 	{
-		// Internal commands - in no particular order other than when they got added in
-		if (e ~== "zswin_AddIncomingToStack")
+		// Internal commands - these are sent from within the Event System
+		if (e ~== "zevsys_AddIncomingToStack")
 			return ZNCMD_AddIncoming;
-		if (e ~== "zswin_PrioritySwitch")
+		if (e ~== "zevsys_PrioritySwitch")
 			return ZNCMD_PrioritySwitch;
-		if (e ~== "zswin_UpdateCursorData")
+		if (e ~== "zevsys_UpdateCursorData")
 			return ZNCMD_UpdateCursorData;
-		if (e ~== "zswin_AddToUITicker")
-			return ZNCMD_AddToUITicker;
-		if (e ~== "zswin_ClearIncomingUIEvents")
+		if (e ~== "zevsys_ClearIncomingUIEvents")
 			return ZNCMD_ClearUIIncoming;
-		if (e ~== "zswin_ShowCheckEnabled")
-			return ZNCMD_ShowCheckEnabled;
-		if (e ~== "zswin_QuikCloseCheck")
+		if (e ~== "zevsys_QuikCloseCheck")
 			return ZNCMD_QuickCloseCheck;
-		if (e ~== "zswin_UI_CursorToggle" || e ~== "zswin_CursorToggle")
+		if (e ~== "zevsys_UI_CursorToggle" || e ~== "zevsys_CursorToggle")
 			return ZNCMD_CursorToggle;
-		if (e ~== "zswin_CallWindowEvents")
+		if (e ~== "zevsys_CallWindowEvents")
 			return ZNCMD_CallWindowEvents;
-		if (e ~== "zswin_SetWindowForDestruction")
-			return ZNCMD_SetWindowForDestruction;
-		if (e ~== "zswin_DeleteOutgoingWindows")
+		if (e ~== "zevsys_DeleteOutgoingWindows")
 			return ZNCMD_DeleteOutgoingWindows;
-		if (e ~== "zswin_AddPacketsToIncoming")
+		if (e ~== "zevsys_AddPacketsToIncoming")
 			return ZNCMD_AddPacketsToIncoming;
-		if (e ~== "zswin_AddObjectToGlobalObjects")
+		if (e ~== "zevsys_AddObjectToGlobalObjects")
 			return ZNCMD_AddObjectToGlobalObjects;
-		if (e ~== "zswin_ControlUpdate")
+
+		// External Commands - these are sent from ZObjects
+		if (e ~== "zevsys_AlertHandlersToNewGlobal")
+			return ZNCMD_HandlerIncomingGlobal;
+		if (e ~== "zevsys_AddToUITicker")
+			return ZNCMD_AddToUITicker;
+		if (e ~== "zevsys_SetWindowForDestruction")
+			return ZNCMD_SetWindowForDestruction;
+		if (e ~== "zevsys_PostPriorityIndex")
+			return ZNCMD_PostStackIndex;
+		if (e ~== "zevsys_AddWindowToStack")
+			return ZNCMD_AddWindowToStack;
+		
+		//if (e ~== "zswin_ShowCheckEnabled")
+			//return ZNCMD_ShowCheckEnabled;
+		
+		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
+		if (e ~== "zobj_LetAllPost")
+			return ZNCMD_LetAllPost;
 		
 		// Manual Commands
 		if (e ~== "zswin_stacksizeout")
@@ -437,76 +471,183 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
+		EVENT COMMAND FORMATTING
+		
+		ZScript Windows reserves the following characters for
+		formatted command strings:
+		
+		? : ,
+		
+		Question Mark Usage
+		 - This character is reserved exclusively for internal use.
+		 - This character separates the command string from the player client
+		 
+		Colon Usage
+		 - This character separates individual commands
+		 
+		Comma Usage
+		 - This character separates commands and arguments
+		 
+		Example
+		
+		zcmd_CommandA,data_argX:zcmd_CommandB,data_argY?playerClient
+		
+		Command Processing Logic:
+		-------------------------
+		Step 1 - NetworkProcess
+			- Try to split the command string into the command and the player ID
+			- If that succeeds and the player ID is the same as the consoleplayer,
+			  attempt to figure out what the command is.
+			- Simple commands are processed here that don't require further processing.
+		Step 2 - NetworkProcess_String
+			- If command conversion returns TryString, the entire ConsoleEvent is passed
+			  along and the process restarts.
+			- Assuming the command is for a valid player, the string processing of the
+			  command functions as follows:
+					1 - Split the string with a colon (:) as a delimiter.  These strings
+					    are treated as individual commands, possibly with arguments.
+					2 - Execute each command sequentially.  Attempt to split each command
+					    string with a comma (,) as a delimiter.  The first string in the
+						array is treated as the command, and all others as arguments.
+		Step 3 - ZObject Event Extension
+			- Regardless of what occurred in the previous steps, the entire contents of
+			  ConsoleEvent data is replicated and passed to valid ZObjects, in this case
+			  ZSWindows, through ZEventPackets.
+			- Command processing at this stage is at the discretion of the control.
+			
+			
+		Command Specifics:
+		------------------
+		AddToUITicker - This command will create an event packet to be processed by the UITicker
+						event of the Event Systetm, containing a second command and arguments,
+						to be executed by the net command system.
+					  - Command follows the standard command format.
+					  - Example: this command will add "zobj_ControlUpdate" and the ZObject's name to the command queue.
+							ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", self.Name));
+							
+	*/
+	clearscope private void zEventCommand(string cmd, int plyr_id, int arg_a = 0, int arg_b = 0, int arg_c = 0)
+	{
+		SendNetworkEvent(string.Format("%s?%d", cmd, plyr_id), arg_a, arg_b, arg_c);
+	}
+	
+	/*
 		Main context communication method
 	*/
 	override void NetworkProcess(ConsoleEvent e)
 	{
-		if (!e.IsManual)  // there's no reason any of these events should ever be manually called
+		Array<string> cmdc;
+		e.Name.Split(cmdc, "?");		
+		if (cmdc.Size() == 2 ? (cmdc[1].ToInt() == consoleplayer) : false)
 		{
-			switch (stringToZNetworkCommand(e.Name))
+			if (!e.IsManual)  // there's no reason any of these events should ever be manually called
 			{
-				case ZNCMD_AddIncoming:
-					passIncomingToStack();
-					break;
-				case ZNCMD_PrioritySwitch:
-					windowPrioritySwitch();
-					break;
-				case ZNCMD_ClearUIIncoming:
-					clearUIEvents();
-					break;
-				case ZNCMD_ShowCheckEnabled:
-					windowShowCheckEnabled(e.Args[0], e.Args[1]);
-					break;
-				case ZNCMD_CursorToggle:
-					cursorToggle();
-					break;
-				case ZNCMD_CallWindowEvents:
-					windowEventCaller();
-					break;
-				case ZNCMD_SetWindowForDestruction:
-					setWindowForDestruction(e.Args[0]);
-					break;
-				case ZNCMD_DeleteOutgoingWindows:
-					deleteOutgoingWindows();
-					break;
-				case ZNCMD_AddPacketsToIncoming:
-					passPacketsToIncoming();
-					break;
-				case ZNCMD_AddObjectToGlobalObjects:
-					passIncomingToGlobalObjects();
-					break;
-				// String Processing
-				default:
-					NetworkProcess_String(e);
-					break;
+				switch (stringToZNetworkCommand(cmdc[0]))
+				//switch (stringToZNetworkCommand(e.Name))
+				{
+					case ZNCMD_AddIncoming:
+						passIncomingToStack();
+						break;
+					case ZNCMD_PrioritySwitch:
+						windowPrioritySwitch();
+						break;
+					case ZNCMD_ClearUIIncoming:
+						clearUIEvents();
+						break;
+					//case ZNCMD_ShowCheckEnabled:
+						//windowShowCheckEnabled(e.Args[0], e.Args[1]);
+						//break;
+					case ZNCMD_CursorToggle:
+						cursorToggle();
+						break;
+					case ZNCMD_CallWindowEvents:
+						windowEventCaller();
+						break;
+					//case ZNCMD_SetWindowForDestruction:
+						//setWindowForDestruction(e.Args[0]);
+						//break;
+					case ZNCMD_DeleteOutgoingWindows:
+						deleteOutgoingWindows();
+						break;
+					case ZNCMD_AddPacketsToIncoming:
+						passPacketsToIncoming();
+						break;
+					case ZNCMD_AddObjectToGlobalObjects:
+						passIncomingToGlobalObjects();
+						break;
+					case ZNCMD_LetAllPost:
+						letAllPost();
+						break;
+					// String Processing
+					default:
+						NetworkProcess_String(e);
+						break;
+				}
+			}
+			else // These may be called manually - mostly debugging stuff
+			{
+				switch (stringToZNetworkCommand(e.Name))
+				{
+					case ZNCMD_ManualStackSizeOut:
+						debugStackSizeToConsole();
+						break;
+					case ZNCMD_ManualStackPriorityOut:
+						debugStackPriorityToConsole();
+						break;
+					case ZNCMD_ManualGlobalZObjectCount:
+						debugGetGlobalObjectCount();
+						break;
+					case ZNCMD_ManualEventGlobalCount:
+						debugGetEventGlobalCount();
+						break;
+					case ZNCMD_ManualGlobalNamePrint:
+						debugPrintOutEveryName(allZObjects.Root);
+						break;
+					case ZNCMD_ManualGetTreeBalance:
+						debugGetTreeBalance();
+						break;
+				}
 			}
 		}
-		else // These may be called manually - mostly debugging stuff
+		// These are a select few commands that will be sent normally
+		else
 		{
-			switch (stringToZNetworkCommand(e.Name))
+			if (!e.IsManual)
 			{
-				case ZNCMD_ManualStackSizeOut:
-					debugStackSizeToConsole();
-					break;
-				case ZNCMD_ManualStackPriorityOut:
-					debugStackPriorityToConsole();
-					break;
-				case ZNCMD_ManualGlobalZObjectCount:
-					debugGetGlobalObjectCount();
-					break;
-				case ZNCMD_ManualEventGlobalCount:
-					debugGetEventGlobalCount();
-					break;
-				case ZNCMD_ManualGlobalNamePrint:
-					debugPrintOutEveryName(allZObjects.Root);
-					break;
-				case ZNCMD_ManualGetTreeBalance:
-					debugGetTreeBalance();
-					break;
+				Array<string> cmde;
+				e.Name.Split(cmde, ":");
+				for (int i = 0; i < cmde.Size(); i++)
+				{
+					Array<string> cmd;
+					cmde[i].Split(cmd, ",");
+					if (cmd.Size() > 0)
+					{
+						switch (stringToZNetworkCommand(cmd[0]))
+						{
+							case ZNCMD_HandlerIncomingGlobal:
+								addObjectToGlobalObjects(cmd[1]);
+								break;
+							case ZNCMD_SetWindowForDestruction:
+								setWindowForDestruction(cmd[1]);
+								break;
+							case ZNCMD_AddWindowToStack:
+								addWindowToStack(cmd[1]);
+								break;
+						}
+					}
+				}
 			}
+			else {}
 		}
 		
-		NetworkProcess_NetCommands(new("ZEventPacket").Init(e.Name, e.Args[0], e.Args[1], e.Args[2], e.Player, e.IsManual));
+		for (int i = 0; i < winStack.Size(); i++)
+		{
+			if (winStack[i].PlayerClient == consoleplayer)
+			{
+				if (winStack[i].ZObj_NetProcess(new("ZEventPacket").Init(e.Name, e.Args[0], e.Args[1], e.Args[2], e.Player, e.IsManual)))
+					break;
+			}
+		}
 	}
 	
 	/*
@@ -515,46 +656,79 @@ class ZEventSystem : ZSHandlerUtil
 	*/
 	private void NetworkProcess_String(ConsoleEvent e)
 	{
-		Array<string> cmdc;
-		e.Name.Split(cmdc, ":");
-		if (cmdc.Size() > 1)
+		Array<string> cmdPlyr;
+		e.Name.Split(cmdPlyr, "?");
+		if (cmdPlyr.Size() == 2 ? (cmdPlyr[1].ToInt() == consoleplayer) : false)
 		{
-			switch(stringToZNetworkCommand(cmdc[0]))
+			Array<string> cmdc;
+			cmdPlyr[0].Split(cmdc, ":");
+			for (int i = 0; i < cmdc.Size(); i++)
 			{
-				case ZNCMD_UpdateCursorData:
-					updateCursorData(cmdc[1].ToInt(), cmdc[2].ToInt(), cmdc[3], cmdc[4].ToInt(), cmdc[5].ToInt(), cmdc[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
-					break;
-				case ZNCMD_AddToUITicker:
-					AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
-					break;
-				case ZNCMD_QuickCloseCheck:
-					quickCloseCheck(cmdc[1], e.Args[0]);
-					break;
+				Array<string> cmd;
+				cmdc[i].Split(cmd, ",");
+				if (cmd.Size() > 0)
+				{
+					switch (stringToZNetworkCommand(cmd[0]))
+					{
+					case ZNCMD_UpdateCursorData:
+						updateCursorData(cmd[1].ToInt(), cmd[2].ToInt(), cmd[3], cmd[4].ToInt(), cmd[5].ToInt(), cmd[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
+						break;
+					case ZNCMD_AddToUITicker:
+						string addCmd = cmd[1];
+						if (cmd.Size() > 2)
+						{
+							for (int i = 2; i < cmd.Size(); i++)
+								addCmd.AppendFormat(",%s", cmd[i]);
+						}
+						AddEventPacket(addCmd, e.Args[0], e.Args[1], e.Args[2]);
+						break;
+					case ZNCMD_QuickCloseCheck:
+						quickCloseCheck(cmd[1], e.Args[0]);
+						break;
+					case ZNCMD_ControlUpdate:
+						controlUpdateEvent(cmd[1]);
+						break;
+					case ZNCMD_PostStackIndex:
+						postPriorityIndex(cmd[1], e.Args[0]);
+						break;
+					default:
+						/* debug out if it's on, otherwise this net command probably came from something else */
+						break;
+					}
+				}
+				else { /* probably smart to hcf here, becuz what now?  there's some fuckery here. just no, you broke it or something. */}
 			}
-		}
-		else
-		{
-			if (cmdc.Size() > 0)
-				cmdc.Clear();
-			e.Name.Split(cmdc, ",");
+			/*
 			if (cmdc.Size() > 1)
 			{
-				switch (stringToZNetworkCommand(cmdc[0]))
+				switch(stringToZNetworkCommand(cmdc[0]))
 				{
-					case ZNCMD_ControlUpdate:
-						controlUpdateEvent(cmdc[1]);
-						break; 
+					case ZNCMD_UpdateCursorData:
+						updateCursorData(cmdc[1].ToInt(), cmdc[2].ToInt(), cmdc[3], cmdc[4].ToInt(), cmdc[5].ToInt(), cmdc[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
+						break;
+					case ZNCMD_AddToUITicker:
+						AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
+						break;
+					case ZNCMD_QuickCloseCheck:
+						quickCloseCheck(cmdc[1], e.Args[0]);
+						break;
 				}
 			}
-		}
-	}
-	
-	private void NetworkProcess_NetCommands(ZEventPacket e)
-	{
-		for (int i = 0; i < winStack.Size(); i++)
-		{
-			if (winStack[i].ZObj_NetProcess(e))
-				break;
+			else
+			{
+				if (cmdc.Size() > 0)
+					cmdc.Clear();
+				cmdPlyr[0].Split(cmdc, ",");
+				if (cmdc.Size() > 1)
+				{
+					switch (stringToZNetworkCommand(cmdc[0]))
+					{
+						case ZNCMD_ControlUpdate:
+							controlUpdateEvent(cmdc[1]);
+							break; 
+					}
+				}
+			}*/
 		}
 	}
 	
@@ -584,13 +758,22 @@ class ZEventSystem : ZSHandlerUtil
 		words require string conversions)
 	
 	*/
-	ZObjectBase AddWindowToStack(ZObjectBase zobj)
+	//ZObjectBase AddWindowToStack(ZObjectBase zobj)
+	private void addWindowToStack(string n)
 	{
-		if (zobj != null ? (zobj is "ZSWindow" ? (zobj.Name != "" && NameIsUnique(zobj.Name)) : false) : false)
-			incomingWindows.Push(zobj);
-		else if (zobj != null)
+		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
+		ZSWindow enwd;
+		while (enwd = ZSWindow(nwdFinder.Next()))
 		{
-			if (zobj is "ZSWindow")
+			if (enwd.Name ~== n)
+				break;
+		}
+		
+		if (enwd != null ? (enwd is "ZSWindow" ? (enwd.Name != "" && NameIsUnique(enwd.Name)) : false) : false)
+			incomingWindows.Push(enwd);
+		else if (enwd != null)
+		{
+			if (enwd is "ZSWindow")
 			{
 				/* debug message invalid name */
 				//zobj.bSelfDestroy = true;
@@ -603,8 +786,6 @@ class ZEventSystem : ZSHandlerUtil
 		}
 		else
 			HaltAndCatchFire(" - - NOPE!  EITHER AddWindowToStack WAS CALLED FROM AN INVALID USE OR\n - - MEMORY MANAGEMENT IS BROKEN AND SO IS THE GAME!\n - - AddWindowToStack RECEIVED NULL WINDOW REFERENCE!");
-		
-		return zobj;
 	}
 	
 	/*
@@ -649,16 +830,23 @@ class ZEventSystem : ZSHandlerUtil
 		This method is called by anything inheriting from a ZObjectBase,
 		in order to add that object to the incomingZObjects array.
 	*/
-	void AddObjectToGlobalObjects(ZObjectBase zobj)
+	private void addObjectToGlobalObjects(string n)
 	{
-		if (zobj != null ? (zobj.Name != "" && NameIsUnique(zobj.Name)) : false)
-			incomingZObjects.Push(zobj);
-		else if (zobj != null)
+		ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
+		ZObjectBase zobj;
+		while (zobj = ZObjectBase(zobjFinder.Next()))
 		{
-			// Destroy object and debug out no name
+			if (zobj.Name ~== n ? NameIsUnique(zobj.Name) : false)
+			{
+				incomingZObjects.Push(zobj);
+				break;
+			}
+			else if (zobj.Name ~== n ? !NameIsUnique(zobj.Name) : false)
+			{
+				// Destroy object and debug out invalid name
+				break;
+			}
 		}
-		else
-			HaltAndCatchFire(" - - NOPE!  EITHER AddObjectToGlobalObjects WAS CALLED FROM AN INVALID USE OR\n - - MEMORY MANAGEMENT IS BROKEN AND SO IS THE GAME!\n - - AddObjectToGlobalObjects RECEIVED NULL OBJECT REFERENCE!");
 	}
 	
 	/*
@@ -686,12 +874,12 @@ class ZEventSystem : ZSHandlerUtil
 		Called by an object to signal that the window at the given
 		window stack index needs to be priority 0.
 	*/
-	void PostPriorityIndex(int StackIndex, bool Ignore = false) 
+	private void postPriorityIndex(string n, bool Ignore = false) 
 	{
 		if (!ignorePostDuplicate)
 		{
-			priorityStackIndex = StackIndex; 
-			winStack[StackIndex].EventInvalidate();
+			priorityStackIndex = GetStackIndex(GetWindowByName(n)); 
+			winStack[priorityStackIndex].EventInvalidate();
 			ignorePostDuplicate = Ignore;
 		}
 	}
@@ -725,9 +913,9 @@ class ZEventSystem : ZSHandlerUtil
 		priorityStackIndex = -1;
 	}
 	
-	void LetAllPost() { ignorePostDuplicate = false; }
+	private void letAllPost() { ignorePostDuplicate = false; }
 	
-	private void windowShowCheckEnabled(int wsi, bool t)
+	/*private void windowShowCheckEnabled(int wsi, bool t)
 	{
 		if (t)
 			winStack[wsi].Enabled = true;
@@ -736,7 +924,7 @@ class ZEventSystem : ZSHandlerUtil
 			winStack[wsi].EnabledLog();
 			winStack[wsi].Enabled = false;
 		}
-	}
+	}*/
 
 	/*
 		Sends the toggle cursor event, if UI processing
@@ -746,7 +934,8 @@ class ZEventSystem : ZSHandlerUtil
 	void SendUIToggleEvent()
 	{
 		if (!self.IsUiProcessor)
-			SendNetworkEvent("zswin_UI_cursorToggle");
+			zEventCommand("zevsys_UI_cursorToggle", consoleplayer);
+			//SendNetworkEvent("zswin_UI_cursorToggle");
 	}
 	
 	/*
@@ -819,9 +1008,9 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		Adds the given window stack index the list of windows to be deleted.
 	*/
-	private void setWindowForDestruction(int index)
+	private void setWindowForDestruction(string n)
 	{
-		outgoingWindows.Push(index);
+		outgoingWindows.Push(GetStackIndex(GetWindowByName(n)));
 	}
 	
 	/*
@@ -1007,7 +1196,7 @@ class ZEventSystem : ZSHandlerUtil
 			quikclose = true;
 		
 		if (quikclose)
-			SendNetworkEvent("zswin_UI_CursorToggle");
+			SendNetworkEvent("zevsys_UI_CursorToggle");
 	}
 	
 	/*

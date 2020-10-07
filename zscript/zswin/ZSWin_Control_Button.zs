@@ -35,7 +35,7 @@ class ZButton : ZControl abstract
 		BTNTYPE Type = BTN_Standard, int Width = 100, int Height = 25, float Btn_xLocation = 0, float Btn_yLocation = 0, float Btn_Alpha = 1,
 		CLIPTYP ButtonClipType = CLIP_Parent, SCALETYP ButtonScaleType = SCALE_NONE, bool StretchTexture = false, bool AnimateTexture = false, 
 		string IdleTexture = "", string HighlightTexture = "", string ActiveTexture = "",
-		string Text = "", Name FontName = 'consolefont', int TextColor = Font.CR_White, 
+		string Text = "", Name FontName = 'consolefont', name TextColor = 'White', 
 		CLIPTYP TxtClipType = CLIP_Parent, TEXTALIGN TextAlignment = TEXTALIGN_Left, TXTWRAP TextWrap = TXTWRAP_NONE,
 		float Txt_xLocation = 0, float Txt_yLocation = 0, float Txt_Alpha = 1)
 	{
@@ -52,10 +52,10 @@ class ZButton : ZControl abstract
 		if (Text != "")
 			ButtonText = new("ZText").Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
 				TxtClipType, ButtonScaleType, TextAlignment, TextWrap, 0, FontName, TextColor, Txt_xLocation, Txt_yLocation, Txt_Alpha);
-		if(GetZHandler())
-			return ZButton(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ButtonScaleType, TextAlignment, ClipType));
-		ZSHandlerUtil.HaltAndCatchFire(" - - BUTTON DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null;
+		//if(GetZHandler())
+		return ZButton(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ButtonScaleType, TextAlignment, ClipType));
+		//ZSHandlerUtil.HaltAndCatchFire(" - - BUTTON DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
+		//return null;
 	}
 	
 	private void backgroundInit(string IdleTexture, string HighlightTexture, string ActiveTexture)
@@ -225,16 +225,33 @@ class ZButton : ZControl abstract
 	override bool ZObj_UiProcess(ZUIEventPacket e) 
 	{ 
 		if (e.MouseX != CursorX || e.MouseY != CursorY)
-			zEvent.SendNetworkEvent("zbtn_updateCursorLocation", e.MouseX, e.MouseY);
+			ZNetCommand(string.Format("zbtn_updateCursorLocation,%s", self.Name), self.PlayerClient, e.MouseX, e.MouseY);
+			//EventHandler.SendNetworkEvent("zbtn_updateCursorLocation", e.MouseX, e.MouseY);
 		return super.ZObj_UiProcess(e); 
 	}
 	
 	override bool ZObj_NetProcess(ZEventPacket e) 
-	{ 
-		if (e.EventName ~== "zbtn_updateCursorLocation")
+	{
+		Array<string> cmdPlyr;
+		e.EventName.Split(cmdPlyr, "?");
+		if (cmdPlyr.Size() == 2 ? (cmdPlyr[1].ToInt() == self.PlayerClient) : false)
 		{
-			CursorX = e.FirstArg;
-			CursorY = e.SecondArg;
+			if (!e.Manual)
+			{
+				Array<string> cmdc;
+				cmdPlyr[0].Split(cmdc, ":");
+				for (int i = 0; i < cmdc.Size(); i++)
+				{
+					Array<string> cmd;
+					cmdc[i].Split(cmd, ",");
+					if (cmd.Size() == 2 ? (cmd[0] ~== "zbtn_updateCursorLocation" && cmd[1] ~== self.Name) : false)
+					{
+						CursorX = e.FirstArg;
+						CursorY = e.SecondArg;
+					}
+				}
+			}
+			else {}
 		}
 		return super.ZObj_NetProcess(e); 
 	}
@@ -623,7 +640,7 @@ class ZButton : ZControl abstract
 		// Look for higher priority windows
 		for (int i = 0; i < searchPriority; i++)
 		{
-			let enwd = ZSWindow(zEvent.GetWindowByPriority(i));
+			let enwd = GetWindowByPriority(i);
 			if (enwd)
 			{
 				float enwdX, enwdY;

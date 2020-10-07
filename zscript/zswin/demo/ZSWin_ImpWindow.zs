@@ -46,25 +46,9 @@ class ZSWin_ImpWindow : ZSWindow
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
 		
-		/*
-			This return is kind of odd, as the "return null" cannot be reached
-			because of the call to HCF which will abort the VM.  The "return null"
-			has to be present for code completion otherwise the compiler balks.
-			
-			The normal return is a special call to AddWindowToStack.			
-			This will add the window to the event handler stack as a parent window.
-			AddWindowToStack just returns the same window it recieves, it just needs to be
-			in the call chain.
-			
-			Sub windows do not need to call AddWindowToStack.  Take a look at the ImpSubWindow
-			return for a usage example.
-		
-		*/
-		if(GetZHandler())
-			return ZSWin_ImpWindow(ZEvent.AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
-		
-		ZSHandlerUtil.HaltAndCatchFire(" - - IMP WINDOW DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null; // won't get here because of HCF, but has to be here for code completion
+		//ZSWin_ImpWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
+		return ZSWin_ImpWindow(AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
+		//return ZSWin_ImpWindow(ZEvent.AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
 	}
 	
 	/*
@@ -74,7 +58,8 @@ class ZSWin_ImpWindow : ZSWindow
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
-			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
+			PostPrioritySwitch();
+			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	
@@ -126,21 +111,8 @@ class ZSWin_ImpSubWindow : ZSWindow
 		AddControl(new("ZSWin_ScaleButton").Init(self, Enabled, Show, "ImpSubWindowScaleButton", PlayerClient, UiToggle,
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
-
-		/*
-			This return is kind of odd, as the "return null" cannot be reached
-			because of the call to HCF which will abort the VM.  The "return null"
-			has to be present for code completion otherwise the compiler balks.
-			
-			Since this window is a sub-window, it does not need to call AddWindowToStack.
-			Instead it can just return its super.
 		
-		*/		
-		if(GetZHandler())
-			return ZSWin_ImpSubWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
-		
-		ZSHandlerUtil.HaltAndCatchFire(" - - IMP SUB WINDOW DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null; // won't get here because of HCF, but has to be here for code completion
+		return ZSWin_ImpSubWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
 	/*
@@ -155,7 +127,8 @@ class ZSWin_ImpSubWindow : ZSWindow
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
-			zEvent.PostPriorityIndex(zEvent.GetStackIndex(GetRootWindow()), true);
+			PostPrioritySwitch(true);
+			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(GetRootWindow()), true);
 		super.OnLeftMouseDown(t);
 	}
 	
@@ -209,11 +182,7 @@ class ZSWin_ImpWindow2 : ZSWindow
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
 		
-		if(GetZHandler())
-			return ZSWin_ImpWindow2(ZEvent.AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
-		
-		ZSHandlerUtil.HaltAndCatchFire(" - - IMP WINDOW2 DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null; // won't get here because of HCF, but has to be here for code completion
+		return ZSWin_ImpWindow2(AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
 	}
 	
 	/*
@@ -222,7 +191,8 @@ class ZSWin_ImpWindow2 : ZSWindow
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
-			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
+			PostPrioritySwitch();
+			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	

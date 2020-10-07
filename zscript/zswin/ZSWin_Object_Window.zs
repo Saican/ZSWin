@@ -193,13 +193,16 @@ class ZSWindow : ZObjectBase abstract
 				ZObjectBase zobj = self.ControlParent;
 				while (zobj.ControlParent)
 					zobj = zobj.ControlParent;
-				ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(zobj));
+				EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", zobj.Name));
+				//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(zobj));
 			}
 			else
-				ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
+				EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", self.Name));
+				//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
 		}
 		else
-			ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
+			EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", self.Name));
+			//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
 	}
 	
 	/*
@@ -254,6 +257,40 @@ class ZSWindow : ZObjectBase abstract
 	}
 	
 	/*
+		Returns a ZSWindow with the given priority
+	
+	*/
+	ZSWindow GetWindowByPriority(int p)
+	{
+		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
+		ZSWindow enwd;
+		while (enwd = ZSWindow(nwdFinder.Next()))
+		{
+			if (enwd.Priority == p)
+				return enwd;
+		}
+		
+		return null;
+	}
+	
+	void PostPrioritySwitch(bool Ignore = false)
+	{
+		let wd = GetRootWindow();
+		string n;
+		if (wd != null)
+			n = wd.Name;
+		else
+			n = self.Name;
+		ZNetCommand(string.Format("zevsys_PostPriorityIndex,%s", n), self.PlayerClient, Ignore);
+	}
+	
+	ZSWindow AddWindowToStack(ZObjectBase zobj)
+	{
+		EventHandler.SendNetworkEvent(string.Format("zevsys_AddWindowToStack,%s", zobj.Name));
+		return ZSWindow(zobj);
+	}
+	
+	/*
 		The ZObjectBase Init method is not virtual, so inheriting objects can virtualize their own constructors
 		with their own argument lists, and finalize construction by returning the super.Init() (cast to the right type).
 		
@@ -273,7 +310,6 @@ class ZSWindow : ZObjectBase abstract
 		backgroundInit();
 		if (BorderType == BORDERTYP_ZWin)
 			borderInit();
-		
 		return ZSWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
@@ -294,7 +330,8 @@ class ZSWindow : ZObjectBase abstract
 	override bool ZObj_UiProcess(ZUIEventPacket e)
 	{
 		if (e.MouseX != CursorX || e.MouseY != CursorY)
-			zEvent.SendNetworkEvent("nwd_updateCursorLocation", e.MouseX, e.MouseY);
+			ZNetCommand(string.Format("nwd_updateCursorLocation,%s", self.Name), self.PlayerClient, e.MouseX, e.MouseY);
+			//zEvent.SendNetworkEvent("nwd_updateCursorLocation", e.MouseX, e.MouseY);
 		
 		for (int i = 0; i < windowControls.Size(); i++)
 		{
@@ -309,7 +346,8 @@ class ZSWindow : ZObjectBase abstract
 	{
 		// Control focusing
 		if (focusStackIndex > -1)
-			zEvent.SendNetworkEvent("nwd_WindowControlsToSetFocus");
+			ZNetCommand(string.Format("nwd_WindowControlsToSetFocus,%s", self.Name), self.PlayerClient);
+			//zEvent.SendNetworkEvent("nwd_WindowControlsToSetFocus");
 		
 		// Control UiTicking
 		for (int i = 0; i < windowControls.Size(); i++)
@@ -340,18 +378,37 @@ class ZSWindow : ZObjectBase abstract
 	
 	override bool ZObj_NetProcess(ZEventPacket e)
 	{
-		switch (stringToWindowCommand(e.EventName))
+		Array<string> cmdPlyr;
+		e.EventName.Split(cmdPlyr, "?");
+		if (cmdPlyr.Size() == 2 ? (cmdPlyr[1].ToInt() == self.PlayerClient) : false)
 		{
-			case ZWINCMD_WindowControlFocus:
-				controlPrioritySwitch();
-				break;
-			case ZWINCMD_UpdateCursor:
-				CursorX = e.FirstArg;
-				CursorY = e.SecondArg;
-				break;
-			default:
-			case ZWINCMD_TryString:
-				break;
+			if (!e.Manual)
+			{
+				Array<string> cmdc;
+				cmdPlyr[0].Split(cmdc, ":");
+				for (int i = 0; i < cmdc.Size(); i++)
+				{
+					Array<string> cmd;
+					cmdc[i].Split(cmd, ",");
+					if (cmd.Size() > 1 ? (cmd[1] ~== self.Name) : false)
+					{
+						//switch (stringToWindowCommand(e.EventName))
+						switch(stringToWindowCommand(cmd[0]))
+						{
+							case ZWINCMD_WindowControlFocus:
+								controlPrioritySwitch();
+								break;
+							case ZWINCMD_UpdateCursor:
+								CursorX = e.FirstArg;
+								CursorY = e.SecondArg;
+								break;
+							default:
+							case ZWINCMD_TryString:
+								break;
+						}
+					}
+				}
+			}
 		}
 		
 		for (int i = 0; i < windowControls.Size(); i++)
@@ -755,7 +812,7 @@ class ZSWindow : ZObjectBase abstract
 				return null;
 		}
 		else
-			return null;
+			return self;
 	}
 	
 	/*
@@ -783,7 +840,7 @@ class ZSWindow : ZObjectBase abstract
 			// Look for higher priority windows
 			for (int i = 0; i < searchPriority; i++)
 			{
-				let enwd = ZSWindow(zEvent.GetWindowByPriority(i));
+				let enwd = GetWindowByPriority(i);
 				if (enwd)
 				{
 					float enwdX, enwdY;

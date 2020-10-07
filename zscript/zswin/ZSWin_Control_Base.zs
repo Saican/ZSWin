@@ -48,6 +48,23 @@ class ZControl : ZObjectBase abstract
 	}
 	
 	/*
+		Returns a ZSWindow with the given priority
+	
+	*/
+	ZSWindow GetWindowByPriority(int p)
+	{
+		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
+		ZSWindow enwd;
+		while (enwd = ZSWindow(nwdFinder.Next()))
+		{
+			if (enwd.Priority == p)
+				return enwd;
+		}
+		
+		return null;
+	}
+	
+	/*
 		Recursively searches for the first encountered window and returns it.
 		
 		Set searchToFirstWindow to false to seach all the way to the end of the ControlParent chain

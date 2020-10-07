@@ -52,7 +52,7 @@ class ZSWin_BFGWindow : ZSWindow
 			
 		// Title - it's just another control like all the others
 		AddControl(new("ZText").Init(self, Enabled, Show, "BFGWindowTitle", "Weapon Access Station", PlayerClient, UiToggle,
-			TextWrap:ZText.TXTWRAP_Dynamic,TextFont:'bigfont', TextColor:Font.CR_Gold));
+			TextWrap:ZText.TXTWRAP_Dynamic,TextFont:'bigfont', TextColor:'Gold'));
 			
 		AddControl(new("ZTextBox").Init(self, Enabled, Show, "BFGPasswordBox", PlayerClient, UiToggle,
 			BorderColor:0xff0000, BorderAlpha:0.5,
@@ -63,17 +63,14 @@ class ZSWin_BFGWindow : ZSWindow
 			ButtonScaleType:ZControl.SCALE_Vertical, Text:"Access BFG 9000", FontName:'newsmallfont', TextAlignment:ZControl.TEXTALIGN_Center, TextWrap:ZControl.TXTWRAP_Dynamic,
 			Txt_yLocation:5));
 		
-		if(GetZHandler())
-			return super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType);
-		
-		ZSHandlerUtil.HaltAndCatchFire(" - - BFG WINDOW DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null; // won't get here because of HCF, but has to be here for code completion
+		return super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType);
 	}
 	
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
-			zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
+			PostPrioritySwitch();
+			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	

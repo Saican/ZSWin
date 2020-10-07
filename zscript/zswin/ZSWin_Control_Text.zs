@@ -13,13 +13,13 @@ class ZText : ZControl
 	string Text;
 	BrokenLines WrappedText;
 	
-	int WrapWidth, TextColor;
+	int WrapWidth;
 	
-	name TextFont;
+	name TextFont, TextColor;
 	
 	ZText Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, string Text, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_Parent, SCALETYP ScaleType = SCALE_NONE, TEXTALIGN TextAlignment = TEXTALIGN_Left,
-		TXTWRAP TextWrap = TXTWRAP_NONE, int WrapWidth = 0, name TextFont = 'consolefont', int TextColor = 0,
+		TXTWRAP TextWrap = TXTWRAP_NONE, int WrapWidth = 0, name TextFont = 'consolefont', name TextColor = 'Black',
 		float xLocation = 0, float yLocation = 0, float Alpha = 1)
 	{
 		self.Text = Text;
@@ -31,14 +31,9 @@ class ZText : ZControl
 		self.yLocation = ControlParent.yLocation + yLocation;
 		self.Alpha = Alpha;
 		if (self.TextFont)
-		{
-			if (GetZHandler())
-				return ZText(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ScaleType, TextAlignment, ClipType));
-		}
+			return ZText(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ScaleType, TextAlignment, ClipType));
 		else
-			ZSHandlerUtil.HaltAndCatchFire(" - - TEXT CONTROL DOES NOT HAVE A VALID FONT!");
-		ZSHandlerUtil.HaltAndCatchFire(" - - TEXT DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		return null;
+			return ZText(HCF(" - - TEXT CONTROL DOES NOT HAVE A VALID FONT!"));
 	}
 	
 	override bool ZObj_UiTick()
@@ -49,7 +44,8 @@ class ZText : ZControl
 		// AddToUITicker will put ControlUpdate and everything else into an event packet
 		// for processing by the UITicker.
 		if (TextWrap == TXTWRAP_Dynamic)
-			ZEvent.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", self.Name));
+			ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", self.Name), self.PlayerClient);
+			//ZEvent.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", self.Name));
 		return super.ZObj_UiTick();
 	}
 	
@@ -210,12 +206,14 @@ class ZText : ZControl
 				case TXTWRAP_Wrap:
 				case TXTWRAP_Dynamic:
 					if (!txt.WrappedText)
-						EventHandler.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", txt.Name));
+						ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", txt.Name), txt.PlayerClient);
+						//EventHandler.SendNetworkEvent(string.Format("zswin_AddToUITicker,zswin_ControlUpdate,%s", txt.Name));
 					else
+					//if (txt.WrappedText)
 					{
 						for (int i = 0; i < txt.WrappedText.Count(); i++)
 							Screen.DrawText(Font.GetFont(txt.TextFont),
-											txt.TextColor,
+											Font.FindFontColor(txt.TextColor),
 											GetAlignment(txt, sxloc, pclipWdth, txt.WrappedText.StringAt(i)),
 											syloc + (i * Font.GetFont(txt.TextFont).GetHeight()),
 											txt.WrappedText.StringAt(i),
@@ -224,7 +222,7 @@ class ZText : ZControl
 					break;
 				default:
 					Screen.DrawText(Font.GetFont(txt.TextFont),
-									txt.TextColor,
+									Font.FindFontColor(txt.TextColor),
 									GetAlignment(txt, sxloc, pclipWdth, txt.Text),
 									syloc,
 									txt.Text,
