@@ -674,6 +674,9 @@ class ZEventSystem : ZSHandlerUtil
 						updateCursorData(cmd[1].ToInt(), cmd[2].ToInt(), cmd[3], cmd[4].ToInt(), cmd[5].ToInt(), cmd[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
 						break;
 					case ZNCMD_AddToUITicker:
+						// Instead of having some special format for this command
+						// this just jams the string back together to create the
+						// event name.
 						string addCmd = cmd[1];
 						if (cmd.Size() > 2)
 						{
@@ -698,37 +701,6 @@ class ZEventSystem : ZSHandlerUtil
 				}
 				else { /* probably smart to hcf here, becuz what now?  there's some fuckery here. just no, you broke it or something. */}
 			}
-			/*
-			if (cmdc.Size() > 1)
-			{
-				switch(stringToZNetworkCommand(cmdc[0]))
-				{
-					case ZNCMD_UpdateCursorData:
-						updateCursorData(cmdc[1].ToInt(), cmdc[2].ToInt(), cmdc[3], cmdc[4].ToInt(), cmdc[5].ToInt(), cmdc[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
-						break;
-					case ZNCMD_AddToUITicker:
-						AddEventPacket(cmdc[1], e.Args[0], e.Args[1], e.Args[2]);
-						break;
-					case ZNCMD_QuickCloseCheck:
-						quickCloseCheck(cmdc[1], e.Args[0]);
-						break;
-				}
-			}
-			else
-			{
-				if (cmdc.Size() > 0)
-					cmdc.Clear();
-				cmdPlyr[0].Split(cmdc, ",");
-				if (cmdc.Size() > 1)
-				{
-					switch (stringToZNetworkCommand(cmdc[0]))
-					{
-						case ZNCMD_ControlUpdate:
-							controlUpdateEvent(cmdc[1]);
-							break; 
-					}
-				}
-			}*/
 		}
 	}
 	
@@ -826,9 +798,9 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
-		Public but not a method called by the user.
-		This method is called by anything inheriting from a ZObjectBase,
-		in order to add that object to the incomingZObjects array.
+		Finds the ZObject with the give name, and adds
+		that object to the incoming objects list.
+		
 	*/
 	private void addObjectToGlobalObjects(string n)
 	{
@@ -1196,7 +1168,7 @@ class ZEventSystem : ZSHandlerUtil
 			quikclose = true;
 		
 		if (quikclose)
-			SendNetworkEvent("zevsys_UI_CursorToggle");
+			zEventCommand("zevsys_UI_CursorToggle", consoleplayer);
 	}
 	
 	/*
