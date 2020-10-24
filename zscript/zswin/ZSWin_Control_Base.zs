@@ -8,6 +8,7 @@
 class ZControl : ZObjectBase abstract
 {
 	SCALETYP ScaleType;
+	bool HasFocus;
 	
 	enum TEXTALIGN
 	{
@@ -29,6 +30,7 @@ class ZControl : ZObjectBase abstract
 	{
 		self.ScaleType = ScaleType;
 		self.TextAlignment = TextAlignment;
+		self.HasFocus = false;
 		if (ControlParent)
 			return ZControl(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 		else
@@ -37,21 +39,28 @@ class ZControl : ZObjectBase abstract
 	}
 	
 	/*
-		.NET themed method.  This is a control's equivalent of zEvent.PostPriorityIndex.
-		
-		This tells a window that the control wants to be priority 0.
+		Wrapper to trigger a focus change
 	
 	*/
-	void SetFocus()
+	void SetFocus(bool fullKeyboard = false)
 	{
-		GetParentWindow(self.ControlParent).PostFocusIndex(GetParentWindow(self.ControlParent).GetControlIndex(self));
+		GetParentWindow(self.ControlParent).PostControlFocusIndex(self);
+		if (fullKeyboard)
+			ZNetCommand("zevsys_ControlFullInput", self.PlayerClient, true);
+	}
+	
+	void LoseFocus(bool fullKeyboard = false)
+	{
+		HasFocus = false;
+		if (fullKeyboard)
+			ZNetCommand("zevsys_ControlFullInput", self.PlayerClient);
 	}
 	
 	/*
 		Returns a ZSWindow with the given priority
 	
 	*/
-	ZSWindow GetWindowByPriority(int p)
+	clearscope ZSWindow GetWindowByPriority(int p)
 	{
 		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
 		ZSWindow enwd;

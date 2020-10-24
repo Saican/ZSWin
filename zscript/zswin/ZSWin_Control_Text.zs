@@ -43,26 +43,41 @@ class ZText : ZControl
 		// This event is actually sending 2 events, AddToUITicker and ControlUpdate.
 		// AddToUITicker will put ControlUpdate and everything else into an event packet
 		// for processing by the UITicker.
-		if (TextWrap == TXTWRAP_Dynamic)
+		
+		if (TextWrap != TXTWRAP_NONE)
 			ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", self.Name), self.PlayerClient);
-			//ZEvent.SendNetworkEvent(string.Format("zswin_AddToUITicker:zswin_ControlUpdate,%s", self.Name));
 		return super.ZObj_UiTick();
 	}
 	
-	override void ObjectUpdate()
+	/*
+		Returns the object's text wrap width.
+		
+		This should not be confused with the actual WrapWidth member,
+		which is a direct assignment of the wrapping width for non-dynamic
+		text. This method will return the value of the WrapWidth member, should
+		text wrapping be static and the WrapWidth member non-zero.
+		
+		The intent of this method is to provide a method of determining a text
+		wrapping width under all circumstances, especially dynamic where the
+		object is calculating things on the fly.
+		
+		A returned value of zero (0), indicates no text wrapping is being
+		applied to the object's text.
+		
+	*/
+	clearscope int GetTextWrapWidth()
 	{
-		BrokenLines newLines;
-		Font fnt = Font.GetFont(self.TextFont);
+		int cw;
 		switch (TextWrap)
 		{
 			case TXTWRAP_Wrap:
 				if (WrapWidth > 0)
-					newLines = fnt.BreakLines(self.Text, self.WrapWidth);
+					cw = self.WrapWidth;
 				else
-					newLines = fnt.BreakLines(self.Text, self.ControlParent.Width);
+					cw = self.ControlParent.Width;
 				break;
 			case TXTWRAP_Dynamic:
-				int cw, ch;
+				int ch;
 				// How does the text want to be clipped?
 				switch (self.ClipType)
 				{
@@ -102,11 +117,17 @@ class ZText : ZControl
 						cw = screen.GetWidth();
 						break;
 				}
-				newLines = fnt.BreakLines(self.Text, cw);
 				break;
+			default:
+				return 0;
 		}
-		
-		WrappedText = newLines;
+		return cw;
+	}
+	
+	override void ObjectUpdate()
+	{
+		// Hey ZDoom GC - you better like this, old Z-Windows died because of strings and memory mismanagment
+		WrappedText = Font.GetFont(self.TextFont).BreakLines(self.Text, GetTextWrapWidth());
 	}
 	
 	override void ObjectDraw(ZObjectBase parent)
@@ -207,9 +228,7 @@ class ZText : ZControl
 				case TXTWRAP_Dynamic:
 					if (!txt.WrappedText)
 						ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", txt.Name), txt.PlayerClient);
-						//EventHandler.SendNetworkEvent(string.Format("zswin_AddToUITicker,zswin_ControlUpdate,%s", txt.Name));
 					else
-					//if (txt.WrappedText)
 					{
 						for (int i = 0; i < txt.WrappedText.Count(); i++)
 							Screen.DrawText(Font.GetFont(txt.TextFont),

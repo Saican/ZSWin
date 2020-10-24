@@ -55,8 +55,8 @@ class ZSWin_BFGWindow : ZSWindow
 			TextWrap:ZText.TXTWRAP_Dynamic,TextFont:'bigfont', TextColor:'Gold'));
 			
 		AddControl(new("ZTextBox").Init(self, Enabled, Show, "BFGPasswordBox", PlayerClient, UiToggle,
-			BorderColor:0xff0000, BorderAlpha:0.5,
-			box_xLocation:5, box_yLocation:(self.Height - 125), Width:(self.Width - 10), Text:"What's the password?"));
+			BorderColor:0xff0000, BorderAlpha:0.5, UseTrackingCursor:true,
+			box_xLocation:5, box_yLocation:(self.Height - 200), Width:(self.Width - 10), Height:100, IsMultiLine:true, FontName:'newconsolefont', Text:"What's the password?", txt_xLocation:5, txt_yLocation:5));
 			
 		AddControl(new("BFGButton").Init(self, Enabled, Show, "BFGAccessButton", PlayerClient, UiToggle,
 			Type:ZButton.BTN_ZButton, Width:(self.Width - 20), Btn_xLocation:((self.Width - (self.Width - 20)) / 2), Btn_yLocation:(self.Height - 75), 
@@ -70,7 +70,6 @@ class ZSWin_BFGWindow : ZSWindow
 	{
 		if (ValidateCursorLocation())
 			PostPrioritySwitch();
-			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	

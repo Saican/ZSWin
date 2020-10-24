@@ -135,6 +135,17 @@ class ZEventSystem : ZSHandlerUtil
 	void AddEventPacket(string n, int fa, int sa, int ta) { incomingEvents.Push(new("ZEventPacket").Init(n, fa, sa, ta)); }
 	private void clearUIEvents() { if (incomingEvents.Size() > 0) incomingEvents.Clear(); }
 	
+	/*
+		QuikClose Input Nullifier
+		
+		This is set to true when a control needs MOST of the keyboard for input,
+		like text boxes, so only the Esc key will toggle UI mode.
+		
+		This is set only through a net command.
+	*/
+	private bool bNiceQuikClose;
+	private void quikCloseInputRangeLimit(bool limit) { bNiceQuikClose = limit; }
+	
 	//
 	// - ZSCRIPT METHODS - In definition order
 	// ---------------------------------------
@@ -158,6 +169,7 @@ class ZEventSystem : ZSHandlerUtil
 		// If this isn't -1 stuff thinks there's stuff going on, 0 is a valid stack index
 		priorityStackIndex = -1;
 		ignorePostDuplicate = false;
+		bNiceQuikClose = false;
 		allZObjects = new("ZABST").Init();
 		cursor = new("ZUIEventPacket").Init(0, 0, "", 0, 0, 0, false, false, false);
 	}
@@ -258,15 +270,13 @@ class ZEventSystem : ZSHandlerUtil
 				// This results in a NetworkProcess_String call where the QuikClose check is processed
 				// KeyString is used to check various binds, KeyChar is used to check specific keys (Esc and tilde)
 				zEventCommand(string.Format("zevsys_QuikCloseCheck,%s", e.KeyString), consoleplayer, e.KeyChar);
-				//SendNetworkEvent(string.format("zswin_QuikCloseCheck:%s", e.KeyString), e.KeyChar);
 				break;
 			case UiEvent.Type_KeyRepeat:
 				break;
 			case UiEvent.Type_KeyUp:
 				// Check if the key is the bind for the cursor toggle
-				if (KeyBindings.NameKeys(Bindings.GetKeysForCommand("zswin_cmd_cursorToggle"), 0) ~== e.KeyString)
+				if (!bNiceQuikClose && KeyBindings.NameKeys(Bindings.GetKeysForCommand("zswin_cmd_cursorToggle"), 0) ~== e.KeyString)
 					zEventCommand("zevsys_UI_CursorToggle", consoleplayer);
-					//SendNetworkEvent("zswin_UI_CursorToggle");
 				break;
 			case UiEvent.Type_Char:
 			case UiEvent.Type_MouseMove:
@@ -310,37 +320,29 @@ class ZEventSystem : ZSHandlerUtil
 	{			
 		// Call Window Events
 		zEventCommand("zevsys_CallWindowEvents", consoleplayer);
-		//SendNetworkEvent("zswin_CallWindowEvents");
 		
 		// Deletion
 		if (outgoingWindows.Size() > 0)
 			zEventCommand("zevsys_DeleteOutgoingWindows", consoleplayer);
-			//SendNetworkEvent("zswin_DeleteOutgoingWindows");
 		// Priority
 		if (priorityStackIndex != -1 && incomingWindows.Size() == 0)
 			zEventCommand("zevsys_PrioritySwitch", consoleplayer);
-			//SendNetworkEvent("zswin_PrioritySwitch");
 		// Window Packets - they get added to incoming if valid
 		if (windowPackets.Size() > 0)
 			zEventCommand("zevsys_AddPacketsToIncoming", consoleplayer);
-			//SendNetworkEvent("zswin_AddPacketsToIncoming");
 		// Incoming
 		if (incomingWindows.Size() > 0)
 			zEventCommand("zevsys_AddIncomingToStack", consoleplayer);
-			//SendNetworkEvent("zswin_AddIncomingToStack");
 		// All objects get added to the global arrays
 		if (incomingZObjects.Size() > 0)
 			zEventCommand("zevsys_AddObjectToGlobalObjects", consoleplayer);
-			//SendNetworkEvent("zswin_AddObjectToGlobalObjects");
 		
 		// Incoming events from the last tick - this would be events send from UI scoped methods
 		if (incomingEvents.Size() > 0)
 		{
 			for (int i = 0; i < incomingEvents.Size(); i++)
 				zEventCommand(incomingEvents[i].EventName, consoleplayer, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
-				//SendNetworkEvent(incomingEvents[i].EventName, incomingEvents[i].FirstArg, incomingEvents[i].SecondArg, incomingEvents[i].ThirdArg);
 			zEventCommand("zevsys_ClearIncomingUIEvents", consoleplayer);
-			//SendNetworkEvent("zswin_ClearIncomingUIEvents");
 		}
 		
 		// Call the window UiTick - this is done last, all other things should be done so
@@ -389,8 +391,7 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_SetWindowForDestruction,
 		ZNCMD_PostStackIndex,
 		ZNCMD_AddWindowToStack,
-		
-		//ZNCMD_ShowCheckEnabled,
+		ZNCMD_ControlFullInput,
 
 		ZNCMD_ControlUpdate,
 		ZNCMD_LetAllPost,
@@ -443,9 +444,8 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_PostStackIndex;
 		if (e ~== "zevsys_AddWindowToStack")
 			return ZNCMD_AddWindowToStack;
-		
-		//if (e ~== "zswin_ShowCheckEnabled")
-			//return ZNCMD_ShowCheckEnabled;
+		if (e ~== "zevsys_ControlFullInput")
+			return ZNCMD_ControlFullInput;
 		
 		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
@@ -554,9 +554,6 @@ class ZEventSystem : ZSHandlerUtil
 					case ZNCMD_ClearUIIncoming:
 						clearUIEvents();
 						break;
-					//case ZNCMD_ShowCheckEnabled:
-						//windowShowCheckEnabled(e.Args[0], e.Args[1]);
-						//break;
 					case ZNCMD_CursorToggle:
 						cursorToggle();
 						break;
@@ -574,6 +571,9 @@ class ZEventSystem : ZSHandlerUtil
 						break;
 					case ZNCMD_AddObjectToGlobalObjects:
 						passIncomingToGlobalObjects();
+						break;
+					case ZNCMD_ControlFullInput:
+						quikCloseInputRangeLimit(e.Args[0]);
 						break;
 					case ZNCMD_LetAllPost:
 						letAllPost();
@@ -664,42 +664,73 @@ class ZEventSystem : ZSHandlerUtil
 			cmdPlyr[0].Split(cmdc, ":");
 			for (int i = 0; i < cmdc.Size(); i++)
 			{
-				Array<string> cmd;
-				cmdc[i].Split(cmd, ",");
-				if (cmd.Size() > 0)
+				if (cmdc[i] != "")
 				{
-					switch (stringToZNetworkCommand(cmd[0]))
+					Array<string> cmd;
+					cmdc[i].Split(cmd, ",");
+					if (cmd.Size() > 0)
 					{
-					case ZNCMD_UpdateCursorData:
-						updateCursorData(cmd[1].ToInt(), cmd[2].ToInt(), cmd[3], cmd[4].ToInt(), cmd[5].ToInt(), cmd[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
-						break;
-					case ZNCMD_AddToUITicker:
-						// Instead of having some special format for this command
-						// this just jams the string back together to create the
-						// event name.
-						string addCmd = cmd[1];
-						if (cmd.Size() > 2)
+						switch (stringToZNetworkCommand(cmd[0]))
 						{
-							for (int i = 2; i < cmd.Size(); i++)
-								addCmd.AppendFormat(",%s", cmd[i]);
+						case ZNCMD_UpdateCursorData:
+							if (cmd.Size() != 7)
+								console.printf(string.format("Update Cursor from Event System received %d args!", cmd.Size()));
+							else
+								updateCursorData(cmd[1].ToInt(), cmd[2].ToInt(), cmd[3], cmd[4].ToInt(), cmd[5].ToInt(), cmd[6].ToInt(), e.Args[0], e.Args[1], e.Args[2]);
+							break;
+						case ZNCMD_AddToUITicker:
+							// Instead of having some special format for this command
+							// this just jams the string back together to create the
+							// event name.
+							if (cmd.Size() >= 2)
+							{
+								string addCmd = cmd[1];
+								bool addPkt = true;
+								int cmdArgs = 0;
+								if (cmd.Size() > 2)
+								{
+									for (cmdArgs = 2; cmdArgs < cmd.Size(); cmdArgs++)
+									{
+										if (cmd[cmdArgs] != "")
+											addCmd.AppendFormat(",%s", cmd[cmdArgs]);
+										else
+										{
+											addPkt = false;
+											break;
+										}
+									}
+								}
+								if (addPkt)
+									AddEventPacket(addCmd, e.Args[0], e.Args[1], e.Args[2]);
+								else
+									console.printf(string.Format("Add To UI Ticker got an empty argument adding \"%s\" at index, %d", addcmd, cmdArgs));
+							}
+							break;
+						case ZNCMD_QuickCloseCheck:
+							if (cmd.Size() == 2)
+								quickCloseCheck(cmd[1], e.Args[0]);
+							else
+								console.printf("Quik Close Check did not get a valid key string!");
+							break;
+						case ZNCMD_ControlUpdate:
+							if (cmd.Size() == 2)
+								controlUpdateEvent(cmd[1]);
+							else
+								console.printf("Control Update did not get a valid control name!");
+							break;
+						case ZNCMD_PostStackIndex:
+							if (cmd.Size() == 2)
+								postPriorityIndex(cmd[1], e.Args[0]);
+							else
+								console.printf("Post Stack Index did not get a valid window name!");
+							break;
+						default:
+							/* debug out if it's on, otherwise this net command probably came from something else */
+							break;
 						}
-						AddEventPacket(addCmd, e.Args[0], e.Args[1], e.Args[2]);
-						break;
-					case ZNCMD_QuickCloseCheck:
-						quickCloseCheck(cmd[1], e.Args[0]);
-						break;
-					case ZNCMD_ControlUpdate:
-						controlUpdateEvent(cmd[1]);
-						break;
-					case ZNCMD_PostStackIndex:
-						postPriorityIndex(cmd[1], e.Args[0]);
-						break;
-					default:
-						/* debug out if it's on, otherwise this net command probably came from something else */
-						break;
 					}
+					else { /* probably smart to hcf here, becuz what now?  there's some fuckery here. just no, you broke it or something. */}
 				}
-				else { /* probably smart to hcf here, becuz what now?  there's some fuckery here. just no, you broke it or something. */}
 			}
 		}
 	}
@@ -1134,38 +1165,49 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		int key1, key2;
 		bool quikclose = false;
-		if (askey == 27 || askey == 96)
+		
+		// Esc key - this is always checked
+		if (askey == 27)
 			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+forward");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+back");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+moveleft");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+moveright");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+left");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+right");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("turn180");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+jump");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("+crouch");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
-		[key1, key2] = Bindings.GetKeysForCommand("crouch");
-		if(KeyBindings.NameKeys(key1, key2) ~== keyId)
-			quikclose = true;
+		
+		// If a control isn't needing full keyboard control - check the tilde key and binds
+		if (!bNiceQuikClose)
+		{
+			// tilde key
+			if (askey == 96)
+				quikclose = true;
+			// The rest are key binds - pretty self explanatory
+			[key1, key2] = Bindings.GetKeysForCommand("+forward");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+back");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+moveleft");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+moveright");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+left");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+right");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("turn180");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+jump");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("+crouch");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+			[key1, key2] = Bindings.GetKeysForCommand("crouch");
+			if(KeyBindings.NameKeys(key1, key2) ~== keyId)
+				quikclose = true;
+		}
 		
 		if (quikclose)
 			zEventCommand("zevsys_UI_CursorToggle", consoleplayer);

@@ -33,6 +33,7 @@ class ZObjectBase : thinker abstract
 	
 	private bool wasEnabled, bIsEventInvalid;
 	void EnabledLog() { wasEnabled = Enabled; }
+	bool IsEventInvalid() { return !bIsEventInvalid; }
 	void EventInvalidate() { bIsEventInvalid = false; }
 	void EventValidate() 
 	{ 
@@ -220,7 +221,7 @@ class ZObjectBase : thinker abstract
 		return false; 
 	}*/
 	
-	virtual bool ValidateCursorLocation() { return bIsEventInvalid; }
+	clearscope virtual bool ValidateCursorLocation() { return bIsEventInvalid; }
 	
 	/*
 		Event virtuals
