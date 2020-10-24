@@ -242,12 +242,15 @@ class ZButton : ZControl abstract
 				cmdPlyr[0].Split(cmdc, ":");
 				for (int i = 0; i < cmdc.Size(); i++)
 				{
-					Array<string> cmd;
-					cmdc[i].Split(cmd, ",");
-					if (cmd.Size() == 2 ? (cmd[0] ~== "zbtn_updateCursorLocation" && cmd[1] ~== self.Name) : false)
+					if (cmdc[i] != "")
 					{
-						CursorX = e.FirstArg;
-						CursorY = e.SecondArg;
+						Array<string> cmd;
+						cmdc[i].Split(cmd, ",");
+						if (cmd.Size() == 2 ? (cmd[0] ~== "zbtn_updateCursorLocation" && cmd[1] ~== self.Name) : false)
+						{
+							CursorX = e.FirstArg;
+							CursorY = e.SecondArg;
+						}
 					}
 				}
 			}

@@ -195,31 +195,29 @@ class ZObjectBase : thinker abstract
 			// Execute the command ist
 			for (int i = 0; i < cmdc.Size(); i++)
 			{
-				// Chop up each command into an argument list
-				Array<string> cmd;
-				cmdc[i].Split(cmd, ",");
-				// There's at least something, right? (no argument command)
-				if (cmd.Size() > 0)
+				if (cmdc[i] != "")
 				{
-					// Index 0 of the command should be the command itself
-					switch (stringToZObjNetCommand(cmd[0]))
+					// Chop up each command into an argument list
+					Array<string> cmd;
+					cmdc[i].Split(cmd, ",");
+					// There's at least something, right? (no argument command)
+					if (cmd.Size() > 0)
 					{
-						case ZOBJCMD_ShowCheckEnabled:
-							self.showCheckEnabled(cmd[1], e.FirstArg);
-							break;
+						// Index 0 of the command should be the command itself
+						switch (stringToZObjNetCommand(cmd[0]))
+						{
+							case ZOBJCMD_ShowCheckEnabled:
+								if (cmd.Size() == 2)
+									self.showCheckEnabled(cmd[1], e.FirstArg);
+								else
+									console.printf(string.Format("ZObject, %s, received invalid Show Check command!", self.Name));
+								break;
+						}
 					}
 				}
 			}
 		}
 	}
-	
-	/*bool GetZHandler() 
-	{
-		ZEvent = ZEventSystem(EventHandler.Find("ZEventSystem"));
-		if (ZEvent)
-			return true;
-		return false; 
-	}*/
 	
 	clearscope virtual bool ValidateCursorLocation() { return bIsEventInvalid; }
 	

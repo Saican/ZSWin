@@ -618,21 +618,33 @@ class ZEventSystem : ZSHandlerUtil
 				e.Name.Split(cmde, ":");
 				for (int i = 0; i < cmde.Size(); i++)
 				{
-					Array<string> cmd;
-					cmde[i].Split(cmd, ",");
-					if (cmd.Size() > 0)
+					if (cmde[i] != "")
 					{
-						switch (stringToZNetworkCommand(cmd[0]))
+						Array<string> cmd;
+						cmde[i].Split(cmd, ",");
+						if (cmd.Size() > 0)
 						{
-							case ZNCMD_HandlerIncomingGlobal:
-								addObjectToGlobalObjects(cmd[1]);
-								break;
-							case ZNCMD_SetWindowForDestruction:
-								setWindowForDestruction(cmd[1]);
-								break;
-							case ZNCMD_AddWindowToStack:
-								addWindowToStack(cmd[1]);
-								break;
+							switch (stringToZNetworkCommand(cmd[0]))
+							{
+								case ZNCMD_HandlerIncomingGlobal:
+									if (cmd.Size() == 2)
+										addObjectToGlobalObjects(cmd[1]);
+									else
+										console.printf("Invalid attempt to add ZObject to globals!");
+									break;
+								case ZNCMD_SetWindowForDestruction:
+									if (cmd.Size() == 2)
+										setWindowForDestruction(cmd[1]);
+									else
+										console.printf("Invalid attempt to set window for destruction!");
+									break;
+								case ZNCMD_AddWindowToStack:
+									if (cmd.Size() == 2)
+										addWindowToStack(cmd[1]);
+									else
+										console.printf("Invalid attempt to add window to stack!");
+									break;
+							}
 						}
 					}
 				}

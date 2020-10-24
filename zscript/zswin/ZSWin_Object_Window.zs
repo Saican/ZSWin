@@ -117,24 +117,45 @@ class ZSWindow : ZObjectBase abstract
 	private array<ZObjectBase> windowControls;
 	
 	private int focusStackIndex;
-	private bool ignorePostDuplicate;
-	void PostFocusIndex(int FocusIndex, bool Ignore = false) 
+	private bool ignoreFocusPostDuplicate;
+	void PostControlFocusIndex(ZObjectBase control, bool Ignore = false) 
 	{
-		if (!ignorePostDuplicate)
+		if (!ignoreFocusPostDuplicate)
 		{
-			focusStackIndex = FocusIndex; 
-			windowControls[FocusIndex].EventInvalidate();
-			ignorePostDuplicate = Ignore;
+			focusStackIndex = GetControlIndex(control); 
+			windowControls[focusStackIndex].EventInvalidate();
+			ignoreFocusPostDuplicate = Ignore;
+		}
+	}
+	private void controlFocusSwitch()
+	{
+		for (int i = 0; i < windowControls.Size(); i++)
+		{
+			if (windowControls[i] is "ZControl")
+				ZControl(windowControls[i]).HasFocus = (focusStackIndex == i);
+		}
+		focusStackIndex = -1;
+	}
+	
+	private int priorityStackIndex;
+	private bool ignorePriorityPostDuplicate;
+	void PostControlPriorityIndex(ZObjectBase control, bool Ignore = false)
+	{
+		if (!ignorePriorityPostDuplicate)
+		{
+			priorityStackIndex = GetControlIndex(control);
+			windowControls[priorityStackIndex].EventInvalidate();
+			ignorePriorityPostDuplicate = Ignore;			
 		}
 	}
 	private void controlPrioritySwitch()
 	{
-		if (windowControls[focusStackIndex].Priority > 0)
+		if (windowControls[priorityStackIndex].Priority > 0)
 		{
 			array<int> plist;
 			for (int i = 0; i < windowControls.Size(); i++)
 			{
-				if (i == focusStackIndex)
+				if (i == priorityStackIndex)
 					plist.Push(0);
 				else if (windowControls[i].Priority < windowControls.Size() - 1)
 					plist.Push(windowControls[i].Priority + 1);
@@ -149,7 +170,7 @@ class ZSWindow : ZObjectBase abstract
 			}
 		}
 		
-		focusStackIndex = -1;
+		priorityStackIndex = -1;
 	}
 	
 	clearscope int GetControlSize() { return windowControls.Size(); }
@@ -260,7 +281,7 @@ class ZSWindow : ZObjectBase abstract
 		Returns a ZSWindow with the given priority
 	
 	*/
-	ZSWindow GetWindowByPriority(int p)
+	clearscope ZSWindow GetWindowByPriority(int p)
 	{
 		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
 		ZSWindow enwd;
@@ -302,7 +323,7 @@ class ZSWindow : ZObjectBase abstract
 	ZSWindow Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1)
 	{
-		focusStackIndex = -1;
+		focusStackIndex = priorityStackIndex = -1;
 		lockedMoveCursorX = lockedMoveCursorY = -1;
 		moveAccumulateX = moveAccumulateY = 0;
 		lockedScaleCursorX = lockedScaleCursorX = -1;
@@ -348,6 +369,9 @@ class ZSWindow : ZObjectBase abstract
 		if (focusStackIndex > -1)
 			ZNetCommand(string.Format("nwd_WindowControlsToSetFocus,%s", self.Name), self.PlayerClient);
 			//zEvent.SendNetworkEvent("nwd_WindowControlsToSetFocus");
+		// Priority switching
+		if (priorityStackIndex > -1)
+			ZNetCommand(string.Format("nwd_ControlPrioritySwitch,%s", self.Name), self.PlayerClient);
 		
 		// Control UiTicking
 		for (int i = 0; i < windowControls.Size(); i++)
@@ -362,6 +386,7 @@ class ZSWindow : ZObjectBase abstract
 	enum ZWINNETCMD
 	{
 		ZWINCMD_WindowControlFocus,
+		ZWINCMD_ControlPrioritySwitch,
 		ZWINCMD_UpdateCursor,
 		ZWINCMD_TryString,
 	};
@@ -370,6 +395,8 @@ class ZSWindow : ZObjectBase abstract
 	{
 		if (e ~== "nwd_WindowControlsToSetFocus")
 			return ZWINCMD_WindowControlFocus;
+		if (e ~== "nwd_ControlPrioritySwitch")
+			return ZWINCMD_ControlPrioritySwitch;
 		if (e ~== "nwd_updateCursorLocation")
 			return ZWINCMD_UpdateCursor;
 		else
@@ -388,23 +415,29 @@ class ZSWindow : ZObjectBase abstract
 				cmdPlyr[0].Split(cmdc, ":");
 				for (int i = 0; i < cmdc.Size(); i++)
 				{
-					Array<string> cmd;
-					cmdc[i].Split(cmd, ",");
-					if (cmd.Size() > 1 ? (cmd[1] ~== self.Name) : false)
+					if (cmdc[i] != "")
 					{
-						//switch (stringToWindowCommand(e.EventName))
-						switch(stringToWindowCommand(cmd[0]))
+						Array<string> cmd;
+						cmdc[i].Split(cmd, ",");
+						if (cmd.Size() > 1 ? (cmd[1] ~== self.Name) : false)
 						{
-							case ZWINCMD_WindowControlFocus:
-								controlPrioritySwitch();
-								break;
-							case ZWINCMD_UpdateCursor:
-								CursorX = e.FirstArg;
-								CursorY = e.SecondArg;
-								break;
-							default:
-							case ZWINCMD_TryString:
-								break;
+							//switch (stringToWindowCommand(e.EventName))
+							switch(stringToWindowCommand(cmd[0]))
+							{
+								case ZWINCMD_WindowControlFocus:
+									controlFocusSwitch();
+									break;
+								case ZWINCMD_ControlPrioritySwitch:
+									controlPrioritySwitch();
+									break;
+								case ZWINCMD_UpdateCursor:
+									CursorX = e.FirstArg;
+									CursorY = e.SecondArg;
+									break;
+								default:
+								case ZWINCMD_TryString:
+									break;
+							}
 						}
 					}
 				}
@@ -797,7 +830,7 @@ class ZSWindow : ZObjectBase abstract
 		}	
 	}
 	
-	ZSWindow GetRootWindow()
+	clearscope ZSWindow GetRootWindow()
 	{
 		ZObjectBase pwd;
 		if (self.ControlParent)
