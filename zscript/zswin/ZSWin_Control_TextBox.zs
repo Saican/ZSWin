@@ -63,8 +63,8 @@ class ZTextBox : ZControl
 	int CursorX, CursorY;
 	
 	// Input
-	private int inputChar, lineCount;
-	private bool bShift;
+	private int lineCount;
+	private bool bShift, bAlt, bCtrl;
 	
 	/*
 		Unlike a button, a textbox is a bit more restrictive
@@ -92,7 +92,7 @@ class ZTextBox : ZControl
 		self.TrackingCursorColor = TrackingCursorColor;
 		self.UseTrackingColor = UseTrackingColor;
 		
-		self.inputChar = self.lineCount = 0;
+		self.lineCount = 0;
 		self.bShift = false;
 		
 		// Background
@@ -274,8 +274,15 @@ class ZTextBox : ZControl
 							ZNetCommand(string.Format("ztxt_CursorPositionChange,%s", self.Name), self.PlayerClient, 0, -1);
 							break;
 						default:
-							//if (e.KeyChar > 31)
-								ZNetCommand(string.Format("ztxt_keyDownInput,%s:ztxt_appendInput,%s", self.Name, self.Name), self.PlayerClient, e.KeyChar, e.IsShift);
+							// First of all none of the characters with a value less than 32 are anything to actually print onscreen.
+							if (e.KeyChar > 31)
+							{
+								//console.printf(string.format("Textbox UiProcess, in KeyDown event, got %s key string, Shift is %s", e.KeyString, e.IsShift ? "true" : "false"));
+								// Next, what character gets supplied here is pretty much bogus,
+								// but this is where control keys can be caught, i.e. Shift, Ctrl, and Alt.
+								// These booleans from the actual UiProcess event are just passed along out of the UI context from here as ints.
+								ZNetCommand(string.Format("ztxt_keyDownInput,%s", self.Name), self.PlayerClient, e.IsShift, e.IsAlt, e.IsCtrl);
+							}
 							break;
 					}
 					break;
@@ -311,6 +318,11 @@ class ZTextBox : ZControl
 					break;
 				case ZUIEventPacket.EventType_KeyUp:
 					ZNetCommand(string.Format("ztxt_keyClearInput,%s", self.Name), self.PlayerClient);
+					break;
+				case ZUIEventPacket.EventType_Char:
+					//console.printf(string.format("Texbox UI Process, in Char event, received %s character string, Shift is %s", e.KeyString, e.IsShift ? "true" : "false"));
+					// This event is where the correct character is actually received - still not sending the string but the ASCII value for conversion.
+					ZNetCommand(string.Format("ztxt_appendInput,%s", self.Name), self.PlayerClient, e.KeyChar);
 					break;
 			}
 		}
@@ -400,8 +412,9 @@ class ZTextBox : ZControl
 									break;
 								// Log the input
 								case ZTBCMD_KeyDownInput:
-									self.inputChar = e.FirstArg;
-									self.bShift = e.SecondArg;
+									self.bShift = e.FirstArg;
+									self.bAlt = e.SecondArg;
+									self.bShift = e.ThirdArg;
 									break;
 								// Key was released so clear input log
 								case ZTBCMD_KeyClearInput:
@@ -411,7 +424,7 @@ class ZTextBox : ZControl
 								case ZTBCMD_KeyRepeatInput:  // fall through to append
 								// Have input/repeating input, add it to the string.
 								case ZTBCMD_AppendInput:
-									textboxAppendInput();
+									textboxAppendInput(e.FirstArg);
 									break;
 								// Locate the cursor to the start of the string
 								case ZTBCMD_SendCursorHome:
@@ -563,9 +576,9 @@ class ZTextBox : ZControl
 		The ZText will update itself if it text wraps.
 	
 	*/
-	private void textboxAppendInput()
+	private void textboxAppendInput(int inputChar)
 	{
-			console.printf(string.format("should have inserted character : %s, at index: %d, on line: %d, shift is: %s", string.Format("%c",inputChar), cursorIndex, cursorLine, bShift ? "true" : "false"));
+			console.printf(string.format("should have inserted character : %s (%d), at index: %d, on line: %d, shift is: %s", string.Format("%c",inputChar), inputChar, cursorIndex, cursorLine, bShift ? "true" : "false"));
 			
 			string astr;
 			int appendIndex = 0;
@@ -596,6 +609,12 @@ class ZTextBox : ZControl
 			cursorIndex++;			
 	}
 	
+	/*
+		This removes the character at the cursor location, i.e.
+		the string manipulation that has to take place because you,
+		yes you Geoffrey, hit the Backspace key.
+		
+	*/
 	private void textboxRemoveLastCharacter()
 	{
 		if (cursorIndex > 0)
@@ -618,10 +637,15 @@ class ZTextBox : ZControl
 		}
 	}
 	
+	/*
+		Got a KeyUp event so the current status of
+		the control key globals isn't valid anymore,
+		so set the back to false.
+	
+	*/
 	private void textboxClearInput()
 	{
-		inputChar = 0;
-		bShift = false;
+		bShift = bAlt = bCtrl = false;
 	}
 
 	/*

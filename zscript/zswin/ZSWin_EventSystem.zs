@@ -300,6 +300,7 @@ class ZEventSystem : ZSHandlerUtil
 		{
 			if (winStack[i].PlayerClient == consoleplayer)
 			{
+				//console.printf(string.format("Event System got key string, %s (%d), shift is, %s", e.KeyString, e.KeyChar, e.IsShift ? "true" : "false"));
 				if (winStack[i].ZObj_UiProcess(new("ZUIEventPacket").Init(e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY, e.IsShift, e.IsAlt, e.IsCtrl)))
 					break;
 			}

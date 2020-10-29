@@ -229,7 +229,7 @@ class ZObjectBase : thinker abstract
 		its a reference to the parent object.
 	
 	*/
-	ui virtual void ObjectDraw(ZObjectBase parent) {}
+	ui abstract void ObjectDraw(ZObjectBase parent);
 	
 	/*
 		This method is a unique event virtual.
