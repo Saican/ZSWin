@@ -305,7 +305,7 @@ class ZSWindow : ZObjectBase abstract
 		ZNetCommand(string.Format("zevsys_PostPriorityIndex,%s", n), self.PlayerClient, Ignore);
 	}
 	
-	ZSWindow AddWindowToStack(ZObjectBase zobj)
+	private ZSWindow addWindowToStack(ZObjectBase zobj)
 	{
 		EventHandler.SendNetworkEvent(string.Format("zevsys_AddWindowToStack,%s", zobj.Name));
 		return ZSWindow(zobj);
@@ -321,7 +321,7 @@ class ZSWindow : ZObjectBase abstract
 		
 	*/
 	ZSWindow Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
-		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1)
+		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1, bool SkipStackAdd = false)
 	{
 		focusStackIndex = priorityStackIndex = -1;
 		lockedMoveCursorX = lockedMoveCursorY = -1;
@@ -331,7 +331,10 @@ class ZSWindow : ZObjectBase abstract
 		backgroundInit();
 		if (BorderType == BORDERTYP_ZWin)
 			borderInit();
-		return ZSWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
+		if (!SkipStackAdd)
+			return addWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
+		else
+			return ZSWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
 	virtual ZObjectBase Make(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
