@@ -10,10 +10,11 @@ class ZSWin_BFGWindow : ZSWindow
 		Windows created by lines need to override their Make method and initialize
 		instead of using their own Init method.
 		
-		Do not return the super.Make, it does not continue initialization.
+		The reason for this is that the method called by the Event System to create the window must
+		be a virtual.  Init is more functional but the call chain cannot be completed from within the
+		Event System because the definition of Init that is useful occurs in a ZSWindow descendent.
 		
-		Also do not call AddWindowToStack - the event system handles this automatically
-		(You would duplicate the window)
+		As this demonstration shows, you return the super.Init in order to continue initialization.
 	*/
 	override ZObjectBase Make(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType, float xLocation, float yLocation, float Alpha)
@@ -63,7 +64,7 @@ class ZSWin_BFGWindow : ZSWindow
 			ButtonScaleType:ZControl.SCALE_Vertical, Text:"Access BFG 9000", FontName:'newsmallfont', TextAlignment:ZControl.TEXTALIGN_Center, TextWrap:ZControl.TXTWRAP_Dynamic,
 			Txt_yLocation:5));
 		
-		return super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType);
+		return ZSWin_BFGWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
 	override void OnLeftMouseDown(int t)

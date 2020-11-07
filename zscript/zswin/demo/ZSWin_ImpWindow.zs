@@ -6,15 +6,44 @@
 
 */
 
+/*
+	This is a standard window definition.  It contains a constructor called Init,
+	and two event overrides, OnLeftMouseDown, and OnLeftMouseUp.
+	
+	The constructor, Init, is where the various feature of the window are defined.
+	
+	OnLeftMouseDown and OnLeftMouseUp are interactive events that will be called
+	when their corresponding real-world interaction with the computer takes place,
+	in this case, clicking the left mouse button.
+
+*/
 class ZSWin_ImpWindow : ZSWindow
 {	
+	/*
+		This is the window constructor.  There are two constructors for windows, Init and Make.
+		Which constructor do you use?  That depends on how the window is to be created in the game.
+		If the window is going to be created through ZScript, you use Init.
+		If the window is going to be created through a linedef, you use Make.
+		
+		Init is not a virtual method, so return your descendent class, as shown here.
+		Make is a virtual method and must be overriden, so you will still return a ZObjectBase.
+		
+		Refer to the BFG Window for an example of the Make constructor method usage.
+	
+	*/
 	ZSWin_ImpWindow Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1)
 	{
+		/*
+			The argument list contains the bare essentials to create a valid window,
+			so some members, including important ones must be assigned here.
+		
+		*/
 		// Starting dimensions
 		Width = 350;
 		Height = 380;
 		
+		// This just creates some defaults for the x/y location
 		if (xLocation == 0)
 			self.xLocation = 200;
 		else
@@ -24,49 +53,93 @@ class ZSWin_ImpWindow : ZSWindow
 		else
 			self.yLocation = yLocation;
 		
+		// Background
 		BackgroundType = BACKTYP_GameTex1;
 		BackgroundAlpha = 0.8;
 		BackgroundStretch = false;
 		AnimateBackground = true;
 		
+		// Border
 		BorderType = BORDERTYP_ZWin;
 		BorderAlpha = 1;
 		
+		/*
+			Controls are ZObjects too, so they are created with the "new" keyword 
+			and initialized with their own Init methods.
+			
+			Controls have long, complicated argument lists that encompass the
+			entire control, so user can use ZScript's named arguments to skip things
+			they don't need; everything is defaulted and will result in a valid object
+			with just the bare minimum of required args.
+			
+			Notice the first line of each control definition.
+			The variables "self, Enabled, Show, a name for the object, PlayerClient, and finally UiToggle"
+			are repeated sent to these objects.  Notice that the window itself has such a required set of
+			arguments in it's Init method argument list.  These 6 arguments are the bare minimum of required
+			arguments for valid object creation.
+		
+		*/
+		
+		// Windows can be controls of other windows - this window is defined below with more information.
 		AddControl(new("ZSWin_ImpSubWindow").Init(self, Enabled, Show, "ImpySubWindow", PlayerClient, UiToggle));
+		
 		// Close Button
 		AddControl(new("ZSWin_CloseButton").Init(self, Enabled, Show, "ImpWindowCloseButton", PlayerClient, UiToggle,
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
 			IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS"));
+			
 		// Move Button
 		AddControl(new("ZSWin_MoveButton").Init(self, Enabled, Show, "ImpWindowMoveButton", PlayerClient, UiToggle,
 			Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
 			IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS"));
+			
 		// Scale Button
 		AddControl(new("ZSWin_ScaleButton").Init(self, Enabled, Show, "ImpWindowScaleButton", PlayerClient, UiToggle,
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
 		
-		//ZSWin_ImpWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
-		return ZSWin_ImpWindow(AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
-		//return ZSWin_ImpWindow(ZEvent.AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
+		/*
+			Return your class type, in this case ZSWin_ImpWindow, and call the super.Init,
+			passing along those 6 required args.
+		
+		*/
+		return ZSWin_ImpWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
 	/*
-		Just like OnMouseMove, this override sends itself as the other for the
-		control events.  Same reason, ValidateCursorLocation needs it.
+		Clicking is two steps, pushing down on the button,
+		and releasing it.  This is step one.
+		
+		Three things happen here, first, there is a check
+		to see if the cursor is actually on top of the window,
+		second, if the cursor is on top of the window, inform
+		the event system that this window needs to be drawn on
+		top of everything else, and third, call the super of
+		this event.
+		
+		The argument "t" is the "type" as sent from the UiProcess
+		method.
 	*/
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			PostPrioritySwitch();
-			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	
 	/*
-		This allows the window to receive events again and has to be called.
-		There's a mechanism in place to lock the system when the event is received
-		so continued event reception does not cause crashy-ness.
+		We humans are slow compared to computers.  The event,
+		OnLeftMouseDown, can actually occur several times before
+		the player gets their finger off the mouse button.
+		
+		So there's a mechanism called Validation to halt repeated
+		event calls to basically make the machine now wait for
+		the player to do things at their pace.  Users don't really
+		encounter Validation except for here, where the completion
+		of an interaction, in this case releasing the left mouse
+		button needs to be handled by calling EventValidate.
+		
+		Last step is to call the super.  You do this for every event.
 	*/
 	override void OnLeftMouseUp(int t)
 	{
@@ -75,8 +148,11 @@ class ZSWin_ImpWindow : ZSWindow
 	}
 }
 
+
+
 /*
-	This is a sub-window that acts a control of a parent window
+	This is the sub-window that is a control of the window above.
+	
 
 */
 class ZSWin_ImpSubWindow : ZSWindow
@@ -112,29 +188,30 @@ class ZSWin_ImpSubWindow : ZSWindow
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
 		
-		return ZSWin_ImpSubWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
+		/*
+			To be a sub-window, this window needs to not add itself to
+			the event system's list of windows, called the window stack.
+			
+			To do this simply set SkipStackAdd, the last argument of the list, to true.
+			Normally you skip this argument.
+		
+		*/
+		return ZSWin_ImpSubWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType, true));
 	}
 	
 	/*
-		This window, being a sub-window of another window, should receive a
-		non-null other argument.  This needs checked just like the parent argument
-		through ValidateCursorLocation.  Just in case though, check  if other is valid first.
+		This event differs in that you set the PostPrioritySwitch
+		argument, Ignore, to true.  This stops duplicate attempts
+		by the parent window to cause a priority switch.
 		
-		One final important note is the call to PostPriorityIndex.  Unlike other calls, this one
-		sets the default bool Ignore to true.  This will cause the system to ignore duplicate
-		posts from the parent window(s).
 	*/
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			PostPrioritySwitch(true);
-			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(GetRootWindow()), true);
 		super.OnLeftMouseDown(t);
 	}
 	
-	/*
-		Same thing as any other window, gotta unlock the event system.
-	*/
 	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();
@@ -182,36 +259,16 @@ class ZSWin_ImpWindow2 : ZSWindow
 			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
 			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
 		
-		return ZSWin_ImpWindow2(AddWindowToStack(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType)));
+		return ZSWin_ImpWindow2(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
-	
-	/*
-		This window doesn't do anything special, so this is the basic left-click evaluation.
-	*/
+
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())
 			PostPrioritySwitch();
-			//zEvent.PostPriorityIndex(zEvent.GetStackIndex(self));
 		super.OnLeftMouseDown(t);
 	}
 	
-	/*
-		And unlock the system.  Why isn't this automatic?
-		Windows are ZObjectBase's, just like everything else.
-		Unlike everything else, windows receive the events from
-		the event system and then pass those events to their controls.
-		Since the event system is still pumping events to the windows,
-		the locking mechanism in each window stops it from continuing to
-		receive any more events until it is unlocked.  So the lock is
-		unique to each window, not a global mechanism, and needs cleared
-		when the event completes.
-		
-		For windows, the super has to be called because that is how
-		the control events are called.  Controls don't generally have
-		to call their super, unless there is some specific purpose, like
-		a control contains other controls that receive events.
-	*/
 	override void OnLeftMouseUp(int t)
 	{
 		EventValidate();

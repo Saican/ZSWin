@@ -200,7 +200,10 @@ class ZEventSystem : ZSHandlerUtil
 			
 			if (wname != "")  // Probably safe to assume the line isn't trying to make a window
 			{				  // Also saves a call to ClassNameIsAClass - oh god call that only if you have to
-				if (classname != "" && ClassNameIsAClass(classname))
+				// Well there's a name, so check if the class is valid - the not fun call to ClassNameIsAClass.
+				// If it's at least a class, then if the player corresponds, the packet is created.
+				// Packet processing protects itself from invalid classes.
+				if (classname != "" && ClassNameIsAClass(classname) && player == consoleplayer)
 					windowPackets.Push(new("ZWindowPacket").Init(enabled, show, uitoggle, wname, classname, clip, xloc, yloc, alpha, player));
 				else
 					console.printf(string.Format("\nZSWIN Event System - Line Activation ERROR!\nLine with index #%d, executing special #%d tried to create an invalid window class \"%s\"!\n\nPLEASE CHECK YOUR \"user_windowclass\" UDMF VARIABLE FOR THE CORRECT CLASS NAME!\nTHIS TYPE OF FAILURE IS COSTLY ON THE SYSTEM DUE TO ERROR CHECKING.  PLEASE CORRECT THE PROBLEM.", e.ActivatedLine.Index(), e.ActivatedLine.Special, className));
@@ -307,8 +310,6 @@ class ZEventSystem : ZSHandlerUtil
 		}
 		
 		zEventCommand(string.Format("zevsys_UpdateCursorData,%d,%d,%s,%d,%d,%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
-		//SendNetworkEvent(string.Format("zswin_UpdateCursorData:%d:%d:%s:%d:%d:%d", e.Type, consoleplayer, e.KeyString, e.KeyChar, e.MouseX, e.MouseY), e.IsShift, e.IsAlt, e.IsCtrl);
-		
 		return false;
 	}
 	
@@ -366,7 +367,6 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		if (e.Type == InputEvent.Type_KeyUp && keyIsCursorBind(e.KeyScan))
 			zEventCommand("zevsys_CursorToggle", consoleplayer);
-			//SendNetworkEvent("zswin_CursorToggle");
 		return false;
 	}
 	
@@ -561,9 +561,6 @@ class ZEventSystem : ZSHandlerUtil
 					case ZNCMD_CallWindowEvents:
 						windowEventCaller();
 						break;
-					//case ZNCMD_SetWindowForDestruction:
-						//setWindowForDestruction(e.Args[0]);
-						//break;
 					case ZNCMD_DeleteOutgoingWindows:
 						deleteOutgoingWindows();
 						break;
@@ -610,7 +607,7 @@ class ZEventSystem : ZSHandlerUtil
 				}
 			}
 		}
-		// These are a select few commands that will be sent normally
+		// These are a select few commands that will be sent normally - i.e. they are global commands.
 		else
 		{
 			if (!e.IsManual)
@@ -761,7 +758,7 @@ class ZEventSystem : ZSHandlerUtil
 		the base of all objects, so this cannot be done in the base.
 		
 		As demonstrated in the ImpWindow, this is supposed to be called as part
-		of the final descendent's Init return.  This method passs it's zobj argument
+		of the final descendent's Init return.  This method passes it's zobj argument
 		back up to its caller.
 		
 		Just like all things, this cannot be done instantaneously, this has
@@ -834,8 +831,12 @@ class ZEventSystem : ZSHandlerUtil
 		{
 			let zobj = new(windowPackets[i].ClassName);
 			if (zobj && zobj is "ZSWindow")
-				incomingWindows.Push(ZSWindow(zobj).Make(null, windowPackets[i].Enabled, windowPackets[i].Show, windowPackets[i].WindowName, windowPackets[i].playerClient, windowPackets[i].UiToggle,
-												windowPackets[i].ClipType, windowPackets[i].xLocation, windowPackets[i].yLocation, windowPackets[i].Alpha));
+				ZSWindow(zobj).Make(null, windowPackets[i].Enabled, windowPackets[i].Show, windowPackets[i].WindowName, windowPackets[i].playerClient, windowPackets[i].UiToggle,
+									windowPackets[i].ClipType, windowPackets[i].xLocation, windowPackets[i].yLocation, windowPackets[i].Alpha);
+				//incomingWindows.Push(ZSWindow(zobj).Make(null, windowPackets[i].Enabled, windowPackets[i].Show, windowPackets[i].WindowName, windowPackets[i].playerClient, windowPackets[i].UiToggle,
+												//windowPackets[i].ClipType, windowPackets[i].xLocation, windowPackets[i].yLocation, windowPackets[i].Alpha));
+			else
+				HaltAndCatchFire(string.Format(" - - THAT'S NO MOON, AND IT'S NOT A SPACE STATION EITHER!\n - - WINDOW PACKET TRIED TO CREATE INVALID CLASS: %s", windowPackets[i].ClassName));
 		}
 		
 		windowPackets.Clear();

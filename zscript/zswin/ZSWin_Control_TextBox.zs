@@ -210,8 +210,13 @@ class ZTextBox : ZControl
 		}
 	}
 	
+	/*
+		The textbox uses is Tick method to iterate
+		it's cursor blink counter.
+	
+	*/
 	override void Tick()
-	{		
+	{	
 		if (cursorTickTime == CURSORTIME)
 		{
 			bCursorBlink = !bCursorBlink;
@@ -233,8 +238,10 @@ class ZTextBox : ZControl
 		CKEY_LeftArrow,
 		CKEY_RightArrow,
 		CKEY_Backspace = 8,
-		CKEY_DownArrow = 10,
+		CKEY_HorizontalTab,
+		CKEY_DownArrow,
 		CKEY_UpArrow,
+		CKEY_CarriageReturn = 13,
 		CKEY_NONE,
 	};
 	
@@ -248,8 +255,8 @@ class ZTextBox : ZControl
 			switch (e.EventType)
 			{
 				case ZUIEventPacket.EventType_KeyDown:
-					//console.printf(string.format("textbox got keydown event, keystring: %s, ascii: %d, is shift: %d, is alt: %d, is control: %d",
-						//e.KeyString, e.KeyChar, e.IsShift, e.IsAlt, e.IsCtrl));
+					console.printf(string.format("textbox got keydown event, keystring: %s, ascii: %d, is shift: %d, is alt: %d, is control: %d",
+						e.KeyString, e.KeyChar, e.IsShift, e.IsAlt, e.IsCtrl));
 					switch (e.KeyChar)
 					{
 						case CKEY_Home:
@@ -267,11 +274,15 @@ class ZTextBox : ZControl
 						case CKEY_Backspace:
 							ZNetCommand(string.Format("ztxt_RemoveLastCharacter,%s", self.Name), self.PlayerClient);
 							break;
+						case CKEY_HorizontalTab:
+							break;
 						case CKEY_DownArrow:
 							ZNetCommand(string.Format("ztxt_CursorPositionChange,%s", self.Name), self.PlayerClient, 0, 1);
 							break;
 						case CKEY_UpArrow:
 							ZNetCommand(string.Format("ztxt_CursorPositionChange,%s", self.Name), self.PlayerClient, 0, -1);
+							break;
+						case CKEY_CarriageReturn:
 							break;
 						default:
 							// First of all none of the characters with a value less than 32 are anything to actually print onscreen.

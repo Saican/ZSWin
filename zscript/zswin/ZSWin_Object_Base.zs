@@ -38,11 +38,25 @@ class ZObjectBase : thinker abstract
 	void EventValidate() 
 	{ 
 		bIsEventInvalid = true; 
-		//zEvent.LetAllPost();
-		//EventHandler.SendNetworkEvent("zevent_LetAllPost", PlayerClient);
 		ZNetCommand("zobj_LetAllPost", PlayerClient);
 	}
 	
+	/*
+		This is how ALL network event traffic is to be sent between contexts,
+		regardless of whether it is internal to the ZObject or a command to
+		the event system.  This method is Step #1 in ensuring context-sensitive
+		interaction is handled correctly in a multiplayer environment.
+		
+		Args:
+			cmd - string, the command you're sending.
+			pc - int, the PlayerClient this command corresponds to.
+			arg_a(b/c) - int, these are for standard SendNetworkEvent args
+			
+		Why is self.PlayerClient not used? This allows commands to be sent
+		and received that can have impacts on objects and event systems for
+		different players.  But generally self.PlayerClient is sent.
+	
+	*/
 	clearscope static void ZNetCommand(string cmd, int pc, int arg_a = 0, int arg_b = 0, int arg_c = 0)
 	{
 		EventHandler.SendNetworkEvent(string.Format("%s?%d", cmd, pc), arg_a, arg_b, arg_c);
@@ -62,10 +76,8 @@ class ZObjectBase : thinker abstract
 	{
 		if (!Show)
 			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient);
-			//EventHandler.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 0);
 		else if (wasEnabled && !Enabled)
-			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);
-			//EventHandler.SendNetworkEvent("zswin_AddToUITicker:zswin_ShowCheckEnabled", zEvent.GetStackIndex(self), 1);		
+			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);		
 		return Show;
 	}
 	
@@ -96,8 +108,11 @@ class ZObjectBase : thinker abstract
 		
 		bSelfDestroy = false;
 		bIsEventInvalid = true;
+		// This is a unique global call to every player's event handler,
+		// which allows each player's event system keep track of each ZObject,
+		// including those that do not, but may, correspond to a particular player;
+		// that is to say the event system contains a global list of every ZObject.
 		EventHandler.SendNetworkEvent(string.Format("zevsys_AlertHandlersToNewGlobal,%s", self.Name));
-		//ZEvent.AddObjectToGlobalObjects(self);
 		return self;
 	}
 	
@@ -219,17 +234,32 @@ class ZObjectBase : thinker abstract
 		}
 	}
 	
+	/*
+		EVENT VIRTUALS
+		--------------
+	
+	*/
+	
+	/*
+		This method does as the name implies, it determines if the cursor
+		is within the dimensions of the given object.  Objects must override
+		and define their own validation checks.
+	
+	*/
 	clearscope virtual bool ValidateCursorLocation() { return bIsEventInvalid; }
 	
 	/*
-		Event virtuals
+		This method is an abstract prototype method that MUST be overridden by
+		the inheriting object in order for the object to be drawn.  This method
+		is called from the event system's RenderOverlay method.
 		
 		For windows in the event handler stack, the parent argument is
 		useless because it's a reference to the window.  For everything else,
 		its a reference to the parent object.
 	
 	*/
-	ui abstract void ObjectDraw(ZObjectBase parent);
+	//ui abstract void ObjectDraw(ZObjectBase parent);
+	ui virtual void ObjectDraw(ZObjectBase parent) {}
 	
 	/*
 		This method is a unique event virtual.
@@ -245,6 +275,10 @@ class ZObjectBase : thinker abstract
 	virtual void ObjectUpdate() {}
 	
 	/*
+		These methods are events called as the result of the UIProcess event, however
+		they are called from a data scope from NetworkProcess.  Which method is called
+		is determined by the UIProcess event type.
+	
 		The int argument represents the UIProcess type - useful for switch/case 
 		checking of input events
 	*/
