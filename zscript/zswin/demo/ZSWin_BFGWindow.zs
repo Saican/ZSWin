@@ -121,6 +121,11 @@ class ZSWin_BFGWindow : ZSWindow
 		return ZSWin_BFGWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
 	
+	override void PostBeginPlay()
+	{
+		self.Init(null, true, true, "BFGWindow", self.tid, false);
+	}
+	
 	override void OnLeftMouseDown(int t)
 	{
 		if (ValidateCursorLocation())

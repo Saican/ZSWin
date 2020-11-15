@@ -50,8 +50,16 @@ class ZButton : ZControl abstract
 		self.AnimateTexture = AnimateTexture;
 		backgroundInit(IdleTexture, HighlightTexture, ActiveTexture);
 		if (Text != "")
-			ButtonText = new("ZText").Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
-				TxtClipType, ButtonScaleType, TextAlignment, TextWrap, 0, FontName, TextColor, Txt_xLocation, Txt_yLocation, Txt_Alpha);
+		{
+			bool spwnd;
+			actor actrtxt;
+			[spwnd, actrtxt] = A_SpawnItemEx("ZText", self.pos.x, self.pos.y, self.pos.z, self.vel.x, self.vel.y, self.vel.z, self.angle, 0, 0, self.tid);
+			if (spwnd && actrtxt)
+			{
+				self.ButtonText = ZText(actrtxt).Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
+													TxtClipType, ButtonScaleType, TextAlignment, TextWrap, 0, FontName, TextColor, Txt_xLocation, Txt_yLocation, Txt_Alpha);
+			}
+		}
 		return ZButton(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ButtonScaleType, TextAlignment, ClipType));
 	}
 	
