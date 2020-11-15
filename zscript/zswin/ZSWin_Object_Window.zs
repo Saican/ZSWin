@@ -195,7 +195,7 @@ class ZSWindow : ZObjectBase abstract
 		return null;
 	}
 	
-	clearscope bool NameIsUnique(string n)
+	clearscope bool ControlNameIsUnique(string n)
 	{
 		for (int i = 0; i < windowControls.Size(); i++)
 		{
@@ -215,33 +215,55 @@ class ZSWindow : ZObjectBase abstract
 				while (zobj.ControlParent)
 					zobj = zobj.ControlParent;
 				EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", zobj.Name));
-				//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(zobj));
 			}
 			else
 				EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", self.Name));
-				//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
 		}
 		else
 			EventHandler.SendNetworkEvent(string.Format("zevsys_SetWindowForDestruction,%s", self.Name));
-			//ZEvent.SendNetworkEvent("zswin_SetWindowForDestruction", ZEvent.GetStackIndex(self));
 	}
 	
 	/*
-		Adds the given control to the window control array.
-		Even another window is valid - that window will be subject to priority control
-		from the parent window and not the event handler.
+		Creates a new control of the given class name.
 		
-		Windows added to the system are taken into account by this instance of ValidateCursorLocation
+		This is basically a wrapper for A_SpawnItemEx, therefore the entirety of
+		that method's default args are supported.  Set UseParentLoc to false to
+		specify custom offsets/velocities, etc.
+		
+		Note that flags and failchance do not transfer from the parent object.
+		
+		Keep in mind, these things effect the playism side of a ZObject, not the UI.
 	
 	*/
-	void AddControl(ZObjectBase control) 
-	{ 
-		if (control && NameIsUnique(control.Name)) 
+	bool, Actor AddControl (string controlName, bool useParentLoc = true, double xofs = 0, double yofs = 0, double zofs = 0, double xvel = 0, double yvel = 0, double zvel = 0, double angle = 0, int flags = 0, int failchance = 0, int tid = 0)
+	{
+		if (ZSHandlerUtil.ClassNameIsAClass(controlName))
 		{
-			if (control.Priority == 0)
-				control.Priority = windowControls.Size();
-			windowControls.Push(control); 
+			bool spwned;
+			actor control;
+			[spwned, control] = A_SpawnItemEx(controlName,
+								(self.pos.x * useParentLoc) + (xofs * !useParentLoc),
+								(self.pos.y * useParentLoc) + (yofs * !useParentLoc),
+								(self.pos.z * useParentLoc) + (zofs * !useParentLoc),
+								(self.vel.x * useParentLoc) + (xvel * !useParentLoc),
+								(self.vel.y * useParentLoc) + (yvel * !useParentLoc),
+								(self.vel.z * useParentLoc) + (zvel * !useParentLoc),
+								(self.angle * useParentLoc) + (angle * !useParentLoc),
+								flags,
+								failchance,
+								(self.tid * useParentLoc) + (tid * !useParentLoc));
+			if (spwned && control && control is "ZObjectBase")
+			{
+				if (ZObjectBase(control).Priority == 0)
+					ZObjectBase(control).Priority = windowControls.Size();
+				windowControls.Push(ZObjectBase(control));
+				return spwned, control;
+			}
+			else
+				return false, null;
 		}
+		else
+			return false, null;
 	}
 	
 	/*
@@ -336,9 +358,6 @@ class ZSWindow : ZObjectBase abstract
 		else
 			return ZSWindow(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}
-	
-	virtual ZObjectBase Make(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
-		CLIPTYP ClipType, float xLocation, float yLocation, float Alpha) { return self; }
 		
 	override void Tick()
 	{
@@ -355,7 +374,6 @@ class ZSWindow : ZObjectBase abstract
 	{
 		if (e.MouseX != CursorX || e.MouseY != CursorY)
 			ZNetCommand(string.Format("nwd_updateCursorLocation,%s", self.Name), self.PlayerClient, e.MouseX, e.MouseY);
-			//zEvent.SendNetworkEvent("nwd_updateCursorLocation", e.MouseX, e.MouseY);
 		
 		for (int i = 0; i < windowControls.Size(); i++)
 		{
@@ -371,7 +389,6 @@ class ZSWindow : ZObjectBase abstract
 		// Control focusing
 		if (focusStackIndex > -1)
 			ZNetCommand(string.Format("nwd_WindowControlsToSetFocus,%s", self.Name), self.PlayerClient);
-			//zEvent.SendNetworkEvent("nwd_WindowControlsToSetFocus");
 		// Priority switching
 		if (priorityStackIndex > -1)
 			ZNetCommand(string.Format("nwd_ControlPrioritySwitch,%s", self.Name), self.PlayerClient);

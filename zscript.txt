@@ -12,7 +12,6 @@ version "4.2.1"
 #include "zscript/zswin/ZSWin_HandlerUtil.zs"
 #include "zscript/zswin/ZSWin_EventPacket.zs"
 #include "zscript/zswin/ZSWin_UIEventPacket.zs"
-#include "zscript/zswin/ZSWin_WindowPacket.zs"
 #include "zscript/zswin/ZSWin_TextureUtil.zs"
 
 // ZScript Windows Controls

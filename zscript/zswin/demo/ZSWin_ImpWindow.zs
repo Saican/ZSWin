@@ -20,15 +20,15 @@
 class ZSWin_ImpWindow : ZSWindow
 {	
 	/*
-		This is the window constructor.  There are two constructors for windows, Init and Make.
-		Which constructor do you use?  That depends on how the window is to be created in the game.
-		If the window is going to be created through ZScript, you use Init.
-		If the window is going to be created through a linedef, you use Make.
+		This is the window constructor.
 		
 		Init is not a virtual method, so return your descendent class, as shown here.
-		Make is a virtual method and must be overriden, so you will still return a ZObjectBase.
+		Only the first six arguments are required by ancestry, so you may also tweak
+		the argument list to fit your needs.
 		
-		Refer to the BFG Window for an example of the Make constructor method usage.
+		Remember that ZObjects are Actors!  So, you may add states, and have access to
+		the full breadth of options regarding Actors.  How the Init method is called
+		is only limited by the engine itself.
 	
 	*/
 	ZSWin_ImpWindow Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
@@ -36,7 +36,7 @@ class ZSWin_ImpWindow : ZSWindow
 	{
 		/*
 			The argument list contains the bare essentials to create a valid window,
-			so some members, including important ones must be assigned here.
+			so some members, including important ones, must be assigned here.
 		
 		*/
 		// Starting dimensions
@@ -64,39 +64,41 @@ class ZSWin_ImpWindow : ZSWindow
 		BorderAlpha = 1;
 		
 		/*
-			Controls are ZObjects too, so they are created with the "new" keyword 
-			and initialized with their own Init methods.
+			Controls are also actors and are spawned into the game world
+			using the AddControl method.  This method does some internal
+			things but also functions as a wrapper for A_SpawnItemEx.
 			
-			Controls have long, complicated argument lists that encompass the
-			entire control, so user can use ZScript's named arguments to skip things
-			they don't need; everything is defaulted and will result in a valid object
-			with just the bare minimum of required args.
-			
-			Notice the first line of each control definition.
-			The variables "self, Enabled, Show, a name for the object, PlayerClient, and finally UiToggle"
-			are repeated sent to these objects.  Notice that the window itself has such a required set of
-			arguments in it's Init method argument list.  These 6 arguments are the bare minimum of required
-			arguments for valid object creation.
+			This means creating controls is three steps:
+				1 - call AddControl to create the control you want
+				2 - check that spawning succeeded
+				3 - if it did, cast the actor pointer to your desired control type,
+					and call the control's Init method to customize.
 		
 		*/
 		
 		// Windows can be controls of other windows - this window is defined below with more information.
-		AddControl(new("ZSWin_ImpSubWindow").Init(self, Enabled, Show, "ImpySubWindow", PlayerClient, UiToggle));
+		//AddControl(new("ZSWin_ImpSubWindow").Init(self, Enabled, Show, "ImpySubWindow", PlayerClient, UiToggle));
 		
+		bool spawned;
+		actor btn_close, btn_move, btn_scale, nwd_subwindow;
 		// Close Button
-		AddControl(new("ZSWin_CloseButton").Init(self, Enabled, Show, "ImpWindowCloseButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS"));
-			
+		[spawned, btn_close] = AddControl("ZSWin_CloseButton");
+		if (spawned && btn_close)
+			ZSWin_CloseButton(btn_close).Init(self, Enabled, Show, "ImpWindowCloseButton", PlayerClient, UiToggle,
+											Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+											IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS");
 		// Move Button
-		AddControl(new("ZSWin_MoveButton").Init(self, Enabled, Show, "ImpWindowMoveButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS"));
-			
+		[spawned, btn_move] = AddControl("ZSWin_MoveButton");
+		if (spawned && btn_move)
+			ZSWin_MoveButton(btn_move).Init(self, Enabled, Show, "ImpWindowMoveButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+										IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS");
 		// Scale Button
-		AddControl(new("ZSWin_ScaleButton").Init(self, Enabled, Show, "ImpWindowScaleButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
-			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
+		[spawned, btn_scale] = AddControl("ZSWin_ScaleButton");
+		if (spawned && btn_scale)
+			ZSWin_ScaleButton(btn_scale).Init(self, Enabled, Show, "ImpWindowScaleButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
+										IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS");
 		
 		/*
 			Return your class type, in this case ZSWin_ImpWindow, and call the super.Init,
@@ -175,18 +177,26 @@ class ZSWin_ImpSubWindow : ZSWindow
 		BorderType = BORDERTYP_ZWin;
 		BorderAlpha = 1;
 		
+		bool spawned;
+		actor btn_close, btn_move, btn_scale;
 		// Close Button
-		AddControl(new("ZSWin_CloseButton").Init(self, Enabled, Show, "ImpSubWindowCloseButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS"));
+		[spawned, btn_close] = AddControl("ZSWin_CloseButton");
+		if (spawned && btn_close)
+			ZSWin_CloseButton(btn_close).Init(self, Enabled, Show, "ImpSubWindowCloseButton", PlayerClient, UiToggle,
+											Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+											IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS");
 		// Move Button
-		AddControl(new("ZSWin_MoveButton").Init(self, Enabled, Show, "ImpSubWindowMoveButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS"));
+		[spawned, btn_move] = AddControl("ZSWin_MoveButton");
+		if (spawned && btn_move)
+			ZSWin_MoveButton(btn_move).Init(self, Enabled, Show, "ImpSubWindowMoveButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+										IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS");
 		// Scale Button
-		AddControl(new("ZSWin_ScaleButton").Init(self, Enabled, Show, "ImpSubWindowScaleButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
-			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
+		[spawned, btn_scale] = AddControl("ZSWin_ScaleButton");
+		if (spawned && btn_scale)
+			ZSWin_ScaleButton(btn_scale).Init(self, Enabled, Show, "ImpSubWindowScaleButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
+										IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS");
 		
 		/*
 			To be a sub-window, this window needs to not add itself to
@@ -246,18 +256,26 @@ class ZSWin_ImpWindow2 : ZSWindow
 		BorderType = BORDERTYP_ZWin;
 		BorderAlpha = 1;
 		
+		bool spawned;
+		actor btn_close, btn_move, btn_scale;
 		// Close Button
-		AddControl(new("ZSWin_CloseButton").Init(self, Enabled, Show, "Imp2WindowCloseButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS"));
+		[spawned, btn_close] = AddControl("ZSWin_CloseButton");
+		if (spawned && btn_close)
+			ZSWin_CloseButton(btn_close).Init(self, Enabled, Show, "ImpWindow2CloseButton", PlayerClient, UiToggle,
+											Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+											IdleTexture:"BCLSEIS", HighlightTexture:"BCLSEHS", ActiveTexture:"BCLSEAS");
 		// Move Button
-		AddControl(new("ZSWin_MoveButton").Init(self, Enabled, Show, "Imp2WindowMoveButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
-			IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS"));
+		[spawned, btn_move] = AddControl("ZSWin_MoveButton");
+		if (spawned && btn_move)
+			ZSWin_MoveButton(btn_move).Init(self, Enabled, Show, "ImpWindow2MoveButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 70), Btn_yLocation:10, ButtonScaleType:ZControl.SCALE_Horizontal,
+										IdleTexture:"BMOVEIS", HighlightTexture:"BMOVEHS", ActiveTexture:"BMOVEAS");
 		// Scale Button
-		AddControl(new("ZSWin_ScaleButton").Init(self, Enabled, Show, "Imp2WindowScaleButton", PlayerClient, UiToggle,
-			Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
-			IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS"));
+		[spawned, btn_scale] = AddControl("ZSWin_ScaleButton");
+		if (spawned && btn_scale)
+			ZSWin_ScaleButton(btn_scale).Init(self, Enabled, Show, "ImpWindow2ScaleButton", PlayerClient, UiToggle,
+										Width:25, Btn_xLocation:(self.Width - 35), Btn_yLocation:(self.Height - 35), ButtonScaleType:ZControl.SCALE_Both,
+										IdleTexture:"BDRAGIS", HighlightTexture:"BDRAGHS", ActiveTexture:"BDRAGAS");
 		
 		return ZSWin_ImpWindow2(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ClipType));
 	}

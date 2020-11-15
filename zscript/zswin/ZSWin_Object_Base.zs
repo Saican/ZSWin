@@ -5,7 +5,7 @@
 
 */
 
-class ZObjectBase : thinker abstract
+class ZObjectBase : actor abstract
 {
 	enum SCALETYP
 	{
@@ -299,4 +299,11 @@ class ZObjectBase : thinker abstract
 	
 	virtual void OnWheelMouseDown(int t) {}
 	virtual void OnWheelMouseUp(int t) {}
+	
+	states
+	{
+		spawn:
+			TNT1 A -1;
+			stop;
+	}
 }

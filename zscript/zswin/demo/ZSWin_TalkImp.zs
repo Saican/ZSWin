@@ -8,15 +8,35 @@
 */
 
 class ZSImp : DoomImp replaces DoomImp
-{
-	ZSWin_ImpWindow zwina;
-	ZSWin_ImpWindow2 zwinb;
+{	
+	/*
+		This event ocurrs when the player presses the "use"
+		key on the actor.
 	
+	*/
     override bool Used (Actor user)
     {
 		A_StartSound("imp/sight");
-		ZSWin_ImpWindow(new("ZSWin_ImpWindow").Init(null, true, true, "WaterWindow", consoleplayer, true, 300, 350));
-		ZSWin_ImpWindow2(new("ZSWin_ImpWindow2").Init(null, true, true, "StoneWindow", consoleplayer, true));
+		/*
+			ZWindows are actors too,
+			so just spawn them as normal.
+		
+		*/
+		bool spwnd;
+		actor impWinA, impWinB;
+		[spwnd, impWinA] = A_SpawnItemEx("ZSWin_ImpWindow");
+		if (impWinA)
+			ZSWin_ImpWindow(impWinA).Init(null, true, true, "WaterWindow", consoleplayer, true, 300, 350);
+		[spwnd, impWinB] = A_SpawnItemEx("ZSWin_ImpWindow2");
+		if (impWinB)
+			ZSWin_ImpWindow2(impWinB).Init(null, true, true, "StoneWindow", consoleplayer, true);
         return false;
     }
+	
+	/*
+		No other changes made,
+		all other settings are
+		done in the map.
+	
+	*/
 }

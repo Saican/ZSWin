@@ -52,10 +52,7 @@ class ZButton : ZControl abstract
 		if (Text != "")
 			ButtonText = new("ZText").Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
 				TxtClipType, ButtonScaleType, TextAlignment, TextWrap, 0, FontName, TextColor, Txt_xLocation, Txt_yLocation, Txt_Alpha);
-		//if(GetZHandler())
 		return ZButton(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ButtonScaleType, TextAlignment, ClipType));
-		//ZSHandlerUtil.HaltAndCatchFire(" - - BUTTON DID NOT FIND THE ZSCRIPT WINDOWS EVENT HANDLER!");
-		//return null;
 	}
 	
 	private void backgroundInit(string IdleTexture, string HighlightTexture, string ActiveTexture)
@@ -226,7 +223,6 @@ class ZButton : ZControl abstract
 	{ 
 		if (e.MouseX != CursorX || e.MouseY != CursorY)
 			ZNetCommand(string.Format("zbtn_updateCursorLocation,%s", self.Name), self.PlayerClient, e.MouseX, e.MouseY);
-			//EventHandler.SendNetworkEvent("zbtn_updateCursorLocation", e.MouseX, e.MouseY);
 		return super.ZObj_UiProcess(e); 
 	}
 	

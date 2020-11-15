@@ -8,7 +8,7 @@
 class ZSHandlerUtil : EventHandler
 {
 	// This is the ZScript Windows Version
-	const ZVERSION = "0.3.1";
+	const ZVERSION = "0.4.0";
 	
 	/*
 		Returns a value equal to the lowest possible
@@ -71,6 +71,28 @@ class ZSHandlerUtil : EventHandler
 										" - - YES YOU DID THAT!  YOU!  IDK WHAT YOU DID BUT IT'S ALL YOUR FAULT!\n",
 										message,
 										"\n - - FULL NUCLEAR ARSENAL UNLEASHED - GOODBYE VM!");		
+	}
+	
+	/*
+		This method is a very bad way to check that a given
+		name corresponds to a known class.  It's bad because
+		of the time complexity, even though it's linear, the
+		size of the array it searches may be quite large.
+		What this means is that use of this method when loaded
+		with large mods will be less efficient than with the
+		base games.
+		
+	*/
+	clearscope static bool ClassNameIsAClass(string classname)
+	{
+		for (int i = 0; i < AllClasses.Size(); i++)  // The vm gods have to hate me
+		{
+			if (AllClasses[i].GetClassName() == classname)
+				return true;
+		}
+		// This search is bad enough that while I'm not going to VM crash for failure, I'm still going to send a console message.
+		console.Printf(string.Format(" - - ZScript Windows, ClassNameIsAClass usage failed looking for a class named, %s.\n - - Please note that this method is costly on processing time and should not be used in conditions where failure is likely.", classname));
+		return false;
 	}
 	
 	/* - END OF METHODS - */

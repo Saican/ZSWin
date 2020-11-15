@@ -1,7 +1,7 @@
 /*
 	ZSWin_EventSystem.zs
 	
-	ZScript Windows v0.3 Event Handler
+	ZScript Windows v0.4.0 Event Handler
 
 */
 
@@ -36,7 +36,6 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		Window stack and related components
 	*/
-	private array<ZWindowPacket> windowPackets;
 	private array<ZObjectBase> incomingWindows;
 	private array<ZObjectBase> winStack;
 	private int priorityStackIndex;
@@ -71,7 +70,7 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		This is used to enforce unique names all objects.
 	*/
-	clearscope bool NameIsUnique(string n)
+	clearscope static bool GlobalNameIsUnique(ZABST allZObjects, string n)
 	{
 		ZABST_Node node = allZObjects.Find(n);
 		if(node)
@@ -175,75 +174,6 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
-		Catch for creating windows through line events
-	
-	*/
-	override void WorldLineActivated(WorldEvent e)
-	{
-		if (e.ActivatedLine)
-		{
-			bool enabled, show, uitoggle;
-			string wname, classname;
-			float xloc, yloc, alpha;
-			int player, clip;
-			
-			enabled = e.ActivatedLine.GetUDMFInt("user_enabled");
-			show = e.ActivatedLine.GetUDMFInt("user_show");
-			classname = e.ActivatedLine.GetUDMFString("user_windowclass");
-			wname = e.ActivatedLine.GetUDMFString("user_windowname");
-			uitoggle = e.ActivatedLine.GetUDMFInt("user_uitoggle");
-			player = e.ActivatedLine.GetUDMFInt("user_consoleplayer");
-			clip = e.ActivatedLine.GetUDMFInt("user_cliptype");
-			xloc = e.ActivatedLine.GetUDMFFloat("user_xlocation");
-			yloc = e.ActivatedLine.GetUDMFFloat("user_ylocation");
-			alpha = e.ActivatedLine.GetUDMFFloat("user_alpha");
-			
-			if (wname != "")  // Probably safe to assume the line isn't trying to make a window
-			{				  // Also saves a call to ClassNameIsAClass - oh god call that only if you have to
-				// Well there's a name, so check if the class is valid - the not fun call to ClassNameIsAClass.
-				// If it's at least a class, then if the player corresponds, the packet is created.
-				// Packet processing protects itself from invalid classes.
-				if (classname != "" && ClassNameIsAClass(classname) && player == consoleplayer)
-					windowPackets.Push(new("ZWindowPacket").Init(enabled, show, uitoggle, wname, classname, clip, xloc, yloc, alpha, player));
-				else
-					console.printf(string.Format("\nZSWIN Event System - Line Activation ERROR!\nLine with index #%d, executing special #%d tried to create an invalid window class \"%s\"!\n\nPLEASE CHECK YOUR \"user_windowclass\" UDMF VARIABLE FOR THE CORRECT CLASS NAME!\nTHIS TYPE OF FAILURE IS COSTLY ON THE SYSTEM DUE TO ERROR CHECKING.  PLEASE CORRECT THE PROBLEM.", e.ActivatedLine.Index(), e.ActivatedLine.Special, className));
-			}
-		}
-	}
-	
-	/*
-		Guess what?  You call "new" with an invalid class name and the VM crashes.
-		This protects the system by ensuring that whatever string
-		WorldLineActivated gets for a classname is actually a class.
-		And guess how it does it?  By a search of the global AllClasses array.
-		Maybe I should bold that - BY SEARCHING THE ALLCLASSES ARRAY.
-		
-		This isn't the world's worst thing, but it can and will get costly in mods
-		that add say hundreds of classes to the game.  EVERYTHING is going get 
-		searched here. So for the base games that's bad enough.  Russian Overkill,
-		Brutal Doom, Beautiful Doom, Total Chaos, Reelism...must I go on?
-		
-		BoA, HD, Samsara.  Ok, I'll stop, I think the point is made.
-		
-		This method is important enough though that it is public for wider system use.
-	*/
-	bool ClassNameIsAClass(string classname)
-	{
-		for (int i = 0; i < AllClasses.Size(); i++)  // The vm gods have to hate me
-		{
-			if (AllClasses[i].GetClassName() == classname)
-				return true;
-		}
-		// Oh boy the worst case scenario - we just ran the whole array and got nill - what a waste of processing time.
-		// Should just abort the vm here with a big old hcf instead of being nice and error messaging.
-		// If you can't tell, I HATE this WorldLineActivated thing.  I mean - seriously - it has to be protected like this,
-		// it can get called from any old line that get activated with the damn UDMF variables - this restricts it to UDMF
-		// maps.  This method sucks, just plain sucks.  I don't like it.  And I hate supporting it.  Simple as that.
-		console.Printf("ZScript Windows would like to thank you for wasting processing time searching the AllClasses array for the class name, %s, which is an invalid class name.\nPlease fix your mod, or alert the mod author, to the problem - this is an unacceptable waste of processing time and this feature will be removed if it is abused.");
-		return false;
-	}
-	
-	/*
 		Window Drawer - Remember! This is called multiple times per tick
 		and always after UiTick!
 	
@@ -329,9 +259,6 @@ class ZEventSystem : ZSHandlerUtil
 		// Priority
 		if (priorityStackIndex != -1 && incomingWindows.Size() == 0)
 			zEventCommand("zevsys_PrioritySwitch", consoleplayer);
-		// Window Packets - they get added to incoming if valid
-		if (windowPackets.Size() > 0)
-			zEventCommand("zevsys_AddPacketsToIncoming", consoleplayer);
 		// Incoming
 		if (incomingWindows.Size() > 0)
 			zEventCommand("zevsys_AddIncomingToStack", consoleplayer);
@@ -384,7 +311,6 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_CursorToggle,
 		ZNCMD_CallWindowEvents,
 		ZNCMD_DeleteOutgoingWindows,
-		ZNCMD_AddPacketsToIncoming,
 		ZNCMD_AddObjectToGlobalObjects,
 		
 		ZNCMD_HandlerIncomingGlobal,		
@@ -429,8 +355,6 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_CallWindowEvents;
 		if (e ~== "zevsys_DeleteOutgoingWindows")
 			return ZNCMD_DeleteOutgoingWindows;
-		if (e ~== "zevsys_AddPacketsToIncoming")
-			return ZNCMD_AddPacketsToIncoming;
 		if (e ~== "zevsys_AddObjectToGlobalObjects")
 			return ZNCMD_AddObjectToGlobalObjects;
 
@@ -544,7 +468,6 @@ class ZEventSystem : ZSHandlerUtil
 			if (!e.IsManual)  // there's no reason any of these events should ever be manually called
 			{
 				switch (stringToZNetworkCommand(cmdc[0]))
-				//switch (stringToZNetworkCommand(e.Name))
 				{
 					case ZNCMD_AddIncoming:
 						passIncomingToStack();
@@ -564,9 +487,6 @@ class ZEventSystem : ZSHandlerUtil
 					case ZNCMD_DeleteOutgoingWindows:
 						deleteOutgoingWindows();
 						break;
-					case ZNCMD_AddPacketsToIncoming:
-						passPacketsToIncoming();
-						break;
 					case ZNCMD_AddObjectToGlobalObjects:
 						passIncomingToGlobalObjects();
 						break;
@@ -582,29 +502,29 @@ class ZEventSystem : ZSHandlerUtil
 						break;
 				}
 			}
-			else // These may be called manually - mostly debugging stuff
+		}
+		else if (e.IsManual) // These may be called manualy - mostly debugging stuff
+		{
+			switch (stringToZNetworkCommand(e.Name))
 			{
-				switch (stringToZNetworkCommand(e.Name))
-				{
-					case ZNCMD_ManualStackSizeOut:
-						debugStackSizeToConsole();
-						break;
-					case ZNCMD_ManualStackPriorityOut:
-						debugStackPriorityToConsole();
-						break;
-					case ZNCMD_ManualGlobalZObjectCount:
-						debugGetGlobalObjectCount();
-						break;
-					case ZNCMD_ManualEventGlobalCount:
-						debugGetEventGlobalCount();
-						break;
-					case ZNCMD_ManualGlobalNamePrint:
-						debugPrintOutEveryName(allZObjects.Root);
-						break;
-					case ZNCMD_ManualGetTreeBalance:
-						debugGetTreeBalance();
-						break;
-				}
+				case ZNCMD_ManualStackSizeOut:
+					debugStackSizeToConsole();
+					break;
+				case ZNCMD_ManualStackPriorityOut:
+					debugStackPriorityToConsole();
+					break;
+				case ZNCMD_ManualGlobalZObjectCount:
+					debugGetGlobalObjectCount();
+					break;
+				case ZNCMD_ManualEventGlobalCount:
+					debugGetEventGlobalCount();
+					break;
+				case ZNCMD_ManualGlobalNamePrint:
+					debugPrintOutEveryName(allZObjects.Root);
+					break;
+				case ZNCMD_ManualGetTreeBalance:
+					debugGetTreeBalance();
+					break;
 			}
 		}
 		// These are a select few commands that will be sent normally - i.e. they are global commands.
@@ -626,7 +546,10 @@ class ZEventSystem : ZSHandlerUtil
 							{
 								case ZNCMD_HandlerIncomingGlobal:
 									if (cmd.Size() == 2)
+									{
+										console.printf(string.Format("Incoming Global, %s, for player %d", cmd[1], consoleplayer));
 										addObjectToGlobalObjects(cmd[1]);
+									}
 									else
 										console.printf("Invalid attempt to add ZObject to globals!");
 									break;
@@ -638,7 +561,10 @@ class ZEventSystem : ZSHandlerUtil
 									break;
 								case ZNCMD_AddWindowToStack:
 									if (cmd.Size() == 2)
+									{
+										console.printf(string.Format("Adding %s to window stack for player %d", cmd[1], consoleplayer));
 										addWindowToStack(cmd[1]);
+									}
 									else
 										console.printf("Invalid attempt to add window to stack!");
 									break;
@@ -771,7 +697,7 @@ class ZEventSystem : ZSHandlerUtil
 		words require string conversions)
 	
 	*/
-	//ZObjectBase AddWindowToStack(ZObjectBase zobj)
+
 	private void addWindowToStack(string n)
 	{
 		ThinkerIterator nwdFinder = ThinkerIterator.Create("ZSWindow");
@@ -782,7 +708,7 @@ class ZEventSystem : ZSHandlerUtil
 				break;
 		}
 		
-		if (enwd != null ? (enwd is "ZSWindow" ? (enwd.Name != "" && NameIsUnique(enwd.Name)) : false) : false)
+		if (enwd != null ? (enwd is "ZSWindow" ? (enwd.Name != "" && GlobalNameIsUnique(allZObjects, enwd.Name)) : false) : false)
 			incomingWindows.Push(enwd);
 		else if (enwd != null)
 		{
@@ -798,7 +724,8 @@ class ZEventSystem : ZSHandlerUtil
 			{/* debug messaage invalid object */}
 		}
 		else
-			HaltAndCatchFire(" - - NOPE!  EITHER AddWindowToStack WAS CALLED FROM AN INVALID USE OR\n - - MEMORY MANAGEMENT IS BROKEN AND SO IS THE GAME!\n - - AddWindowToStack RECEIVED NULL WINDOW REFERENCE!");
+			console.printf(string.Format("ERROR! - ZScript Windows did not find the window, %s!", n));
+			//HaltAndCatchFire(" - - NOPE!  EITHER AddWindowToStack WAS CALLED FROM AN INVALID USE OR\n - - MEMORY MANAGEMENT IS BROKEN AND SO IS THE GAME!\n - - AddWindowToStack RECEIVED NULL WINDOW REFERENCE!");
 	}
 	
 	/*
@@ -823,47 +750,33 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
-		Moves window packets to the incoming list
-	*/
-	private void passPacketsToIncoming()
-	{
-		for (int i = 0; i < windowPackets.Size(); i++)
-		{
-			let zobj = new(windowPackets[i].ClassName);
-			if (zobj && zobj is "ZSWindow")
-				ZSWindow(zobj).Make(null, windowPackets[i].Enabled, windowPackets[i].Show, windowPackets[i].WindowName, windowPackets[i].playerClient, windowPackets[i].UiToggle,
-									windowPackets[i].ClipType, windowPackets[i].xLocation, windowPackets[i].yLocation, windowPackets[i].Alpha);
-				//incomingWindows.Push(ZSWindow(zobj).Make(null, windowPackets[i].Enabled, windowPackets[i].Show, windowPackets[i].WindowName, windowPackets[i].playerClient, windowPackets[i].UiToggle,
-												//windowPackets[i].ClipType, windowPackets[i].xLocation, windowPackets[i].yLocation, windowPackets[i].Alpha));
-			else
-				HaltAndCatchFire(string.Format(" - - THAT'S NO MOON, AND IT'S NOT A SPACE STATION EITHER!\n - - WINDOW PACKET TRIED TO CREATE INVALID CLASS: %s", windowPackets[i].ClassName));
-		}
-		
-		windowPackets.Clear();
-	}
-	
-	/*
 		Finds the ZObject with the give name, and adds
 		that object to the incoming objects list.
 		
 	*/
 	private void addObjectToGlobalObjects(string n)
 	{
+		console.printf("adding objects to global objects.");
 		ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
 		ZObjectBase zobj;
+		bool objIncoming = false;
 		while (zobj = ZObjectBase(zobjFinder.Next()))
 		{
-			if (zobj.Name ~== n ? NameIsUnique(zobj.Name) : false)
+			if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
 			{
+				console.printf(string.Format("Found, %s, adding to global object list.", n));
 				incomingZObjects.Push(zobj);
-				break;
+				return;
 			}
-			else if (zobj.Name ~== n ? !NameIsUnique(zobj.Name) : false)
+			else if (zobj.Name ~== n ? !GlobalNameIsUnique(allZObjects, zobj.Name) : false)
 			{
 				// Destroy object and debug out invalid name
-				break;
+				console.printf(string.Format("ZScript Windows enforces unique names for all ZObjects, %s, is taken and object being created has been destroyed.  Sorry.", n));
+				return;
 			}
 		}
+		
+		console.printf(string.Format("ERROR! - ZScript Windows did not find object named, %s, to be added to global list!", n));
 	}
 	
 	/*
@@ -931,17 +844,6 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	private void letAllPost() { ignorePostDuplicate = false; }
-	
-	/*private void windowShowCheckEnabled(int wsi, bool t)
-	{
-		if (t)
-			winStack[wsi].Enabled = true;
-		else
-		{
-			winStack[wsi].EnabledLog();
-			winStack[wsi].Enabled = false;
-		}
-	}*/
 
 	/*
 		Sends the toggle cursor event, if UI processing
@@ -952,7 +854,6 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		if (!self.IsUiProcessor)
 			zEventCommand("zevsys_UI_cursorToggle", consoleplayer);
-			//SendNetworkEvent("zswin_UI_cursorToggle");
 	}
 	
 	/*
