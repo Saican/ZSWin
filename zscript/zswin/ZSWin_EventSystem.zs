@@ -319,6 +319,7 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_PostStackIndex,
 		ZNCMD_AddWindowToStack,
 		ZNCMD_ControlFullInput,
+		ZNCMD_CallACS,
 
 		ZNCMD_ControlUpdate,
 		ZNCMD_LetAllPost,
@@ -371,6 +372,8 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_AddWindowToStack;
 		if (e ~== "zevsys_ControlFullInput")
 			return ZNCMD_ControlFullInput;
+		if (e ~== "zevsys_CallACS")
+			return ZNCMD_CallACS;
 		
 		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
@@ -546,10 +549,7 @@ class ZEventSystem : ZSHandlerUtil
 							{
 								case ZNCMD_HandlerIncomingGlobal:
 									if (cmd.Size() == 2)
-									{
-										console.printf(string.Format("Incoming Global, %s, for player %d", cmd[1], consoleplayer));
 										addObjectToGlobalObjects(cmd[1]);
-									}
 									else
 										console.printf("Invalid attempt to add ZObject to globals!");
 									break;
@@ -561,12 +561,15 @@ class ZEventSystem : ZSHandlerUtil
 									break;
 								case ZNCMD_AddWindowToStack:
 									if (cmd.Size() == 2)
-									{
-										console.printf(string.Format("Adding %s to window stack for player %d", cmd[1], consoleplayer));
 										addWindowToStack(cmd[1]);
-									}
 									else
 										console.printf("Invalid attempt to add window to stack!");
+									break;
+								case ZNCMD_CallACS:
+									if (cmd.Size() == 2)
+										players[consoleplayer].mo.ACS_ScriptCall(cmd[1], 0, e.Args[0], e.Args[1], e.Args[2]);
+									else
+										console.printf("Call to activate script received no script name!");
 									break;
 							}
 						}
@@ -756,7 +759,6 @@ class ZEventSystem : ZSHandlerUtil
 	*/
 	private void addObjectToGlobalObjects(string n)
 	{
-		console.printf("adding objects to global objects.");
 		ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
 		ZObjectBase zobj;
 		bool objIncoming = false;
@@ -764,7 +766,6 @@ class ZEventSystem : ZSHandlerUtil
 		{
 			if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
 			{
-				console.printf(string.Format("Found, %s, adding to global object list.", n));
 				incomingZObjects.Push(zobj);
 				return;
 			}

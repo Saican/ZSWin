@@ -123,11 +123,10 @@ class ZTextBox : ZControl
 		[spwnd, actrtxt] = A_SpawnItemEx("ZText", self.pos.x, self.pos.y, self.pos.z, self.vel.x, self.vel.y, self.vel.z, self.angle, 0, 0, self.tid);
 		if (spwnd && actrtxt)
 		{
-			self.Text = ZText(actrtxt);
-			self.Text.Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
-				ClipType, ScaleType, TextAlignment, 
-				IsMultiLine ? (TextWrap != TXTWRAP_NONE ? TextWrap : TXTWRAP_Wrap) : TXTWRAP_NONE, 
-				WrapWidth, FontName, TextColor, txt_xLocation, txt_yLocation, txt_Alpha);
+			self.Text = ZText(actrtxt).Init(self, Enabled, Show, string.Format("%s_txt", Name), Text, PlayerClient, UiToggle,
+										ClipType, ScaleType, TextAlignment, 
+										IsMultiLine ? (TextWrap != TXTWRAP_NONE ? TextWrap : TXTWRAP_Wrap) : TXTWRAP_NONE, 
+										WrapWidth, FontName, TextColor, txt_xLocation, txt_yLocation, txt_Alpha);
 		}
 			
 		return ZTextBox(super.Init(ControlParent, Enabled, Show, Name, PlayerClient, UiToggle, ScaleType, TextAlignment, ClipType));

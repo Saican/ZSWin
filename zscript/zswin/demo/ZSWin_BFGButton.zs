@@ -35,7 +35,7 @@ class BFGButton : ZButton
 		{
 			// Reset the button's state to idle, passive GibZoning will reset it to highlight if needed.
 			self.State = BSTATE_Idle;			
-			CallACS("BFGTerminal_Activate");  // total playism change here, this alters the level itself so yeah, has to be acs
+			EventHandler.SendNetworkEvent("zevsys_CallACS,BFGTerminal_Activate");
 			//GetParentWindow(self.ControlParent).Close();
 		}
 	}
