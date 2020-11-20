@@ -2,3 +2,8 @@ gameinfo
 {
 	AddEventHandlers = "ZEventSystem"
 }
+
+DoomEdNums
+{
+	24242 = doctorNero
+}

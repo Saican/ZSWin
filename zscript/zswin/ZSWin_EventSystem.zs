@@ -567,7 +567,7 @@ class ZEventSystem : ZSHandlerUtil
 									break;
 								case ZNCMD_CallACS:
 									if (cmd.Size() == 2)
-										players[consoleplayer].mo.ACS_ScriptCall(cmd[1], 0, e.Args[0], e.Args[1], e.Args[2]);
+										players[consoleplayer].mo.ACS_ScriptCall(cmd[1], e.Args[0], e.Args[1], e.Args[2]);
 									else
 										console.printf("Call to activate script received no script name!");
 									break;

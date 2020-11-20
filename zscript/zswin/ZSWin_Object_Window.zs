@@ -365,9 +365,9 @@ class ZSWindow : ZObjectBase abstract
 		{
 			for (int i = 0; i < windowControls.Size(); i++)
 				windowControls[i].bSelfDestroy = true;
-			
-			super.Tick();
 		}
+		
+		super.Tick();
 	}
 	
 	override bool ZObj_UiProcess(ZUIEventPacket e)

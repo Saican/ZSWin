@@ -126,6 +126,8 @@ class ZObjectBase : actor abstract
 	{
 		if (self.bSelfDestroy)
 			self.Destroy();
+		
+		super.Tick();
 	}
 	
 	/*
