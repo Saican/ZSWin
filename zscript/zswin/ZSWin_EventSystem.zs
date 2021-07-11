@@ -1,7 +1,7 @@
 /*
 	ZSWin_EventSystem.zs
 	
-	ZScript Windows v0.4.0 Event Handler
+	ZScript Windows v0.4.1 Event Handler
 
 */
 
@@ -15,21 +15,19 @@ class ZEventSystem : ZSHandlerUtil
 	/*
 		This works like the engine's AllClasses array but is specific to ZObjects
 	*/
-	private ZABST allZObjects;
+	private array<ZObjectBase> allZObjects;
 	private array<ZObjectBase> incomingZObjects;
-	//clearscope int GetSizeAllZObjects() { return allZObjects.Size(); }
-	//clearscope uint GetIndexAllZObjects(ZObjectBase zobj) { return allZObjects.Find(zobj); }
-	//clearscope ZObjectBase GetByIndexAllZObjects(int i) { if (i < allZObjects.Size()) return allZObjects[i]; else return null; }
+	clearscope int GetSizeAllZObjects() { return allZObjects.Size(); }
+	clearscope uint GetIndexAllZObjects(ZObjectBase zobj) { return allZObjects.Find(zobj); }
+	clearscope ZObjectBase GetByIndexAllZObjects(int i) { if (i < allZObjects.Size()) return allZObjects[i]; else return null; }
 	clearscope ZObjectBase FindZObject(string n)
 	{
-		//for (int i = 0; i < allZObjects.Size(); i++)
-		//{
-			//if (allZObjects[i].Name ~== n)
-				//return allZObjects[i];
-		//}
-		ZABST_Node node = allZObjects.Find(n);
-		if (node)
-			return ZObjectBase(node.Data);
+		for (int i = 0; i < allZObjects.Size(); i++)
+		{
+			if (allZObjects[i].Name ~== n)
+				return allZObjects[i];
+		}
+
 		return null;
 	}
 	
@@ -68,13 +66,21 @@ class ZEventSystem : ZSHandlerUtil
 	}
 
 	/*
-		This is used to enforce unique names all objects.
+		Searches the allZObjects array to check if
+		any object has the same name.  Returns false
+		if it finds an object with the same name,
+		true otherwise.
+
+		Because this method is static, it must be provided with the array to search
 	*/
-	clearscope static bool GlobalNameIsUnique(ZABST allZObjects, string n)
+	clearscope static bool GlobalNameIsUnique(array<ZObjectBase> allZObjects, string n)
 	{
-		ZABST_Node node = allZObjects.Find(n);
-		if(node)
-			return false;
+		for (int i = 0; i < allZObjects.Size(); i++)
+		{
+			if (allZObjects[i].Name ~== n)
+				return false;
+		}
+
 		return true;
 	}
 	
@@ -109,18 +115,15 @@ class ZEventSystem : ZSHandlerUtil
 		console.printf(string.Format("ZEvent System found %d ZObjects in the present level.", zcount));
 	}
 	
-	private void debugGetEventGlobalCount() { console.printf(string.Format("ZEvent System is accounting for %d objects in its global array.", allZObjects.Count())); }
+	private void debugGetEventGlobalCount() { console.printf(string.Format("ZEvent System is accounting for %d objects in its global array.", allZObjects.Size())); }
 	
-	private void debugPrintOutEveryName(ZABST_Node node)
+	private void debugPrintOutEveryName()
 	{
-		console.printf(string.Format("Object name: %s, has hash value: %d, has tree balance: %d, has a left child: %s, has a right child: %s", node.ObjectName, node.Hash, node.Balance, node.Left ? "yes" : "no", node.Right ? "yes" : "no"));
-		if (node.Left)
-			debugPrintOutEveryName(node.Left);
-		if (node.Right)
-			debugPrintOutEveryName(node.Right);
+		for (int i = 0; i < allZObjects.Size(); i++)
+		{
+			console.printf(string.Format("ZEvent System Gobal Objects, index: %d, is named: %s", i, allZObjects[i].Name));
+		}
 	}
-	
-	private void debugGetTreeBalance() { console.printf(string.Format("ZEvent Global Tree has a %d balance factor", allZObjects.GetRootBalance())); }
 	
 	/*
 		Cursor packet - contains the cursor data
@@ -163,14 +166,27 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		// Get the lowest unused order value
 		SetOrder(GetLowestPossibleOrder());
+
 		// Say hello the game world
 		console.printf(string.format("ZScript Windows v%s - Window Event System Registered with Order %d for Player #%d - Welcome!", ZSHandlerUtil.ZVERSION, self.Order, consoleplayer));
+		
 		// If this isn't -1 stuff thinks there's stuff going on, 0 is a valid stack index
 		priorityStackIndex = -1;
+
+		// Interactions from players can (more like will) take more than one tick to complete.
+		// This means events will be executed multiple times if there is not a lockout mechanism.
 		ignorePostDuplicate = false;
+
+		// This is the switch that makes QuikClose only react to the Esc key
 		bNiceQuikClose = false;
-		allZObjects = new("ZABST").Init();
-		cursor = new("ZUIEventPacket").Init(0, 0, "", 0, 0, 0, false, false, false);
+
+		// Information about the cursor is stored in a ZUIEventPacket - this is just and empty default
+		cursor = new("ZUIEventPacket").Init(0, 0, "", 0, 0, 0, false, false, false);	
+
+		// The global ZObject array gets manipulated through global events.
+		// This causes event duplicates, so there is a lockout mechanism to eliminate this.
+		ignoreGlobalDuplicates = false;
+		globalDuplicates = 0;
 	}
 	
 	/*
@@ -320,6 +336,8 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_AddWindowToStack,
 		ZNCMD_ControlFullInput,
 		ZNCMD_CallACS,
+		ZNCMD_TakeInventory,
+		ZNCMD_GiveInventory,
 
 		ZNCMD_ControlUpdate,
 		ZNCMD_LetAllPost,
@@ -329,7 +347,8 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_ManualGlobalZObjectCount,
 		ZNCMD_ManualEventGlobalCount,
 		ZNCMD_ManualGlobalNamePrint,
-		ZNCMD_ManualGetTreeBalance,
+
+		ZNCMD_ManualHCF,
 		
 		ZNCMD_TryString,
 	};
@@ -374,6 +393,10 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_ControlFullInput;
 		if (e ~== "zevsys_CallACS")
 			return ZNCMD_CallACS;
+		if (e ~== "zevsys_TakePlayerInventory")
+			return ZNCMD_TakeInventory;
+		if (e ~== "zevsys_GivePlayerInventory")
+			return ZNCMD_GiveInventory;
 		
 		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
@@ -391,8 +414,8 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_ManualEventGlobalCount;
 		if (e ~== "zswin_printallnames")
 			return ZNCMD_ManualGlobalNamePrint;
-		if (e ~== "zswin_gettreebalance")
-			return ZNCMD_ManualGetTreeBalance;
+		if (e ~== "zswin_hcf")
+			return ZNCMD_ManualHCF;
 		// All else fails, try to string process the command
 		else
 			return ZNCMD_TryString;
@@ -464,6 +487,7 @@ class ZEventSystem : ZSHandlerUtil
 	*/
 	override void NetworkProcess(ConsoleEvent e)
 	{
+		//console.printf(string.format("ZEvent System got command string: %s", e.Name));
 		Array<string> cmdc;
 		e.Name.Split(cmdc, "?");		
 		if (cmdc.Size() == 2 ? (cmdc[1].ToInt() == consoleplayer) : false)
@@ -523,10 +547,10 @@ class ZEventSystem : ZSHandlerUtil
 					debugGetEventGlobalCount();
 					break;
 				case ZNCMD_ManualGlobalNamePrint:
-					debugPrintOutEveryName(allZObjects.Root);
+					debugPrintOutEveryName();
 					break;
-				case ZNCMD_ManualGetTreeBalance:
-					debugGetTreeBalance();
+				case ZNCMD_ManualHCF:
+					HaltAndCatchFire("Manual VM abort called.  Um...why?  IDK, you called for it.");
 					break;
 			}
 		}
@@ -571,6 +595,22 @@ class ZEventSystem : ZSHandlerUtil
 									else
 										console.printf("Call to activate script received no script name!");
 									break;
+								case ZNCMD_TakeInventory:
+									if (cmd.Size() == 3)
+									{
+										players[e.Args[0]].mo.SetInventory(cmd[1], e.Args[1]);
+										if (e.Args[2])
+											GetWindowByName(cmd[2]).SetInventory(cmd[1], GetWindowByName(cmd[2]).CountInv(cmd[1]) + e.Args[1]);
+									}
+									else
+										console.Printf("Invalid attempt to take from player inventory!");
+									break;
+								case ZNCMD_GiveInventory:
+									if (cmd.Size() == 2)
+										players[e.Args[0]].mo.SetInventory(cmd[1], e.Args[1]);
+									else
+										console.Printf("Can't give the player nothing!");
+									break;
 							}
 						}
 					}
@@ -583,6 +623,7 @@ class ZEventSystem : ZSHandlerUtil
 		{
 			if (winStack[i].PlayerClient == consoleplayer)
 			{
+				//console.printf(string.format("Sending to window command string: %s", e.Name));
 				if (winStack[i].ZObj_NetProcess(new("ZEventPacket").Init(e.Name, e.Args[0], e.Args[1], e.Args[2], e.Player, e.IsManual)))
 					break;
 			}
@@ -757,27 +798,55 @@ class ZEventSystem : ZSHandlerUtil
 		that object to the incoming objects list.
 		
 	*/
+	private bool ignoreGlobalDuplicates;
+	private int globalDuplicates;
+	private int getNumPlayers()
+	{
+		if (Multiplayer)
+		{
+			int pig = 0;
+			for (int i = 0; i < MAXPLAYERS; i++)
+			{
+				if (PlayerInGame[i])
+					pig++;
+			}
+			return pig;
+		}
+		else
+			return 1;
+	}
+
 	private void addObjectToGlobalObjects(string n)
 	{
-		ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
-		ZObjectBase zobj;
-		bool objIncoming = false;
-		while (zobj = ZObjectBase(zobjFinder.Next()))
+		if (!ignoreGlobalDuplicates)
 		{
-			if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
+			ignoreGlobalDuplicates = true;
+			globalDuplicates++;
+			ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
+			ZObjectBase zobj;
+			bool objIncoming = false;
+			while (zobj = ZObjectBase(zobjFinder.Next()))
 			{
-				incomingZObjects.Push(zobj);
-				return;
+				if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
+				{
+					incomingZObjects.Push(zobj);
+					return;
+				}
+				else if (zobj.Name ~== n ? !GlobalNameIsUnique(allZObjects, zobj.Name) : false)
+				{
+					// Destroy object and debug out invalid name
+					console.printf(string.Format("ZScript Windows enforces unique names for all ZObjects, %s, is taken and object being created has been destroyed.  Sorry.", n));
+					return;
+				}
 			}
-			else if (zobj.Name ~== n ? !GlobalNameIsUnique(allZObjects, zobj.Name) : false)
-			{
-				// Destroy object and debug out invalid name
-				console.printf(string.Format("ZScript Windows enforces unique names for all ZObjects, %s, is taken and object being created has been destroyed.  Sorry.", n));
-				return;
-			}
+			
+			console.printf(string.Format("ERROR! - ZScript Windows did not find object named, %s, to be added to global list!", n));
 		}
-		
-		console.printf(string.Format("ERROR! - ZScript Windows did not find object named, %s, to be added to global list!", n));
+		else
+			globalDuplicates++;
+
+		if (globalDuplicates == getNumPlayers())
+			globalDuplicates = ignoreGlobalDuplicates = false;
 	}
 	
 	/*
@@ -786,7 +855,7 @@ class ZEventSystem : ZSHandlerUtil
 	private void passIncomingToGlobalObjects()
 	{
 		for (int i = 0; i < incomingZObjects.Size(); i++)
-			allZObjects.Insert(incomingZObjects[i], incomingZObjects[i].Name);
+			allZObjects.Push(incomingZObjects[i]);
 		incomingZObjects.Clear();
 	}
 	
@@ -1000,17 +1069,13 @@ class ZEventSystem : ZSHandlerUtil
 	
 	/*
 		This is the second half of deletion.
-		This method removes ZObjects from the global array.
-		
-		Since the global array is not an array but a tree, should just
-		be able to call Delete on the tree and give it the object name.
-		
-		However there is still the need to removing incoming events
+		This method removes ZObjects from the global array
+		and any incoming events.
 	*/
 	private void removeOutgoingFromGlobal(ZObjectBase zobj)
 	{
-		/*array<ZObjectBase> newGlobal;
-		for (int i = 0; i < allZObjects.Count; i++)
+		array<ZObjectBase> newGlobal;
+		for (int i = 0; i < allZObjects.Size(); i++)
 		{
 			bool notOutgoing = true;
 			if (allZObjects[i].Name ~== zobj.Name)
@@ -1057,7 +1122,7 @@ class ZEventSystem : ZSHandlerUtil
 		}
 		
 		allZObjects.Clear();
-		allZObjects.Move(newGlobal);*/
+		allZObjects.Move(newGlobal);
 	}
 	
 	/*
@@ -1071,7 +1136,7 @@ class ZEventSystem : ZSHandlerUtil
 	}
 	
 	/*
-		Checks if the given key is any of the supportted keys for QuikClose.
+		Checks if the given key is any of the supported keys for QuikClose.
 		
 		Future expansion should hopefully support Esc and tilde (~)
 		

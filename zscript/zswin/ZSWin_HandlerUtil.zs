@@ -8,7 +8,7 @@
 class ZSHandlerUtil : EventHandler
 {
 	// This is the ZScript Windows Version
-	const ZVERSION = "0.4.0";
+	const ZVERSION = "0.4.1";
 	
 	/*
 		Returns a value equal to the lowest possible

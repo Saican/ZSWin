@@ -231,7 +231,26 @@ class ZButton : ZControl abstract
 	{ 
 		if (e.MouseX != CursorX || e.MouseY != CursorY)
 			ZNetCommand(string.Format("zbtn_updateCursorLocation,%s", self.Name), self.PlayerClient, e.MouseX, e.MouseY);
+
 		return super.ZObj_UiProcess(e); 
+	}
+
+	enum ZBTNNETCMD
+	{
+		ZBTNCMD_ShowCheckEnabled,
+		ZBTNCMD_UpdateCursorLocation,
+
+		ZBTNCMD_TryString,
+	};
+
+	private ZBTNNETCMD stringToZBtnNetCommand(string e)
+	{
+		if (e ~== "zobj_ShowCheckEnabled")
+			return ZBTNCMD_ShowCheckEnabled;
+		if (e ~== "zbtn_updateCursorLocation")
+			return ZBTNCMD_UpdateCursorLocation;
+		else
+			return ZBTNCMD_TryString;
 	}
 	
 	override bool ZObj_NetProcess(ZEventPacket e) 
@@ -250,10 +269,18 @@ class ZButton : ZControl abstract
 					{
 						Array<string> cmd;
 						cmdc[i].Split(cmd, ",");
-						if (cmd.Size() == 2 ? (cmd[0] ~== "zbtn_updateCursorLocation" && cmd[1] ~== self.Name) : false)
+						if (cmd.Size() >= 2 ? cmd[1] ~== self.Name : false)
 						{
-							CursorX = e.FirstArg;
-							CursorY = e.SecondArg;
+							switch (stringToZBtnNetCommand(cmd[0]))
+							{
+								case ZBTNCMD_UpdateCursorLocation:
+									CursorX = e.FirstArg;
+									CursorY = e.SecondArg;
+									break;
+								default:
+									ZBtn_NetProcess_String(e);
+									break;
+							}
 						}
 					}
 				}
@@ -261,6 +288,45 @@ class ZButton : ZControl abstract
 			else {}
 		}
 		return super.ZObj_NetProcess(e); 
+	}
+
+	private void ZBtn_NetProcess_String(ZEventPacket e)
+	{
+		// Separate the command string from the player number
+		Array<string> cmdPlyr;
+		e.EventName.Split(cmdPlyr, "?");
+		// Check there's two halves and the second half is equal the this object's assigned player
+		if (cmdPlyr.Size() == 2 ? (cmdPlyr[1].ToInt() == self.PlayerClient) : false)
+		{
+			// Split the command string into a command list
+			Array<string> cmdc;
+			cmdPlyr[0].Split(cmdc, ":");
+			// Execute the command ist
+			for (int i = 0; i < cmdc.Size(); i++)
+			{
+				if (cmdc[i] != "")
+				{
+					// Chop up each command into an argument list
+					Array<string> cmd;
+					cmdc[i].Split(cmd, ",");
+					// There's at least something, right? (no argument command)
+					if (cmd.Size() > 0)
+					{
+						// Index 0 of the command should be the command itself
+						switch (stringToZBtnNetCommand(cmd[0]))
+						{
+							case ZBTNCMD_ShowCheckEnabled:
+								if (self.ButtonText)
+								{
+									self.ButtonText.Show = self.Show;
+									self.ButtonText.ShowCheck();
+								}
+								break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	override void ObjectDraw(ZObjectBase parent)
@@ -277,7 +343,8 @@ class ZButton : ZControl abstract
 	
 	ui static float GetButtonAlpha(ZObjectBase parent, ZButton btn)
 	{
-		return ZSWindow(parent).GetFloatAlpha(ZSWindow(parent)) == 0 ? (btn.Enabled ? btn.Alpha : ZSWindow(parent).DISABLEDALPHA) : ZSWindow(parent).GetFloatAlpha(ZSWindow(parent));
+		return GetParentWindow(parent).GetFloatAlpha(GetParentWindow(parent)) == 0 ? (btn.Enabled ? btn.Alpha : GetParentWindow(parent).DISABLEDALPHA) : GetParentWindow(parent).GetFloatAlpha(GetParentWindow(parent));
+		//return ZSWindow(parent).GetFloatAlpha(ZSWindow(parent)) == 0 ? (btn.Enabled ? btn.Alpha : ZSWindow(parent).DISABLEDALPHA) : ZSWindow(parent).GetFloatAlpha(ZSWindow(parent));
 	}
 	
 	ui static void ObjectDraw_Button(ZButton btn)
@@ -630,101 +697,104 @@ class ZButton : ZControl abstract
 	
 	override bool ValidateCursorLocation()
 	{
-		// First we need to figure out where the hell the button is
-		let nwd = GetParentWindow(self.ControlParent);
-		float mx, my;
-		[mx, my] = nwd.MoveDifference();
-		int sw, sh;
-		[sw, sh] = nwd.ScaleDifference();
-		
-		// Get the cursor location and the priority of the parent window
-		int searchPriority;
-		if (nwd.ControlParent)
-			searchPriority = GetParentWindow(self.ControlParent, false).Priority;
-		else
-			searchPriority = nwd.Priority;
-		
-		// Look for higher priority windows
-		for (int i = 0; i < searchPriority; i++)
+		if (self.Enabled)
 		{
-			let enwd = GetWindowByPriority(i);
-			if (enwd)
+			// First we need to figure out where the hell the button is
+			let nwd = GetParentWindow(self.ControlParent);
+			float mx, my;
+			[mx, my] = nwd.MoveDifference();
+			int sw, sh;
+			[sw, sh] = nwd.ScaleDifference();
+			
+			// Get the cursor location and the priority of the parent window
+			int searchPriority;
+			if (nwd.ControlParent)
+				searchPriority = GetParentWindow(self.ControlParent, false).Priority;
+			else
+				searchPriority = nwd.Priority;
+			
+			// Look for higher priority windows
+			for (int i = 0; i < searchPriority; i++)
 			{
-				float enwdX, enwdY;
-				[enwdX, enwdY] = enwd.RealWindowLocation(enwd);
-				int enwdW, enwdH;
-				[enwdW, enwdH] = enwd.RealWindowScale(enwd);
-				if (enwdX < CursorX && CursorX < enwdX + enwdW &&
-					enwdY < CursorY && CursorY < enwdY + enwdH)
-					return false;
-			}
-		}
-		
-		// Look for other controls
-		if (self.Priority > 0)
-		{
-			for (int i = 0; i < self.Priority; i++)
-			{
-				let control = ZObjectBase(nwd.GetControlByPriority(i));
-				float cx = control.xLocation + nwd.moveAccumulateX + mx,
-					cy = control.yLocation + nwd.moveAccumulateY + my;
-				int cw, ch;
-				if (control is "ZControl")
+				let enwd = GetWindowByPriority(i);
+				if (enwd)
 				{
-					cw = control.Width;
-					ch = control.Height;
-					
-					switch (ZControl(control).ScaleType)
+					float enwdX, enwdY;
+					[enwdX, enwdY] = enwd.RealWindowLocation(enwd);
+					int enwdW, enwdH;
+					[enwdW, enwdH] = enwd.RealWindowScale(enwd);
+					if (enwdX < CursorX && CursorX < enwdX + enwdW &&
+						enwdY < CursorY && CursorY < enwdY + enwdH)
+						return false;
+				}
+			}
+			
+			// Look for other controls
+			if (self.Priority > 0)
+			{
+				for (int i = 0; i < self.Priority; i++)
+				{
+					let control = ZObjectBase(nwd.GetControlByPriority(i));
+					float cx = control.xLocation + nwd.moveAccumulateX + mx,
+						cy = control.yLocation + nwd.moveAccumulateY + my;
+					int cw, ch;
+					if (control is "ZControl")
 					{
-						case SCALE_Horizontal:
-							cx += nwd.scaleAccumulateX + sw;
-							break;
-						case SCALE_Vertical:
-							cy += nwd.scaleAccumulateY + sh;
-							break;
-						case SCALE_Both:
-							cx += nwd.scaleAccumulateX + sw;
-							cy += nwd.scaleAccumulateY + sh;
-							break;
-						default:
-							break;
+						cw = control.Width;
+						ch = control.Height;
+						
+						switch (ZControl(control).ScaleType)
+						{
+							case SCALE_Horizontal:
+								cx += nwd.scaleAccumulateX + sw;
+								break;
+							case SCALE_Vertical:
+								cy += nwd.scaleAccumulateY + sh;
+								break;
+							case SCALE_Both:
+								cx += nwd.scaleAccumulateX + sw;
+								cy += nwd.scaleAccumulateY + sh;
+								break;
+							default:
+								break;
+						}
 					}
+					else if (control is "ZSWindow")
+					{
+						[cx, cy] = ZSWindow(control).RealWindowLocation(ZSWindow(control));
+						[cw, ch] = ZSWindow(control).RealWindowScale(ZSWindow(control));
+					}
+					else
+						return false;
+					
+					if (control && 
+						cx < CursorX && CursorX < cx + cw &&
+						cy < CursorY && CursorY < cy + ch)
+						return false;
 				}
-				else if (control is "ZSWindow")
-				{
-					[cx, cy] = ZSWindow(control).RealWindowLocation(ZSWindow(control));
-					[cw, ch] = ZSWindow(control).RealWindowScale(ZSWindow(control));
-				}
-				else
-					return false;
-				
-				if (control && 
-					cx < CursorX && CursorX < cx + cw &&
-					cy < CursorY && CursorY < cy + ch)
-					return false;
 			}
+			
+			// Check this control
+			float tx = self.xLocation + nwd.moveAccumulateX + mx,
+				ty = self.yLocation + nwd.moveAccumulateY + my;
+			switch (self.ScaleType)
+			{
+				case SCALE_Horizontal:
+					tx += nwd.scaleAccumulateX + sw;
+					break;
+				case SCALE_Vertical:
+					ty += nwd.scaleAccumulateY + sh;
+					break;
+				case SCALE_Both:
+					tx += nwd.scaleAccumulateX + sw;
+					ty += nwd.scaleAccumulateY + sh;
+					break;
+				// no need for default
+			}
+			if (tx < CursorX && CursorX < tx + self.Width &&
+				ty < CursorY && CursorY < ty + self.Height)
+				return super.ValidateCursorLocation();
 		}
-		
-		// Check this control
-		float tx = self.xLocation + nwd.moveAccumulateX + mx,
-			ty = self.yLocation + nwd.moveAccumulateY + my;
-		switch (self.ScaleType)
-		{
-			case SCALE_Horizontal:
-				tx += nwd.scaleAccumulateX + sw;
-				break;
-			case SCALE_Vertical:
-				ty += nwd.scaleAccumulateY + sh;
-				break;
-			case SCALE_Both:
-				tx += nwd.scaleAccumulateX + sw;
-				ty += nwd.scaleAccumulateY + sh;
-				break;
-			// no need for default
-		}
-		if (tx < CursorX && CursorX < tx + self.Width &&
-			ty < CursorY && CursorY < ty + self.Height)
-			return super.ValidateCursorLocation();
 		return false;
 	}
 	

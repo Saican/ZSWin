@@ -7,6 +7,9 @@
 
 class ZObjectBase : actor abstract
 {
+	// Simple utility method to check if a string is empty.
+	clearscope static bool IsEmpty(string e) { return (e ~== ""); }
+	
 	enum SCALETYP
 	{
 		SCALE_Horizontal,
@@ -72,12 +75,22 @@ class ZObjectBase : actor abstract
 		based on the value of Show.
 	
 	*/
-	clearscope bool ShowCheck()
+	clearscope bool ShowCheck(bool UICmd = false)
 	{
-		if (!Show)
-			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient);
-		else if (wasEnabled && !Enabled)
-			ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);		
+		if (UICmd)
+		{
+			if (!Show)
+				ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ShowCheckEnabled,%s", self.Name), PlayerClient);
+			else if (wasEnabled && !Enabled)
+				ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);
+		}
+		else
+		{
+			if (!Show)
+				ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient);
+			else if (wasEnabled && !Enabled)
+				ZNetCommand(string.Format("zobj_ShowCheckEnabled,%s", self.Name), PlayerClient, true);		
+		}
 		return Show;
 	}
 	
@@ -301,6 +314,19 @@ class ZObjectBase : actor abstract
 	
 	virtual void OnWheelMouseDown(int t) {}
 	virtual void OnWheelMouseUp(int t) {}
+
+	/*
+	
+		ANY DECORATE/ZSCRIPT - whatever you want to call actor code
+		BEYOND THIS POINT
+
+	
+	*/
+
+	Default
+	{
+		RenderStyle "None";		// This can be changed on an individual or global basis
+	}
 	
 	states
 	{
