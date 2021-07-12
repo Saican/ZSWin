@@ -125,7 +125,7 @@ class ZObjectBase : actor abstract
 		// which allows each player's event system keep track of each ZObject,
 		// including those that do not, but may, correspond to a particular player;
 		// that is to say the event system contains a global list of every ZObject.
-		EventHandler.SendNetworkEvent(string.Format("zevsys_AlertHandlersToNewGlobal,%s", self.Name));
+		ZNetCommand(string.Format("zevsys_AlertHandlersToNewGlobal,%s", self.Name), consoleplayer);
 		return self;
 	}
 	

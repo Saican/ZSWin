@@ -34,6 +34,14 @@ class ZConversation : ZControl
 		inventory.
 	*/
 	bool bTransferToActor;
+
+	/*
+		This is how long the control will wait
+		before changing pages when a choice is made.
+		This is to allow the Yes Message to display.
+	*/
+	int WaitMessageTicks;
+	bool WaitForMessage;
 	
 	// What actually displays the NPC name string
 	ZText NPCName,
@@ -94,6 +102,9 @@ class ZConversation : ZControl
 		self.Height = ControlParent.Height;
 
 		pageNumber = -1;
+
+		WaitMessageTicks = 0;
+		WaitForMessage = false;
 
 		/*
 			NPC Name ZText
@@ -342,14 +353,6 @@ class ZConversation : ZControl
 							// string sent by net command will be "zevsys_TakePlayerInventory,NameOfCurrencyClass,BaseObjectName", with args PlayerClient, CurrencyAmount, Transfer bool
 							// This is a global command since the inventory needs modified in every game
 							for (int i = 0; i < currentPage.GetChoiceByIndex(cindex).GetCostListSize(); i++)
-								/*ZNetCommand(string.Format("zevsys_TakePlayerInventory,%s,%s",
-														currentPage.GetChoiceByIndex(cindex).GetCostByIndex(i).ClassName,
-														GetParentWindow(self.ControlParent, true).Name), 
-													PlayerClient,
-													currentPage.GetChoiceByIndex(cindex).GetCostByIndex(i).Amount,
-													bTransferToActor);
-								
-							ZNetCommand(string.Format("zevsys_GivePlayerInventory,%s", currentPage.GetChoiceByIndex(cindex).GiveClassName), PlayerClient, currentPage.GetChoiceByIndex(cindex).GiveItemCount);*/
 								EventHandler.SendNetworkEvent(string.Format("zevsys_TakePlayerInventory,%s,%s",
 																			currentPage.GetChoiceByIndex(cindex).GetCostByIndex(i).ClassName,
 																			GetParentWindow(self.ControlParent, true).Name),
@@ -376,15 +379,19 @@ class ZConversation : ZControl
 					NPCDialog.Text = currentPage.GetChoiceByIndex(cindex).YesMessage;
 					bSuccess = true;
 				}
+				// We do not have a yes message?  Um ok, failsafe then
+				else
+					NPCDialog.Text = "Uh, ok.";
 
-				// Is there a next page?  There needs to be a way to either wait for or skip the yes message
-				if (bSuccess && !IsEmpty(currentPage.GetChoiceByIndex(cindex).NextPage))
-				{ 
-					for (int i = 0; i < dialogPages.Size(); i++)
-					{
-						if (dialogPages[i].PageName == currentPage.GetChoiceByIndex(cindex).NextPage)
-							displayNextPage(i);
-					}
+				// Is there a next page?  If we aren't waiting for the yes message, change pages
+				if (bSuccess && !currentPage.GetChoiceByIndex(cindex).WaitForMessage && !IsEmpty(currentPage.GetChoiceByIndex(cindex).NextPage))
+					displayNextPage(FindDialogPageNumber(currentPage.GetChoiceByIndex(cindex).NextPage));
+				// We are waiting for the yes message - give the ticker a tick time
+				else if (currentPage.GetChoiceByIndex(cindex).WaitForMessage) // Does not check tick time - if that is 0 the system will just dump to the next page anyway
+				{
+					// PageNumber can be set here - this may not work long term
+					pageNumber = FindDialogPageNumber(currentPage.GetChoiceByIndex(cindex).NextPage);
+					ZNetCommand(string.Format("zconvo_waitForPageTime,%s", self.Name), PlayerClient, currentPage.GetChoiceByIndex(cindex).WaitMessageTicks);
 				}
 				else if (currentPage.GetChoiceByIndex(cindex).CloseDialog)
 				{ /* this needs to close the window but not cause the npc to be deleted */ }
@@ -407,6 +414,17 @@ class ZConversation : ZControl
 			for (int i = 0; i < NUMCHOICES; i++)
 				PlayerChoices[i].bSelfDestroy = true;
 			// dialogPages are an internal data class so they should go with the control
+		}
+
+		if (WaitForMessage)
+		{
+			if (WaitMessageTicks > 0)
+				WaitMessageTicks--;
+			else
+			{
+				ZNetCommand(string.Format("zconvo_changePageTime,%s", self.Name), PlayerClient);
+				WaitForMessage = false;
+			}
 		}
 		
 		super.Tick();
@@ -449,6 +467,26 @@ class ZConversation : ZControl
 			buttons send: zconvo_executeChoice with the FirstArg set to the index of the button
 	
 	*/
+	enum ZDLGNETCMD
+	{
+		ZDLGCMD_WaitPageTime,
+		ZDLGCMD_ChangePageTime,
+		ZDLGCMD_ExecuteChoice,
+		ZDLGCMD_TryString,
+	};
+
+	private ZDLGNETCMD stringToZDialogCommand(string e)
+	{
+		if (e ~== "zconvo_waitForPageTime")
+			return ZDLGCMD_WaitPageTime;
+		if (e ~== "zconvo_changePageTime")
+			return ZDLGCMD_ChangePageTime;
+		if (e ~== "zconvo_executeChoice")
+			return ZDLGCMD_ExecuteChoice;
+		else
+			return ZDLGCMD_TryString;
+	}
+
 	override bool ZObj_NetProcess(ZEventPacket e)
 	{
 		Array<string> cmdPlyr;
@@ -466,8 +504,24 @@ class ZConversation : ZControl
 						Array<string> cmd;
 						cmdc[i].Split(cmd, ",");
 
-						if (cmd.Size() == 2 ? (cmd[0] ~== "zconvo_executeChoice" && cmd[1] ~== self.Name) : false)
-							executeChoice(e.FirstArg);
+						if (cmd.Size() >= 2 ? cmd[1] ~== self.Name : false)
+						{
+							switch (stringToZDialogCommand(cmd[0]))
+							{
+								case ZDLGCMD_WaitPageTime:
+									WaitForMessage = true;
+									WaitMessageTicks = e.FirstArg;
+									break;
+								case ZDLGCMD_ChangePageTime:
+									displayNextPage(pageNumber);
+									break;
+								case ZDLGCMD_ExecuteChoice:
+									executeChoice(e.FirstArg);
+									break;
+								default:
+									break;
+							}
+						}
 					}
 				}
 			}
@@ -809,9 +863,11 @@ class ZChoice : ZConvoBlockBase
 		NoMessage,
 		GiveClassName,
 		NextPage;
-	int GiveItemCount;
+	int GiveItemCount,
+		WaitMessageTicks;
 	bool DisplayCost,
-		CloseDialog;
+		CloseDialog,
+		WaitForMessage;
 		
 	private array<ZCost> CostList;
 	void PushCost(ZCost cost)
@@ -830,6 +886,7 @@ class ZChoice : ZConvoBlockBase
 		string YesMessage = "Thank you!", string NoMessage = "Not happening.", 
 		string GiveClassName = "", int GiveItemCount = 0,
 		string NextPage = "", bool CloseDialog = false,
+		bool WaitForMessage = true, int WaitMessageTicks = 105,
 		ZCost Cost_A = null, ZCost Cost_B = null, ZCost Cost_C = null)
 	{
 		self.Text = Text;
@@ -840,6 +897,8 @@ class ZChoice : ZConvoBlockBase
 		self.GiveItemCount = GiveItemCount;
 		self.NextPage = NextPage;
 		self.CloseDialog = CloseDialog;
+		self.WaitForMessage = WaitForMessage;
+		self.WaitMessageTicks = WaitMessageTicks;
 		if (Cost_A)
 			PushCost(Cost_A);
 		if (Cost_B)
@@ -882,16 +941,16 @@ class ZDialogButton : ZButton
 		// Got a valid click from OnLeftMouseDown
 		if (self.State == BSTATE_Active)
 		{
-			// This sends a net command to the conversation object, giving it the button index as an argument.
-			// The button index should also correspond to the choice in the DialogPage
+			// This sends a net command to the conversation object, giving it a choice index
 			if (self.ControlParent is "ZConversation")
 			{
-				for (int i = 0; i < 5; i++)
+				ZDialogPage currentPage = ZConversation(self.ControlParent).GetDialogPageByIndex(ZConversation(self.ControlParent).GetPageNumber());
+				for (int i = 0; i < currentPage.GetChoiceListSize(); i++)
 				{
-					if (ZConversation(self.ControlParent).PlayerChoices[i] != null ? ZConversation(self.ControlParent).PlayerChoices[i].Name == self.Name : false)
+					if (currentPage.GetChoiceByIndex(i).Text ~== self.ButtonText.Text)
 					{
 						ZNetCommand(string.Format("zconvo_executeChoice,%s", self.ControlParent.Name), self.PlayerClient, i);
-						break;
+						break;						
 					}
 				}
 			}

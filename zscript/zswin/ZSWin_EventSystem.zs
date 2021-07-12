@@ -182,11 +182,6 @@ class ZEventSystem : ZSHandlerUtil
 
 		// Information about the cursor is stored in a ZUIEventPacket - this is just and empty default
 		cursor = new("ZUIEventPacket").Init(0, 0, "", 0, 0, 0, false, false, false);	
-
-		// The global ZObject array gets manipulated through global events.
-		// This causes event duplicates, so there is a lockout mechanism to eliminate this.
-		ignoreGlobalDuplicates = false;
-		globalDuplicates = 0;
 	}
 	
 	/*
@@ -571,12 +566,6 @@ class ZEventSystem : ZSHandlerUtil
 						{
 							switch (stringToZNetworkCommand(cmd[0]))
 							{
-								case ZNCMD_HandlerIncomingGlobal:
-									if (cmd.Size() == 2)
-										addObjectToGlobalObjects(cmd[1]);
-									else
-										console.printf("Invalid attempt to add ZObject to globals!");
-									break;
 								case ZNCMD_SetWindowForDestruction:
 									if (cmd.Size() == 2)
 										setWindowForDestruction(cmd[1]);
@@ -704,6 +693,12 @@ class ZEventSystem : ZSHandlerUtil
 							else
 								console.printf("Post Stack Index did not get a valid window name!");
 							break;
+						case ZNCMD_HandlerIncomingGlobal:
+							if (cmd.Size() == 2)
+								addObjectToGlobalObjects(cmd[1]);
+							else
+								console.printf("Invalid attempt to add ZObject to globals!");
+							break;
 						default:
 							/* debug out if it's on, otherwise this net command probably came from something else */
 							break;
@@ -798,55 +793,26 @@ class ZEventSystem : ZSHandlerUtil
 		that object to the incoming objects list.
 		
 	*/
-	private bool ignoreGlobalDuplicates;
-	private int globalDuplicates;
-	private int getNumPlayers()
-	{
-		if (Multiplayer)
-		{
-			int pig = 0;
-			for (int i = 0; i < MAXPLAYERS; i++)
-			{
-				if (PlayerInGame[i])
-					pig++;
-			}
-			return pig;
-		}
-		else
-			return 1;
-	}
-
 	private void addObjectToGlobalObjects(string n)
 	{
-		if (!ignoreGlobalDuplicates)
+		ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
+		ZObjectBase zobj;
+		while (zobj = ZObjectBase(zobjFinder.Next()))
 		{
-			ignoreGlobalDuplicates = true;
-			globalDuplicates++;
-			ThinkerIterator zobjFinder = ThinkerIterator.Create("ZObjectBase");
-			ZObjectBase zobj;
-			bool objIncoming = false;
-			while (zobj = ZObjectBase(zobjFinder.Next()))
+			if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
 			{
-				if (zobj.Name ~== n ? GlobalNameIsUnique(allZObjects, zobj.Name) : false)
-				{
-					incomingZObjects.Push(zobj);
-					return;
-				}
-				else if (zobj.Name ~== n ? !GlobalNameIsUnique(allZObjects, zobj.Name) : false)
-				{
-					// Destroy object and debug out invalid name
-					console.printf(string.Format("ZScript Windows enforces unique names for all ZObjects, %s, is taken and object being created has been destroyed.  Sorry.", n));
-					return;
-				}
+				incomingZObjects.Push(zobj);
+				return;
 			}
-			
-			console.printf(string.Format("ERROR! - ZScript Windows did not find object named, %s, to be added to global list!", n));
+			else if (zobj.Name ~== n ? !GlobalNameIsUnique(allZObjects, zobj.Name) : false)
+			{
+				// Destroy object and debug out invalid name
+				console.printf(string.Format("ZScript Windows enforces unique names for all ZObjects, %s, is taken and object being created has been destroyed.  Sorry.", n));
+				return;
+			}
 		}
-		else
-			globalDuplicates++;
-
-		if (globalDuplicates == getNumPlayers())
-			globalDuplicates = ignoreGlobalDuplicates = false;
+		
+		console.printf(string.Format("ERROR! - ZScript Windows did not find object named, %s, to be added to global list!", n));
 	}
 	
 	/*

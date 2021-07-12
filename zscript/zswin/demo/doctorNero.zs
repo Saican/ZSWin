@@ -169,8 +169,14 @@ class doctorNero : ZSWindow
 																PlayerChoice_B:new("ZChoice").Init("Not much"),
 																//PlayerChoice_C:,				// ZChoice - USDF Choice block equivalent
 																//PlayerChoice_D:,				// ZChoice - USDF Choice block equivalent
-																PlayerChoice_E:new("ZChoice").Init("[Remain Silent]"),				
+																PlayerChoice_E:new("ZChoice").Init("[Remain Silent]",
+																									NextPage:"dialog_Nero_Sultry",
+																									WaitForMessage:false),				
 																FilterChoices:false));			// Filter Choices - allows for choices to be filtered by game skill
+
+			convo_Nero.AddDialogPage(new("ZDialogPage").Init("dialog_Nero_Sultry",
+																"Hello? I'm Dr. Nero!",
+																Dialog:"Ooo I like the strong silent type :P"));
 
 
 			/*
