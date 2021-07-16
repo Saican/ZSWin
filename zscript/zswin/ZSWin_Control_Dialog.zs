@@ -83,6 +83,12 @@ class ZConversation : ZControl
 	// Get the current page by calling GetDialogPageByIndex(GetPageNumber())
 	ZDialogPage GetDialogPageByIndex(int i) { return i >= 0 && i < dialogPages.Size() ? dialogPages[i] : null; }
 
+	void AddDialogToPage(string dialog, string page, int skill = -1)
+	{
+		if (GetDialogPageByName(page))
+			GetDialogPageByName(page).DialogList.Push(new("ZDialog").Init(dialog, skill));
+	}
+
 	// this is the index of the page currently loaded in dialogPages
 	// this is private so it can be readonly
 	private int pageNumber;
