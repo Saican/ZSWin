@@ -9,6 +9,7 @@
 - [ZSWin_Control_GroupBox](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-03-ZSWin_Control_GroupBox.md) - Control for grouping other controls under a heading
 - [ZSWin_Control_Text](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-04-ZSWin_Control_Text.md) - Control for displaying text
 - [ZSWin_Control_TextBox](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-14-ZSWin_Control_TextBox.md) - Control for text input
+- [ZSWin_Control_Dialog](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-15-ZSWin_Control_Dialog.md) - Conversation control emulating USDF
 - [ZSWin_EventPacket](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-06-ZSWin_EventPacket.md) - Event information packet
 - [ZSWin_EventSystem](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-07-ZSWin_EventSystem.md) - ZScript Windows event handler
 - [ZSWin_HandlerUtil](https://github.com/Saican/ZSWin/blob/master/README/03%20-%20Classes-08-ZSWin_HandlerUtil.md) - Utility class for event handlers
