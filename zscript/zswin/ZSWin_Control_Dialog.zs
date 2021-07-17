@@ -457,7 +457,7 @@ class ZConversation : ZControl
 			just get it dropping items when NPCs die.
 
 		*/
-		if (GetParentWindow(self.ControlParent, false).health <= 0 && !bDead && !IsEmpty(dialogPages[pageNumber].DropClassName))
+		if (self.ControlParent ? (GetParentWindow(self.ControlParent, false) != null ? (GetParentWindow(self.ControlParent, false).health <= 0 && !bDead && !IsEmpty(dialogPages[pageNumber].DropClassName)) : false) : false)
 		{
 			bDead = true;
 			EventHandler.SendNetworkEvent(string.Format("zevsys_SpawnThing,%s,%s", GetParentWindow(self.ControlParent, false).Name, dialogPages[pageNumber].DropClassName), dialogPages[pageNumber].DropAmount);

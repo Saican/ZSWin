@@ -24,7 +24,7 @@ class ZEventSystem : ZSHandlerUtil
 	{
 		for (int i = 0; i < allZObjects.Size(); i++)
 		{
-			if (allZObjects[i].Name ~== n)
+			if (allZObjects[i] != null ? allZObjects[i].Name ~== n : false)
 				return allZObjects[i];
 		}
 
@@ -119,9 +119,13 @@ class ZEventSystem : ZSHandlerUtil
 	
 	private void debugPrintOutEveryName()
 	{
+		console.printf(string.Format("ZEvent System Global Objects size is: %d", allZObjects.Size()));
 		for (int i = 0; i < allZObjects.Size(); i++)
 		{
-			console.printf(string.Format("ZEvent System Gobal Objects, index: %d, is named: %s", i, allZObjects[i].Name));
+			if (allZObjects[i] != null)
+				console.printf(string.Format("ZEvent System Gobal Objects, index: %d, is named: %s", i, allZObjects[i].Name));
+			else
+				console.printf(string.Format("ZEvent System Global Objects, index: %d, is null", i));
 		}
 	}
 	

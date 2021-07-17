@@ -44,7 +44,7 @@ class ZText : ZControl
 		// AddToUITicker will put ControlUpdate and everything else into an event packet
 		// for processing by the UITicker.
 		
-		if (TextWrap != TXTWRAP_NONE)
+		if (TextWrap != TXTWRAP_NONE && !self.bSelfDestroy)
 			ZNetCommand(string.Format("zevsys_AddToUITicker,zobj_ControlUpdate,%s", self.Name), self.PlayerClient);
 		return super.ZObj_UiTick();
 	}

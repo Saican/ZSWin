@@ -226,6 +226,19 @@ class ZButton : ZControl abstract
 				break;
 		}
 	}
+
+	override void Tick()
+	{
+		/*
+			The super handles self-destruction,
+			but the control has to destroy its
+			sub controls.
+		*/
+		if (self.bSelfDestroy && ButtonText != null)
+			ButtonText.bSelfDestroy = true;
+
+		super.Tick();
+	}
 	
 	override bool ZObj_UiProcess(ZUIEventPacket e) 
 	{ 
