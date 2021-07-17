@@ -333,6 +333,7 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_CallACS,
 		ZNCMD_TakeInventory,
 		ZNCMD_GiveInventory,
+		ZNCMD_SpawnThing,
 
 		ZNCMD_ControlUpdate,
 		ZNCMD_LetAllPost,
@@ -392,6 +393,8 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_TakeInventory;
 		if (e ~== "zevsys_GivePlayerInventory")
 			return ZNCMD_GiveInventory;
+		if (e ~== "zevsys_SpawnThing")
+			return ZNCMD_SpawnThing;
 		
 		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
@@ -599,6 +602,15 @@ class ZEventSystem : ZSHandlerUtil
 										players[e.Args[0]].mo.SetInventory(cmd[1], e.Args[1]);
 									else
 										console.Printf("Can't give the player nothing!");
+									break;
+								case ZNCMD_SpawnThing:
+									if (cmd.Size() == 3)
+									{	// e.Args[0] will be the spawn amount
+										for(int i = 0; i < e.Args[0]; i++)
+											GetWindowByName(cmd[1]).A_SpawnItemEx(cmd[2]);
+									}
+									else
+										console.printf("Need a location and a thing to spawn!");
 									break;
 							}
 						}

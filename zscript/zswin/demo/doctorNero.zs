@@ -156,7 +156,7 @@ class doctorNero : ZSWindow
 																//PageLink:"dialog_Page",		// Page link
 																Dialog:"Hey what's up?",		// Dialog - this is a list that can be filtered
 																//DialogChance:0,				// Dialog Chance - this works like a Decorate fail chance.
-																//DropClassName:"Chaingun",		// Drop Class Name - string! Not CoversationID - that's not a thing here!
+																DropClassName:"RocketBox",		// Drop Class Name - string! Not CoversationID - that's not a thing here!
 																//DropAmount:1,					// Drop Amount
 																//CheckItem_A:,					// ZIfItem - USDF IfItem block equivalent
 																//CheckItem_B:,					// ZIfItem - USDF IfItem block equivalent

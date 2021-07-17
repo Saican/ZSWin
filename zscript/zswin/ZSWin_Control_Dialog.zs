@@ -36,6 +36,12 @@ class ZConversation : ZControl
 	bool bTransferToActor;
 
 	/*
+		Set to true if the NPC is dead.
+			- Need to see what resurrection does.
+	*/
+	private bool bDead;
+
+	/*
 		This is how long the control will wait
 		before changing pages when a choice is made.
 		This is to allow the Yes Message to display.
@@ -92,12 +98,14 @@ class ZConversation : ZControl
 	// this is the index of the page currently loaded in dialogPages
 	// this is private so it can be readonly
 	private int pageNumber;
+	private int nextPageNumber;
 	int GetPageNumber() { return pageNumber; }
 	
 	ZConversation Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		bool bTransferToActor = false, bool bDefault_NPCName = false, bool bDefault_NPCDialog = false, bool bDefault_Buttons = false)
 	{
 		self.bTransferToActor = bTransferToActor;
+		self.bDead = false;
 
 		// Sub controls will inherit their locations from their parent, if defaulted
 		// therfore the convo needs to inherit too.
@@ -107,7 +115,7 @@ class ZConversation : ZControl
 		self.Width = ControlParent.Width;
 		self.Height = ControlParent.Height;
 
-		pageNumber = -1;
+		pageNumber = nextPageNumber = -1;
 
 		WaitMessageTicks = 0;
 		WaitForMessage = false;
@@ -396,7 +404,8 @@ class ZConversation : ZControl
 				else if (currentPage.GetChoiceByIndex(cindex).WaitForMessage) // Does not check tick time - if that is 0 the system will just dump to the next page anyway
 				{
 					// PageNumber can be set here - this may not work long term
-					pageNumber = FindDialogPageNumber(currentPage.GetChoiceByIndex(cindex).NextPage);
+					// It did not - introducing nextPageNumber - an index to be used by this mechanic
+					nextPageNumber = FindDialogPageNumber(currentPage.GetChoiceByIndex(cindex).NextPage);
 					ZNetCommand(string.Format("zconvo_waitForPageTime,%s", self.Name), PlayerClient, currentPage.GetChoiceByIndex(cindex).WaitMessageTicks);
 				}
 				else if (currentPage.GetChoiceByIndex(cindex).CloseDialog)
@@ -413,6 +422,11 @@ class ZConversation : ZControl
 	*/
 	override void Tick()
 	{
+		/*
+			The super handles self-destruction,
+			but the control has to destroy its
+			sub controls.
+		*/
 		if (self.bSelfDestroy)
 		{
 			NPCName.bSelfDestroy = true;
@@ -422,6 +436,10 @@ class ZConversation : ZControl
 			// dialogPages are an internal data class so they should go with the control
 		}
 
+		/*
+			Action waiting
+		
+		*/
 		if (WaitForMessage)
 		{
 			if (WaitMessageTicks > 0)
@@ -431,6 +449,27 @@ class ZConversation : ZControl
 				ZNetCommand(string.Format("zconvo_changePageTime,%s", self.Name), PlayerClient);
 				WaitForMessage = false;
 			}
+		}
+
+		/*
+			Parent death and DropItem
+			There can be some creative spawn positioning later,
+			just get it dropping items when NPCs die.
+
+		*/
+		if (GetParentWindow(self.ControlParent, false).health <= 0 && !bDead && !IsEmpty(dialogPages[pageNumber].DropClassName))
+		{
+			bDead = true;
+			EventHandler.SendNetworkEvent(string.Format("zevsys_SpawnThing,%s,%s", GetParentWindow(self.ControlParent, false).Name, dialogPages[pageNumber].DropClassName), dialogPages[pageNumber].DropAmount);
+		}
+		else
+		{
+			/*console.Printf(string.Format("Parent, %s, health is, %d, bDead is %d, and the drop item is: %s, in amount: %d",
+				GetParentWindow(self.ControlParent, false).Name,
+				GetParentWindow(self.ControlParent, false).health,
+				bDead,
+				dialogPages[pageNUmber].DropClassName,
+				dialogPages[pageNumber].DropAmount));*/
 		}
 		
 		super.Tick();
@@ -519,7 +558,8 @@ class ZConversation : ZControl
 									WaitMessageTicks = e.FirstArg;
 									break;
 								case ZDLGCMD_ChangePageTime:
-									displayNextPage(pageNumber);
+									displayNextPage(nextPageNumber);
+									nextPageNumber = -1;
 									break;
 								case ZDLGCMD_ExecuteChoice:
 									executeChoice(e.FirstArg);
