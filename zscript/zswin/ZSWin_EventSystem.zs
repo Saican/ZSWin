@@ -30,6 +30,8 @@ class ZEventSystem : ZSHandlerUtil
 
 		return null;
 	}
+
+	private array<EventDataPacket> eventData;
 	
 	/*
 		Window stack and related components
@@ -337,7 +339,7 @@ class ZEventSystem : ZSHandlerUtil
 		ZNCMD_CallACS,
 		ZNCMD_TakeInventory,
 		ZNCMD_GiveInventory,
-		ZNCMD_SpawnThing,
+		ZNCMD_CreateEventDataPacket,
 
 		ZNCMD_ControlUpdate,
 		ZNCMD_LetAllPost,
@@ -397,8 +399,8 @@ class ZEventSystem : ZSHandlerUtil
 			return ZNCMD_TakeInventory;
 		if (e ~== "zevsys_GivePlayerInventory")
 			return ZNCMD_GiveInventory;
-		if (e ~== "zevsys_SpawnThing")
-			return ZNCMD_SpawnThing;
+		if (e ~== "zevsys_CreateEventDataPacket")
+			return ZNCMD_CreateEventDataPacket;
 		
 		if (e ~== "zobj_ControlUpdate")
 			return ZNCMD_ControlUpdate;
@@ -607,15 +609,6 @@ class ZEventSystem : ZSHandlerUtil
 									else
 										console.Printf("Can't give the player nothing!");
 									break;
-								case ZNCMD_SpawnThing:
-									if (cmd.Size() == 3)
-									{	// e.Args[0] will be the spawn amount
-										for(int i = 0; i < e.Args[0]; i++)
-											GetWindowByName(cmd[1]).A_SpawnItemEx(cmd[2]);
-									}
-									else
-										console.printf("Need a location and a thing to spawn!");
-									break;
 							}
 						}
 					}
@@ -715,6 +708,31 @@ class ZEventSystem : ZSHandlerUtil
 							else
 								console.printf("Invalid attempt to add ZObject to globals!");
 							break;
+						case ZNCMD_CreateEventDataPacket:
+							/*
+								command format is: zevsys_CreateEventDataPacket,data|type,...?consoleplayer
+								Args[0] = event type
+							*/
+							if (cmd.Size() > 1) // Is there more than just the command?
+							{
+								EventDataPacket evdp = new("EventDataPacket").Init(e.Args[0]);
+								if (evdp)
+								{
+									console.printf(string.format("cmd size is %d", cmd.Size()));
+									for (int i = 1; i < cmd.Size(); i++)
+									{
+										array<string> evd;
+										cmd[i].Split(evd, "|");
+										if (evd.Size() == 2) // Theres data, and a type
+											evdp.Nodes.Push(new("DataNode").Init(evd[0], DataNode.stringToDataType(evd[1])));
+									}
+
+									eventData.Push(evdp);
+								}
+							}
+							else
+								console.printf("No data for event data packet!");
+							break;
 						default:
 							/* debug out if it's on, otherwise this net command probably came from something else */
 							break;
@@ -724,6 +742,42 @@ class ZEventSystem : ZSHandlerUtil
 				}
 			}
 		}
+	}
+
+	override void WorldThingDied (WorldEvent e)
+	{
+		console.printf(string.format("something died, have %d event data packets", eventData.Size()));
+		if (e.Thing is "ZSWindow" && eventData.Size() > 0)
+		{
+			console.printf("A Window died");
+			for (int i = 0; i < eventData.Size(); i++)
+			{
+				if (eventData[i].Event == EventDataPacket.EVTYP_WorldThingDied && eventData[i].Nodes.Size() > 0)
+				{	// Should be 2 things - what to drop, and how many
+					string whatToDrop = "";
+					int howMuchToDrop = 0;
+					for (int k = 0; k < eventData[i].Nodes.Size(); k++)
+					{
+						switch(eventData[i].Nodes[k].Type)
+						{
+							case DataNode.DTYPE_int:
+								howMuchToDrop = eventData[i].Nodes[k].Data.ToInt();
+								break;
+							default:	// It's a string
+								whatToDrop = eventData[i].Nodes[k].Data;
+								break;
+						}
+					}	
+					
+					if (whatToDrop != "" && howMuchToDrop > 0)
+					{
+						for (int k = 0; k < howMuchToDrop; k++)
+							e.Thing.A_DropItem(whatToDrop, howMuchToDrop);
+					}
+				}
+			}
+		}
+		super.WorldThingDied(e);
 	}
 	
 	//

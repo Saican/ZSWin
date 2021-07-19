@@ -43,6 +43,12 @@ class doctorNero : ZSWindow
 		
 		return false;
     }
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath)
+	{
+		ZConversation(GetControlByName("DocNeroConversation")).SendDeathEventPacket();
+		super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
 	
 	doctorNero Init(ZObjectBase ControlParent, bool Enabled, bool Show, string Name, int PlayerClient, bool UiToggle,
 		CLIPTYP ClipType = CLIP_NONE, float xLocation = 0, float yLocation = 0, float Alpha = 1)
@@ -156,7 +162,7 @@ class doctorNero : ZSWindow
 																//PageLink:"dialog_Page",		// Page link
 																Dialog:"Hey what's up?",		// Dialog - this is a list that can be filtered
 																//DialogChance:0,				// Dialog Chance - this works like a Decorate fail chance.
-																DropClassName:"RocketBox",		// Drop Class Name - string! Not CoversationID - that's not a thing here!
+																DropClassName:"Chaingun",		// Drop Class Name - string! Not CoversationID - that's not a thing here!
 																//DropAmount:1,					// Drop Amount
 																//CheckItem_A:,					// ZIfItem - USDF IfItem block equivalent
 																//CheckItem_B:,					// ZIfItem - USDF IfItem block equivalent

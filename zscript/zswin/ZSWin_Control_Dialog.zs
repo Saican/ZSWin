@@ -414,6 +414,44 @@ class ZConversation : ZControl
 		}
 	}
 
+	void SendDeathEventPacket()
+	{
+		/*
+			Parent death and DropItem
+			There can be some creative spawn positioning later,
+			just get it dropping items when NPCs die.
+
+		*/
+		if (self.ControlParent ? (GetParentWindow(self.ControlParent, false) != null ? (GetParentWindow(self.ControlParent, false).health <= 0 && !bDead && !IsEmpty(dialogPages[pageNumber].DropClassName)) : false) : false)
+		{
+			bDead = true;
+			/*
+				This command has special formatting, using the | (pipe) character
+				to separate parts of each argument.
+
+				This command creates an EventDataPacket for processing by the WorldThingDied
+				event, which will treat the data as what to tell the NPC to drop and how much.
+
+			*/
+			console.printf("The convo's parent died, creating event data packet for item drop");
+			ZNetCommand(string.Format("zevsys_CreateEventDataPacket,%s|string,%d|int",
+			dialogPages[pageNumber].DropClassName,
+			dialogPages[pageNumber].DropAmount), 
+			consoleplayer, 
+			EventDataPacket.EVTYP_WorldThingDied);
+			//EventHandler.SendNetworkEvent(string.Format("zevsys_SpawnThing,%s,%s", GetParentWindow(self.ControlParent, false).Name, dialogPages[pageNumber].DropClassName), dialogPages[pageNumber].DropAmount);
+		}
+		else
+		{
+			/*console.Printf(string.Format("Parent, %s, health is, %d, bDead is %d, and the drop item is: %s, in amount: %d",
+				GetParentWindow(self.ControlParent, false).Name,
+				GetParentWindow(self.ControlParent, false).health,
+				bDead,
+				dialogPages[pageNUmber].DropClassName,
+				dialogPages[pageNumber].DropAmount));*/
+		}
+	}
+
 
 	/*
 
@@ -450,27 +488,6 @@ class ZConversation : ZControl
 				WaitForMessage = false;
 			}
 		}
-
-		/*
-			Parent death and DropItem
-			There can be some creative spawn positioning later,
-			just get it dropping items when NPCs die.
-
-		*/
-		if (self.ControlParent ? (GetParentWindow(self.ControlParent, false) != null ? (GetParentWindow(self.ControlParent, false).health <= 0 && !bDead && !IsEmpty(dialogPages[pageNumber].DropClassName)) : false) : false)
-		{
-			bDead = true;
-			EventHandler.SendNetworkEvent(string.Format("zevsys_SpawnThing,%s,%s", GetParentWindow(self.ControlParent, false).Name, dialogPages[pageNumber].DropClassName), dialogPages[pageNumber].DropAmount);
-		}
-		else
-		{
-			/*console.Printf(string.Format("Parent, %s, health is, %d, bDead is %d, and the drop item is: %s, in amount: %d",
-				GetParentWindow(self.ControlParent, false).Name,
-				GetParentWindow(self.ControlParent, false).health,
-				bDead,
-				dialogPages[pageNUmber].DropClassName,
-				dialogPages[pageNumber].DropAmount));*/
-		}
 		
 		super.Tick();
 	}
@@ -484,6 +501,7 @@ class ZConversation : ZControl
 	{
 		for (int i = 0; i < NUMCHOICES; i++)
 			PlayerChoices[i].ZObj_UiProcess(e);
+
 		return super.ZObj_UiProcess(e);
 	}
 	

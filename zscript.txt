@@ -7,6 +7,7 @@ version "4.2.1"
 // ZScript Windows Internals
 #include "zscript/zswin/ZSWin_EventSystem.zs"
 #include "zscript/zswin/ZSWin_HandlerUtil.zs"
+#include "zscript/zswin/ZSWin_EventDataPacket.zs"
 #include "zscript/zswin/ZSWin_EventPacket.zs"
 #include "zscript/zswin/ZSWin_UIEventPacket.zs"
 #include "zscript/zswin/ZSWin_TextureUtil.zs"
