@@ -31,7 +31,39 @@ class ZEventSystem : ZSHandlerUtil
 		return null;
 	}
 
+	/*
+		Event Data Packets
+	*/
 	private array<EventDataPacket> eventData;
+	/*
+		This is a direct access method to push an EventDataPacket
+		to the array.
+
+		This works similar to the process in NetProcess, but is
+		without a net command.
+
+		You only use this if you have to AND this must be a global
+		call to all event handlers otherwise you can/will cause desyncs.
+
+	*/
+	void PushEventDataPacket(string fmt_Data, int evtyp)
+	{
+		EventDataPacket evdp = new("EventDataPacket").Init(evtyp);
+		array<string> evdl;
+		fmt_Data.Split(evdl, ",");
+		if (evdp && evdl.Size() > 0)
+		{
+			for (int i = 0; i < evdl.Size(); i++)
+			{
+				array<string> evd;
+				evdl[i].Split(evd, "|");
+				if (evd.Size() == 2)
+					evdp.Nodes.Push(new("DataNode").Init(evd[0], DataNode.stringToDataType(evd[1])));
+			}
+
+			eventData.Push(evdp);
+		}
+	}
 	
 	/*
 		Window stack and related components

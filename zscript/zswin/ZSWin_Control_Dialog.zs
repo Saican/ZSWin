@@ -434,11 +434,12 @@ class ZConversation : ZControl
 
 			*/
 			console.printf("The convo's parent died, creating event data packet for item drop");
-			ZNetCommand(string.Format("zevsys_CreateEventDataPacket,%s|string,%d|int",
+			/*ZNetCommand(string.Format("zevsys_CreateEventDataPacket,%s|string,%d|int",
 			dialogPages[pageNumber].DropClassName,
 			dialogPages[pageNumber].DropAmount), 
 			consoleplayer, 
-			EventDataPacket.EVTYP_WorldThingDied);
+			EventDataPacket.EVTYP_WorldThingDied);*/
+			ZEventSystem(EventHandler.Find("ZEventSystem")).PushEventDataPacket(string.Format("%s|string,%d|int", dialogPages[pageNumber].DropClassName, dialogPages[pageNumber].DropAmount), EventDataPacket.EVTYP_WorldThingDied);
 			//EventHandler.SendNetworkEvent(string.Format("zevsys_SpawnThing,%s,%s", GetParentWindow(self.ControlParent, false).Name, dialogPages[pageNumber].DropClassName), dialogPages[pageNumber].DropAmount);
 		}
 		else
